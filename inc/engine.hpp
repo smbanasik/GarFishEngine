@@ -6,21 +6,42 @@
 #ifndef GF_ENGINE_HPP
 #define GF_ENGINE_HPP
 
-class GLFWWindow;
+#include <stdint.h>
+#include <string>
+
+#include <vulkan/vulkan.h>
+
+// Forward Declares
+class GLFWwindow;
 
 namespace GF {
 class Engine {
 public:
     Engine();
     ~Engine();
+    // Main Loop
     void run();
+
+    Engine& get();
 
 private:
 
-    GLFWWindow* window;
+    GLFWwindow* window = nullptr;
+    uint64_t frame_number = 0;
+    VkExtent2D window_dims = {1700, 900};
+    std::string title = "GarFish Engine";
+    bool is_initialized = false;
+    bool should_render = true;
+    bool should_kill_game = false;
 
-    void init_window(GLFWWindow* window);
+    // Handle window initialization
+    GLFWwindow* init_window(GLFWwindow* window);
+    // Draw loop
+    void draw();
 
+    static Engine* loaded_engine;
+    Engine(const Engine& other) {};
+    Engine& operator=(const Engine& other) {};
 };
 }
 #endif
