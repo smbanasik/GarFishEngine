@@ -4,8 +4,13 @@
 // Description:
 // This serves as the entry point to the engine
 
+#include <engine.hpp>
+
 int main(int argc, char* argv[]) {
     
+    GF::Engine engine;
+
+    engine.run();
 
     
     return 0;

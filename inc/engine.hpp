@@ -5,15 +5,22 @@
 // Structure for engine
 #ifndef GF_ENGINE_HPP
 #define GF_ENGINE_HPP
+
+class GLFWWindow;
+
 namespace GF {
 class Engine {
 public:
     Engine();
     ~Engine();
+    void run();
+
+private:
 
     GLFWWindow* window;
 
-private:
+    void init_window(GLFWWindow* window);
+
 };
 }
 #endif

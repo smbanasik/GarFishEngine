@@ -33,10 +33,36 @@ Required:
 - Extract into the third_party folder
 - That's it!
 
-### Volk
 ### VMA
+- Head to the [VMA github](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/tree/master), then to the include folder, and download `vk_mem_alloc.h`.
+- Create a folder called `vma` in the `third_party` folder.
+- Place your `vk_mem_alloc.h` into the `vma` folder
+
+### VKBootstrap
+- Head to the [VKBootstrap github](https://github.com/charles-lunarg/vk-bootstrap), then src folder, and download all of the files.
+- Create a folder called `vkbootstrap` in the `third_party` folder.
+- Place the files into the `vkbootstrap` folder.
+
 ### GLM
-### ST Image
+- Head to the [glm github](https://github.com/g-truc/glm/tree/master/glm) and download the glm directory.
+- Place the folder into `third_party`
+
+### STB Image
+- Head to the stb github, download
+- Place into `stb_image` folder
 
 ### Assets
-Assets will need to be sourced elsewhere if the code relies on it.
+The `assets` folder is not included in the repository. Engine code that relies on these is likely there 
+for testing purposes and could be safely removed.
+
+## Code Guidelines
+- RAII
+- Only include as needed (forward declaring)
+- Minimize side effects
+- Abstraction!
+- Reduce code duplication
+
+## Code Structure
+
+### Engine Class
+The engine class will serve as the main internal class for the engine. It will store relevant variables for the window and graphics. It is not necessarily the interface for the graphics and text.

@@ -19,4 +19,4 @@ CXX_STANDARD 20)
 
 target_include_directories(garfish PUBLIC "${PROJECT_SOURCE_DIR}/inc")
 
-target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw)
+target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap glm)
