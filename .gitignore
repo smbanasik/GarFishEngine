@@ -1,5 +1,5 @@
-.vcxproj
-.vcxproj.*
+*.vcxproj
+*.vcxproj.*
 
 assets/
 third_party/*
