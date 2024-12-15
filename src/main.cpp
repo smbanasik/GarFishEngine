@@ -1,0 +1,12 @@
+// Spencer Banasik
+// Created: 12/14/2024
+// Last Modified: 12/14/2024
+// Description:
+// This serves as the entry point to the engine
+
+int main(int argc, char* argv[]) {
+    
+
+    
+    return 0;
+}
