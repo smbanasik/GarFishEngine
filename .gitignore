@@ -1,0 +1,10 @@
+.vcxproj
+.vcxproj.*
+
+assets/
+third_party/
+build/
+Debug/
+x64/
+
+# TODO: whitelist cmake files
