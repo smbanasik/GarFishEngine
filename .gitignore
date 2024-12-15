@@ -2,7 +2,7 @@
 .vcxproj.*
 
 assets/
-third_party/
+third_party/*
 build/
 Debug/
 x64/
