@@ -8,7 +8,12 @@
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
 
+GF::GLFWManager* GF::GLFWManager::loaded_glfw = nullptr;
+GF::VkManager* GF::VkManager::loaded_vk = nullptr;
+
 GF::GLFWManager::GLFWManager(VkExtent2D window_dims, const std::string& title) {
+    assert(loaded_glfw == nullptr);
+    loaded_glfw = this;
 
     if (!glfwInit()) {
         std::cout << "| ERROR: glfw failed to init. Aborting";
@@ -30,6 +35,10 @@ GF::GLFWManager::~GLFWManager() {
     glfwTerminate();
 }
 
+GF::GLFWManager& GF::GLFWManager::get() {
+    return *loaded_glfw;
+}
+
 GLFWwindow* GF::GLFWManager::init_window(GLFWwindow* window, VkExtent2D window_dims, const std::string& title) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // TODO: change this later
@@ -39,6 +48,8 @@ GLFWwindow* GF::GLFWManager::init_window(GLFWwindow* window, VkExtent2D window_d
 }
 
 GF::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
+    assert(loaded_vk == nullptr);
+    loaded_vk = this;
 
     init_vulkan(window);
     create_swapchain(width, height);
@@ -55,6 +66,10 @@ GF::VkManager::~VkManager() {
 
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);
+}
+
+GF::VkManager& GF::VkManager::get() {
+    return *loaded_vk;
 }
 
 void GF::VkManager::init_vulkan(GLFWwindow* window) {

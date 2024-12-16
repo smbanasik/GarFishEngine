@@ -22,7 +22,13 @@ public:
 
     GLFWManager(VkExtent2D window_dims, const std::string& title);
     ~GLFWManager();
+
+    GLFWManager& get();
+
 private:
+    static GLFWManager* loaded_glfw;
+    GLFWManager(const GLFWManager& other) = delete;
+    GLFWManager& operator=(const GLFWManager& other) = delete;
     GLFWwindow* init_window(GLFWwindow* window, VkExtent2D window_dims, const std::string& title);
 };
 
@@ -50,7 +56,12 @@ public:
     VkManager(GLFWwindow* window, uint32_t width, uint32_t height);
     ~VkManager();
 
+    VkManager& get();
+
 private:
+    static VkManager* loaded_vk;
+    VkManager(const VkManager& other) = delete;
+    VkManager& operator=(const VkManager& other) = delete;
     void init_vulkan(GLFWwindow* window);
     void create_swapchain(uint32_t width, uint32_t height);
     void destroy_swapchain();
