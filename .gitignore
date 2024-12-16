@@ -2,6 +2,7 @@
 *.vcxproj.*
 *.sln
 
+bin/
 build/
 Debug/
 x64/

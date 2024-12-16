@@ -1,11 +1,14 @@
 set(HEADER_DIR ${PROJECT_SOURCE_DIR}/inc)
 set(HEADERS 
 ${HEADER_DIR}/engine.hpp
+${HEADER_DIR}/engine_types.hpp
+${HEADER_DIR}/engine_managers.hpp
 )
 
 set(SOURCES
 main.cpp
 engine_main.cpp
+engine_managers.cpp
 )
 
 add_executable(garfish

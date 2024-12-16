@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/14/2024
-// Last Modified: 12/14/2024
+// Last Modified: 12/16/2024
 // Description:
 // This file serves as the driver for window creation and the main engine pipeline
 #include <engine.hpp>
@@ -14,57 +14,25 @@
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include <VkBootstrap.h>
 
 GF::Engine* GF::Engine::loaded_engine = nullptr;
 
-GF::Engine::Engine() {
+GF::Engine::Engine() : gl_context(window_dims, title), vk_context(gl_context.window, window_dims.width, window_dims.height) {
 
     assert(loaded_engine == nullptr);
     loaded_engine = this;
-    
-    if (!glfwInit()) {
-
-        std::cout << "| ERROR: Glfw init failed! Aborting...";
-        goto eng_init_error;
-    }
-
-    if ((window = init_window(window)) == nullptr) {
-
-        std::cout << "| ERROR: Window wasn't initialized! Aborting...";
-        goto eng_init_error;
-    }
 
     // TODO: set callbacks for screen resize
     // TODO: cursor position
     // TODO: and mouse scroll
-
-    is_initialized = true;
-    return;
-
-eng_init_error:
-    should_kill_game = true;
-    return;
 }
 
 GF::Engine::~Engine() {
-    
-    glfwDestroyWindow(window);
-    window = nullptr;
-
-    glfwTerminate();
 }
 
 GF::Engine& GF::Engine::get() {
     return *loaded_engine;
-}
-
-GLFWwindow* GF::Engine::init_window(GLFWwindow* window) {
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // TODO: change this later
-    window = glfwCreateWindow(window_dims.width, window_dims.height, title.c_str(), nullptr, nullptr);
-
-    return window;
 }
 
 void GF::Engine::run() {
@@ -81,7 +49,7 @@ void GF::Engine::run() {
         }
 
 
-        should_kill_game = glfwWindowShouldClose(window);
+        should_kill_game = glfwWindowShouldClose(gl_context.window);
     }
 
 }

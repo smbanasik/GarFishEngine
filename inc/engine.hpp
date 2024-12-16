@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/14/2024
-// Last Modified: 12/14/2024
+// Last Modified: 12/15/2024
 // Description:
 // Structure for engine
 #ifndef GF_ENGINE_HPP
@@ -11,8 +11,10 @@
 
 #include <vulkan/vulkan.h>
 
+#include <engine_managers.hpp>
+
 // Forward Declares
-class GLFWwindow;
+struct GLFWwindow;
 
 namespace GF {
 class Engine {
@@ -26,22 +28,20 @@ public:
 
 private:
 
-    GLFWwindow* window = nullptr;
-    uint64_t frame_number = 0;
-    VkExtent2D window_dims = {1700, 900};
+    VkExtent2D window_dims = { 1700, 900 };
     std::string title = "GarFish Engine";
-    bool is_initialized = false;
+    GLFWManager gl_context;
+    VkManager vk_context;
+    uint64_t frame_number = 0;
     bool should_render = true;
     bool should_kill_game = false;
 
-    // Handle window initialization
-    GLFWwindow* init_window(GLFWwindow* window);
     // Draw loop
     void draw();
 
     static Engine* loaded_engine;
-    Engine(const Engine& other) {};
-    Engine& operator=(const Engine& other) {};
+    Engine(const Engine& other) = delete;
+    Engine& operator=(const Engine& other) = delete;
 };
 }
 #endif
