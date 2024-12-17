@@ -64,5 +64,7 @@ for testing purposes and could be safely removed.
 
 ## Code Structure
 
-### Engine Class
-The engine class will serve as the main internal class for the engine. It will store relevant variables for the window and graphics. It is not necessarily the interface for the graphics and text.
+### Names
+- `vk_*` files are low level files that directly act with vulkan. They are not meant to be directly used.
+- `gf_*` files are meant to serve as more interface files?
+- `engine` files are ???

@@ -1,41 +1,22 @@
 // Spencer Banasik
 // Created: 12/16/2024
-// Last Modified: 12/16/2024
+// Last Modified: 12/17/2024
 // Description:
-// Holds global handles for libraries such as GLFW and Vulkan
-#ifndef GF_ENGINE_MANAGERS_HPP
-#define GF_ENGINE_MANAGERS_HPP
+// Handles abstract and low level vulkan concepts
+#ifndef GF_VULKAN_HPP
+#define GF_VULKAN_HPP
 
 #include <vector>
 #include <string>
 #include <stdint.h>
+#include <array>
 
 #include <vulkan/vulkan.h>
-
 struct GLFWwindow;
 
 namespace GF {
-
 constexpr bool DEBUG_USE_VALIDATION = true;
-
-// The GLFWManager owns all GLFW resources and the library
-class GLFWManager {
-public:
-    GLFWwindow* window = nullptr;
-    bool is_init = false;
-
-    GLFWManager(VkExtent2D window_dims, const std::string& title);
-    ~GLFWManager();
-
-    GLFWManager& get();
-
-private:
-    static GLFWManager* loaded_glfw;
-    GLFWManager(const GLFWManager& other) = delete;
-    GLFWManager& operator=(const GLFWManager& other) = delete;
-    GLFWwindow* init_window(GLFWwindow* window, VkExtent2D window_dims, const std::string& title);
-};
-
+constexpr uint8_t FRAME_OVERLAP = 2;
 // Bundle of data for VkManager
 struct SwapChain {
     VkSwapchainKHR swapchain{};
@@ -45,10 +26,18 @@ struct SwapChain {
     VkExtent2D swapchain_extent{};
 };
 
+struct FrameData {
+    VkCommandPool command_pool{};
+    VkCommandBuffer command_buffer{};
+    VkFence render_fence{};
+    VkSemaphore swapchain_semaphore{}, render_semaphore{};
+};
+
 // The VkManager owns all of the abstract vulkan constructs and handles the
 // initialization of the vulkan library
 class VkManager {
 public:
+
     VkInstance instance;
     VkPhysicalDevice gpu;
     VkDevice device;
@@ -57,6 +46,8 @@ public:
     VkQueue graphics_queue;
     uint32_t graphics_queue_family;
     SwapChain swapchain;
+    std::array<FrameData, FRAME_OVERLAP> active_frames;
+
     bool is_init = false;
 
     VkManager(GLFWwindow* window, uint32_t width, uint32_t height);
@@ -71,8 +62,10 @@ private:
     void init_vulkan(GLFWwindow* window);
     void create_swapchain(uint32_t width, uint32_t height);
     void destroy_swapchain();
+    void create_framedata();
+    void destroy_framedata();
+
 };
-
-
 }
+
 #endif

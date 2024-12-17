@@ -14,11 +14,11 @@
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
 
-#include <engine_types.hpp>
+#include <vk_initializers.hpp>
 
 GF::Engine* GF::Engine::loaded_engine = nullptr;
 
-GF::Engine::Engine() : gl_context(window_dims, title), vk_context(gl_context.window, window_dims.width, window_dims.height) {
+GF::Engine::Engine() : gl_context(window_dims.width, window_dims.height, title), vk_context(gl_context.window, window_dims.width, window_dims.height) {
 
     assert(loaded_engine == nullptr);
     loaded_engine = this;
@@ -26,17 +26,9 @@ GF::Engine::Engine() : gl_context(window_dims, title), vk_context(gl_context.win
     // TODO: set callbacks for screen resize
     // TODO: cursor position
     // TODO: and mouse scroll
-
-    init_command_data(vk_context, active_frames);
-    init_synch_data(vk_context, active_frames);
 }
 
 GF::Engine::~Engine() {
-    vkDeviceWaitIdle(vk_context.device);
-
-    for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
-        vkDestroyCommandPool(vk_context.device, (*it).command_pool, nullptr);
-    }
 }
 
 GF::Engine& GF::Engine::get() {

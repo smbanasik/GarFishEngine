@@ -2,14 +2,19 @@ set(HEADER_DIR ${PROJECT_SOURCE_DIR}/inc)
 set(HEADERS 
 ${HEADER_DIR}/engine.hpp
 ${HEADER_DIR}/engine_types.hpp
-${HEADER_DIR}/engine_managers.hpp
+${HEADER_DIR}/gf_window.hpp
+${HEADER_DIR}/gf_vulkan.hpp
 ${HEADER_DIR}/vk_initializers.hpp
+${HEADER_DIR}/vk_images.hpp
 )
 
 set(SOURCES
 main.cpp
 engine_main.cpp
-engine_managers.cpp
+gf_window.cpp
+gf_vulkan.cpp
+vk_initializers.cpp
+vk_images.cpp
 )
 
 add_executable(garfish

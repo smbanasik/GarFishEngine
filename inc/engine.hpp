@@ -12,15 +12,14 @@
 
 #include <vulkan/vulkan.h>
 
-#include <engine_managers.hpp>
+#include <gf_window.hpp>
+#include <gf_vulkan.hpp>
 #include <engine_types.hpp>
 
 // Forward Declares
 struct GLFWwindow;
 
 namespace GF {
-
-constexpr uint8_t FRAME_OVERLAP = 2;
 
 class Engine {
 public:
@@ -30,7 +29,7 @@ public:
     void run();
 
     Engine& get();
-    FrameData& get_current_frame() { return active_frames[frame_number % FRAME_OVERLAP]; }
+    FrameData& get_current_frame() { return vk_context.active_frames[frame_number % FRAME_OVERLAP]; }
     uint64_t get_frame() { return frame_number; }
 
 private:
@@ -45,7 +44,6 @@ private:
     uint64_t frame_number = 0;
     bool should_render = true;
     bool should_kill_game = false;
-    std::array<FrameData, FRAME_OVERLAP> active_frames;
 
     // Draw loop
     void draw();

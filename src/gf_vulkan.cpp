@@ -1,54 +1,19 @@
 // Spencer Banasik
-// Created: 12/16/2024
-// Last Modified: 12/16/2024
-#include <engine_managers.hpp>
+// Created: 12/17/2024
+// Last Modified: 12/17/2024
+#include <gf_vulkan.hpp>
 
 #include <vector>
 #include <iostream>
 
-#define GLFW_INCLUDE_VULKAN
-#include<GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
+#define GLFW_INCLUDE_VULKAN
+#include<GLFW/glfw3.h>
 
-GF::GLFWManager* GF::GLFWManager::loaded_glfw = nullptr;
+#include <vk_initializers.hpp>
+
 GF::VkManager* GF::VkManager::loaded_vk = nullptr;
-
-GF::GLFWManager::GLFWManager(VkExtent2D window_dims, const std::string& title) {
-    assert(loaded_glfw == nullptr);
-    loaded_glfw = this;
-
-    if (!glfwInit()) {
-        std::cout << "| ERROR: glfw failed to init. Aborting";
-        return;
-    }
-
-    if ((window = init_window(window, window_dims, title)) == nullptr) {
-        std::cout << "| ERROR: Window wasn't initialized! Aborting...";
-        return;
-    }
-
-    is_init = true;
-
-}
-GF::GLFWManager::~GLFWManager() {
-    glfwDestroyWindow(window);
-    window = nullptr;
-
-    glfwTerminate();
-}
-
-GF::GLFWManager& GF::GLFWManager::get() {
-    return *loaded_glfw;
-}
-
-GLFWwindow* GF::GLFWManager::init_window(GLFWwindow* window, VkExtent2D window_dims, const std::string& title) {
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // TODO: change this later
-    window = glfwCreateWindow(window_dims.width, window_dims.height, title.c_str(), nullptr, nullptr);
-
-    return window;
-}
 
 GF::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     assert(loaded_vk == nullptr);
@@ -56,17 +21,17 @@ GF::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
 
     init_vulkan(window);
     create_swapchain(width, height);
+    create_framedata();
 
     is_init = true;
 
 }
 GF::VkManager::~VkManager() {
-    
-    destroy_swapchain();
 
+    destroy_framedata();
+    destroy_swapchain();
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyDevice(device, nullptr);
-
     vkb::destroy_debug_utils_messenger(instance, debug_messenger);
     vkDestroyInstance(instance, nullptr);
 }
@@ -145,5 +110,35 @@ void GF::VkManager::destroy_swapchain() {
 
     for (auto it = swapchain.swapchain_image_views.begin(); it != swapchain.swapchain_image_views.end(); it++) {
         vkDestroyImageView(device, *it, nullptr);
+    }
+}
+
+void GF::VkManager::create_framedata() {
+
+    VkCommandPoolCreateInfo pool_info = init_vk_command_pool_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    VkFenceCreateInfo fence_info = init_vk_fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
+    VkSemaphoreCreateInfo semaphore_info = init_vk_semaphore_info();
+
+    for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
+
+        vkCreateCommandPool(device, &pool_info, nullptr, &(*it).command_pool);
+        VkCommandBufferAllocateInfo alloc_info = init_vk_command_allocate_info((*it).command_pool);
+        vkAllocateCommandBuffers(device, &alloc_info, &(*it).command_buffer);
+
+        vkCreateFence(device, &fence_info, nullptr, &(*it).render_fence);
+        vkCreateSemaphore(device, &semaphore_info, nullptr, &(*it).swapchain_semaphore);
+        vkCreateSemaphore(device, &semaphore_info, nullptr, &(*it).render_semaphore);
+    }
+
+}
+
+void GF::VkManager::destroy_framedata() {
+    vkDeviceWaitIdle(device);
+
+    for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
+        vkDestroyCommandPool(device, (*it).command_pool, nullptr);
+        vkDestroyFence(device, (*it).render_fence, nullptr);
+        vkDestroySemaphore(device, (*it).render_semaphore, nullptr);
+        vkDestroySemaphore(device, (*it).swapchain_semaphore, nullptr);
     }
 }
