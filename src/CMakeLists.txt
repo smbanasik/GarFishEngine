@@ -3,6 +3,7 @@ set(HEADERS
 ${HEADER_DIR}/engine.hpp
 ${HEADER_DIR}/engine_types.hpp
 ${HEADER_DIR}/engine_managers.hpp
+${HEADER_DIR}/vk_initializers.hpp
 )
 
 set(SOURCES

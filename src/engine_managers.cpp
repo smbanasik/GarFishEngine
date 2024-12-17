@@ -1,3 +1,6 @@
+// Spencer Banasik
+// Created: 12/16/2024
+// Last Modified: 12/16/2024
 #include <engine_managers.hpp>
 
 #include <vector>
@@ -101,18 +104,21 @@ void GF::VkManager::init_vulkan(GLFWwindow* window) {
     features12.descriptorIndexing = true;
 
     vkb::PhysicalDeviceSelector selector{ vkb_inst };
-    vkb::PhysicalDevice phys_device = selector.set_minimum_version(1, 3)
+    vkb::PhysicalDevice vkb_phys_device = selector.set_minimum_version(1, 3)
         .set_required_features_13(features13)
         .set_required_features_12(features12)
         .set_surface(surface)
         .select()
         .value();
 
-    vkb::DeviceBuilder device_builder{ phys_device };
-    vkb::Device device = device_builder.build().value();
+    vkb::DeviceBuilder device_builder{ vkb_phys_device };
+    vkb::Device vkb_device = device_builder.build().value();
 
-    this->device = device.device;
-    gpu = phys_device.physical_device;
+    device = vkb_device.device;
+    gpu = vkb_phys_device.physical_device;
+
+    graphics_queue = vkb_device.get_queue(vkb::QueueType::graphics).value();
+    graphics_queue_family = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
 }
 
 void GF::VkManager::create_swapchain(uint32_t width, uint32_t height) {

@@ -1,8 +1,6 @@
 // Spencer Banasik
 // Created: 12/14/2024
 // Last Modified: 12/16/2024
-// Description:
-// This file serves as the driver for window creation and the main engine pipeline
 #include <engine.hpp>
 
 #include <stdint.h>
@@ -16,6 +14,8 @@
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
 
+#include <engine_types.hpp>
+
 GF::Engine* GF::Engine::loaded_engine = nullptr;
 
 GF::Engine::Engine() : gl_context(window_dims, title), vk_context(gl_context.window, window_dims.width, window_dims.height) {
@@ -26,9 +26,17 @@ GF::Engine::Engine() : gl_context(window_dims, title), vk_context(gl_context.win
     // TODO: set callbacks for screen resize
     // TODO: cursor position
     // TODO: and mouse scroll
+
+    init_command_data(vk_context, active_frames);
+    init_synch_data(vk_context, active_frames);
 }
 
 GF::Engine::~Engine() {
+    vkDeviceWaitIdle(vk_context.device);
+
+    for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
+        vkDestroyCommandPool(vk_context.device, (*it).command_pool, nullptr);
+    }
 }
 
 GF::Engine& GF::Engine::get() {
@@ -55,5 +63,17 @@ void GF::Engine::run() {
 }
 
 void GF::Engine::draw() {
+
+    vkWaitForFences(vk_context.device, 1, &get_current_frame().render_fence, true, 1000000000);
+    vkResetFences(vk_context.device, 1, &get_current_frame().render_fence);
+
+    uint32_t swapchain_image_idx;
+    vkAcquireNextImageKHR(vk_context.device, vk_context.swapchain.swapchain, 1000000000, get_current_frame().swapchain_semaphore, nullptr, &swapchain_image_idx);
+
+    VkCommandBuffer cmd = get_current_frame().command_buffer;
+    vkResetCommandBuffer(cmd, 0);
+
+    VkCommandBufferBeginInfo cmd_begin_info = init_vk_begin_command(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    vkBeginCommandBuffer(cmd, &cmd_begin_info);
 
 }
