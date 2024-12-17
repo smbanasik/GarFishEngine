@@ -44,3 +44,42 @@ VkCommandBufferBeginInfo GF::init_vk_begin_command(VkCommandBufferUsageFlags fla
     info.flags = flags;
     return info;
 }
+VkImageSubresourceRange GF::init_vk_subresource_range(VkImageAspectFlags flags) {
+    VkImageSubresourceRange range = {};
+    range.aspectMask = flags;
+    range.baseMipLevel = 0;
+    range.levelCount = VK_REMAINING_MIP_LEVELS;
+    range.baseArrayLayer = 0;
+    range.layerCount = VK_REMAINING_ARRAY_LAYERS;
+    return range;
+}
+VkSemaphoreSubmitInfo GF::init_vk_submit_semaphore(VkSemaphore semaphore, VkPipelineStageFlags2 flags) {
+    VkSemaphoreSubmitInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+    info.pNext = nullptr;
+    info.semaphore = semaphore;
+    info.stageMask = flags;
+    info.deviceIndex = 0;
+    info.value = 1;
+    return info;
+}
+VkCommandBufferSubmitInfo GF::init_vk_submit_command(VkCommandBuffer cmd) {
+    VkCommandBufferSubmitInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+    info.pNext = nullptr;
+    info.commandBuffer = cmd;
+    info.deviceMask = 0;
+    return info;
+}
+VkSubmitInfo2 GF::init_vk_submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signal_semaphore, VkSemaphoreSubmitInfo* wait_semaphore) {
+    VkSubmitInfo2 info = {};
+    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+    info.pNext = nullptr;
+    info.waitSemaphoreInfoCount = (wait_semaphore == nullptr) ? 0 : 1;
+    info.pWaitSemaphoreInfos = wait_semaphore;
+    info.signalSemaphoreInfoCount = (signal_semaphore == nullptr) ? 0 : 1;
+    info.pSignalSemaphoreInfos = signal_semaphore;
+    info.commandBufferInfoCount = 1;
+    info.pCommandBufferInfos = cmd;
+    return info;
+}
