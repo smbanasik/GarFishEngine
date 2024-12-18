@@ -6,6 +6,7 @@
 #ifndef GF_ENGINE_TYPES_HPP
 #define GF_ENGINE_TYPES_HPP
 
+#include <vector>
 #include <deque>
 #include <functional>
 
@@ -27,6 +28,25 @@ public:
 
 private:
     std::deque<std::function<void()>> deletors;
+};
+
+template<class T>
+class DeletionAggregate {
+public:
+
+    DeletionAggregate(std::function<void()> func, uint32_t elems = 0) : deletion(func) {
+        aggregate.reserve(elems);
+    };
+    void push_elem(T elem) {
+        aggregate.push_back(elem);
+    }
+    void flush() {
+        deletion();
+    }
+
+private:
+    std::vector<T> aggregate;
+    std::function<void()> deletion;
 };
 }
 #endif
