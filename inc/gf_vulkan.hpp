@@ -48,6 +48,8 @@ public:
 
     VkManager& get();
 
+    void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear);
+
 private:
     static VkManager* loaded_vk;
     DeletionStack global_deletion_stack;

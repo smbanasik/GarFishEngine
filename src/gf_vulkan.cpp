@@ -42,6 +42,11 @@ gf::VkManager& gf::VkManager::get() {
     return *loaded_vk;
 }
 
+void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clear) {
+    VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+    vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
+}
+
 void gf::VkManager::init_vulkan(GLFWwindow* window) {
     vkb::InstanceBuilder builder;
 
