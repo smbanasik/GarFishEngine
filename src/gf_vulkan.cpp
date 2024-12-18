@@ -24,9 +24,9 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     loaded_vk = this;
 
     init_vulkan(window);
+    create_allocator();
     create_swapchain(width, height);
     create_framedata();
-    create_allocator();
 
     is_init = true;
 
@@ -112,12 +112,32 @@ void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
     swapchain.swapchain_images = vkb_swapchain.get_images().value();
     swapchain.swapchain_image_views = vkb_swapchain.get_image_views().value();
 
+    VkExtent3D image_size = { width, height, 1 };
+    drawn_image.image_format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    drawn_image.image_size = image_size;
+    VkImageUsageFlags drawn_image_usage{};
+    drawn_image_usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    drawn_image_usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    drawn_image_usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    drawn_image_usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    VkImageCreateInfo image_info = vk_init::image_info(drawn_image.image_format, image_size, drawn_image_usage);
+    VmaAllocationCreateInfo image_alloc_info = {};
+    image_alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    image_alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    vmaCreateImage(allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation, nullptr);
+    VkImageViewCreateInfo view_info = vk_init::image_view_info(drawn_image.image_format, drawn_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    vkCreateImageView(device, &view_info, nullptr, &drawn_image.image_view);
+
+
     global_deletion_stack.push_function([this]() {
         vkDestroySwapchainKHR(this->device, this->swapchain.swapchain, nullptr);
 
         for (auto it = this->swapchain.swapchain_image_views.begin(); it != this->swapchain.swapchain_image_views.end(); it++) {
             vkDestroyImageView(this->device, *it, nullptr);
         }
+        vkDestroyImageView(this->device, this->drawn_image.image_view, nullptr);
+        vmaDestroyImage(this->allocator, this->drawn_image.image, this->drawn_image.allocation);
         });
 
 }

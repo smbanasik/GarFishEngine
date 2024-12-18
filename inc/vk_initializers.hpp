@@ -21,6 +21,8 @@ VkSemaphoreSubmitInfo submit_semaphore(VkSemaphore semaphore, VkPipelineStageFla
 VkCommandBufferSubmitInfo submit_command(VkCommandBuffer cmd);
 VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signal_semaphore, VkSemaphoreSubmitInfo* wait_semaphore);
 VkPresentInfoKHR present_info(VkSwapchainKHR* swapchain, VkSemaphore* wait_semaphore, uint32_t* image_idx);
+VkImageCreateInfo image_info(VkFormat format, VkExtent3D extent, VkImageUsageFlags flags);
+VkImageViewCreateInfo image_view_info(VkFormat format, VkImage image, VkImageAspectFlags flags);
 }
 }
 #endif

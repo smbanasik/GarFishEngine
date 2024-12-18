@@ -38,6 +38,8 @@ public:
     VmaAllocator allocator;
     SwapChain swapchain;
     std::array<FrameData, FRAME_OVERLAP> active_frames;
+    AllocatedImage drawn_image;
+    VkExtent2D drawn_size;
 
     bool is_init = false;
 
