@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/17/2024
-// Last Modified: 12/17/2024
+// Last Modified: 12/18/2024
 #include <gf_vulkan.hpp>
 
 #include <vector>
@@ -15,6 +15,7 @@
 
 #include <vk_initializers.hpp>
 #include <engine_types.hpp>
+#include <vk_types.hpp>
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 

@@ -15,27 +15,13 @@
 #include <vk_mem_alloc.h>
 
 #include <engine_types.hpp>
+#include <vk_types.hpp>
 
 struct GLFWwindow;
 
 namespace gf {
 constexpr bool DEBUG_USE_VALIDATION = true;
 constexpr uint8_t FRAME_OVERLAP = 2;
-// Bundle of data for VkManager
-struct SwapChain {
-    VkSwapchainKHR swapchain{};
-    VkFormat swapchain_format{};
-    VkExtent2D swapchain_extent{};
-    std::vector<VkImage> swapchain_images;
-    std::vector<VkImageView> swapchain_image_views;
-};
-
-struct FrameData {
-    VkCommandPool command_pool{};
-    VkCommandBuffer command_buffer{};
-    VkFence render_fence{};
-    VkSemaphore swapchain_semaphore{}, render_semaphore{};
-};
 
 // The VkManager owns all of the abstract vulkan constructs and handles the
 // initialization of the vulkan library

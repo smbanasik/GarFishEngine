@@ -6,6 +6,7 @@ ${HEADER_DIR}/gf_window.hpp
 ${HEADER_DIR}/gf_vulkan.hpp
 ${HEADER_DIR}/vk_initializers.hpp
 ${HEADER_DIR}/vk_images.hpp
+${HEADER_DIR}/vk_types.hpp
 )
 
 set(SOURCES

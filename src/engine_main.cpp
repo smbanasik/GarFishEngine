@@ -75,7 +75,7 @@ void gf::Engine::draw() {
     transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     VkClearColorValue screen_color;
     float blue_flash = std::abs(std::sin(frame_number / 120.0f));
-    screen_color = { {0.0f, 0.1f, blue_flash, 1.0f} };
+    screen_color = { {0.0f, blue_flash * 0.5f, blue_flash, 1.0f} };
     VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
     vkCmdClearColorImage(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_GENERAL, &screen_color, 1, &clear_range);
     transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
