@@ -10,8 +10,11 @@
 #include <VkBootstrap.h>
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
 
 #include <vk_initializers.hpp>
+#include <engine_types.hpp>
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
@@ -22,18 +25,16 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     init_vulkan(window);
     create_swapchain(width, height);
     create_framedata();
+    create_allocator();
 
     is_init = true;
 
 }
 gf::VkManager::~VkManager() {
 
-    destroy_framedata();
-    destroy_swapchain();
-    vkDestroySurfaceKHR(instance, surface, nullptr);
-    vkDestroyDevice(device, nullptr);
-    vkb::destroy_debug_utils_messenger(instance, debug_messenger);
-    vkDestroyInstance(instance, nullptr);
+    vkDeviceWaitIdle(device);
+
+    global_deletion_stack.flush();
 }
 
 gf::VkManager& gf::VkManager::get() {
@@ -84,6 +85,13 @@ void gf::VkManager::init_vulkan(GLFWwindow* window) {
 
     graphics_queue = vkb_device.get_queue(vkb::QueueType::graphics).value();
     graphics_queue_family = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
+
+    global_deletion_stack.push_function([this]() {
+        vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
+        vkDestroyDevice(this->device, nullptr);
+        vkb::destroy_debug_utils_messenger(this->instance, this->debug_messenger);
+        vkDestroyInstance(this->instance, nullptr);
+        });
 }
 
 void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
@@ -102,15 +110,15 @@ void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
     swapchain.swapchain = vkb_swapchain.swapchain;
     swapchain.swapchain_images = vkb_swapchain.get_images().value();
     swapchain.swapchain_image_views = vkb_swapchain.get_image_views().value();
-}
 
-void gf::VkManager::destroy_swapchain() {
+    global_deletion_stack.push_function([this]() {
+        vkDestroySwapchainKHR(this->device, this->swapchain.swapchain, nullptr);
 
-    vkDestroySwapchainKHR(device, swapchain.swapchain, nullptr);
+        for (auto it = this->swapchain.swapchain_image_views.begin(); it != this->swapchain.swapchain_image_views.end(); it++) {
+            vkDestroyImageView(this->device, *it, nullptr);
+        }
+        });
 
-    for (auto it = swapchain.swapchain_image_views.begin(); it != swapchain.swapchain_image_views.end(); it++) {
-        vkDestroyImageView(device, *it, nullptr);
-    }
 }
 
 void gf::VkManager::create_framedata() {
@@ -130,15 +138,25 @@ void gf::VkManager::create_framedata() {
         vkCreateSemaphore(device, &semaphore_info, nullptr, &(*it).render_semaphore);
     }
 
+    global_deletion_stack.push_function([this]() {
+        for (auto it = this->active_frames.begin(); it != this->active_frames.end(); it++) {
+            vkDestroyCommandPool(device, (*it).command_pool, nullptr);
+            vkDestroyFence(device, (*it).render_fence, nullptr);
+            vkDestroySemaphore(device, (*it).render_semaphore, nullptr);
+            vkDestroySemaphore(device, (*it).swapchain_semaphore, nullptr);
+        }
+        });
+
 }
 
-void gf::VkManager::destroy_framedata() {
-    vkDeviceWaitIdle(device);
-
-    for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
-        vkDestroyCommandPool(device, (*it).command_pool, nullptr);
-        vkDestroyFence(device, (*it).render_fence, nullptr);
-        vkDestroySemaphore(device, (*it).render_semaphore, nullptr);
-        vkDestroySemaphore(device, (*it).swapchain_semaphore, nullptr);
-    }
+void gf::VkManager::create_allocator() {
+    VmaAllocatorCreateInfo allocator_info = {};
+    allocator_info.physicalDevice = gpu;
+    allocator_info.device = device;
+    allocator_info.instance = instance;
+    allocator_info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+    vmaCreateAllocator(&allocator_info, &allocator);
+    global_deletion_stack.push_function([this]() {
+        vmaDestroyAllocator(this->allocator);
+        });
 }

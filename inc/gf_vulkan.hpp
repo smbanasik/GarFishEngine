@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/16/2024
-// Last Modified: 12/17/2024
+// Last Modified: 12/18/2024
 // Description:
 // Handles abstract and low level vulkan concepts
 #ifndef GF_VULKAN_HPP
@@ -12,6 +12,10 @@
 #include <array>
 
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
+
+#include <engine_types.hpp>
+
 struct GLFWwindow;
 
 namespace gf {
@@ -21,9 +25,9 @@ constexpr uint8_t FRAME_OVERLAP = 2;
 struct SwapChain {
     VkSwapchainKHR swapchain{};
     VkFormat swapchain_format{};
+    VkExtent2D swapchain_extent{};
     std::vector<VkImage> swapchain_images;
     std::vector<VkImageView> swapchain_image_views;
-    VkExtent2D swapchain_extent{};
 };
 
 struct FrameData {
@@ -45,6 +49,7 @@ public:
     VkDebugUtilsMessengerEXT debug_messenger;
     VkQueue graphics_queue;
     uint32_t graphics_queue_family;
+    VmaAllocator allocator;
     SwapChain swapchain;
     std::array<FrameData, FRAME_OVERLAP> active_frames;
 
@@ -57,13 +62,14 @@ public:
 
 private:
     static VkManager* loaded_vk;
+    DeletionStack global_deletion_stack;
+
     VkManager(const VkManager& other) = delete;
     VkManager& operator=(const VkManager& other) = delete;
     void init_vulkan(GLFWwindow* window);
     void create_swapchain(uint32_t width, uint32_t height);
-    void destroy_swapchain();
     void create_framedata();
-    void destroy_framedata();
+    void create_allocator();
 
 };
 }
