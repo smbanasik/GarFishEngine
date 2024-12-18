@@ -13,7 +13,7 @@ struct VkExtent2D;
 #include <stdint.h>
 #include <string>
 
-namespace GF {
+namespace gf {
 // The GLFWManager owns all GLFW resources and the library
 class GLFWManager {
 public:

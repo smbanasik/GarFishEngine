@@ -5,7 +5,8 @@
 
 #include<vulkan/vulkan.h>
 
-VkCommandPoolCreateInfo GF::init_vk_command_pool_info(uint32_t queue_family, VkCommandPoolCreateFlags flags) {
+
+VkCommandPoolCreateInfo gf::vk_init::command_pool_info(uint32_t queue_family, VkCommandPoolCreateFlags flags) {
     VkCommandPoolCreateInfo pool_info = {};
     pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     pool_info.pNext = nullptr;
@@ -13,7 +14,7 @@ VkCommandPoolCreateInfo GF::init_vk_command_pool_info(uint32_t queue_family, VkC
     pool_info.queueFamilyIndex = queue_family;
     return pool_info;
 }
-VkCommandBufferAllocateInfo GF::init_vk_command_allocate_info(VkCommandPool pool) {
+VkCommandBufferAllocateInfo gf::vk_init::command_allocate_info(VkCommandPool pool) {
     VkCommandBufferAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     alloc_info.pNext = nullptr;
@@ -22,21 +23,21 @@ VkCommandBufferAllocateInfo GF::init_vk_command_allocate_info(VkCommandPool pool
     alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     return alloc_info;
 }
-VkFenceCreateInfo GF::init_vk_fence_info(VkFenceCreateFlags flags) {
+VkFenceCreateInfo gf::vk_init::fence_info(VkFenceCreateFlags flags) {
     VkFenceCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = flags;
     return info;
 }
-VkSemaphoreCreateInfo GF::init_vk_semaphore_info(VkSemaphoreCreateFlags flags) {
+VkSemaphoreCreateInfo gf::vk_init::semaphore_info(VkSemaphoreCreateFlags flags) {
     VkSemaphoreCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = flags;
     return info;
 }
-VkCommandBufferBeginInfo GF::init_vk_begin_command(VkCommandBufferUsageFlags flags) {
+VkCommandBufferBeginInfo gf::vk_init::begin_command(VkCommandBufferUsageFlags flags) {
     VkCommandBufferBeginInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     info.pNext = nullptr;
@@ -44,7 +45,7 @@ VkCommandBufferBeginInfo GF::init_vk_begin_command(VkCommandBufferUsageFlags fla
     info.flags = flags;
     return info;
 }
-VkImageSubresourceRange GF::init_vk_subresource_range(VkImageAspectFlags flags) {
+VkImageSubresourceRange gf::vk_init::subresource_range(VkImageAspectFlags flags) {
     VkImageSubresourceRange range = {};
     range.aspectMask = flags;
     range.baseMipLevel = 0;
@@ -53,7 +54,7 @@ VkImageSubresourceRange GF::init_vk_subresource_range(VkImageAspectFlags flags) 
     range.layerCount = VK_REMAINING_ARRAY_LAYERS;
     return range;
 }
-VkSemaphoreSubmitInfo GF::init_vk_submit_semaphore(VkSemaphore semaphore, VkPipelineStageFlags2 flags) {
+VkSemaphoreSubmitInfo gf::vk_init::submit_semaphore(VkSemaphore semaphore, VkPipelineStageFlags2 flags) {
     VkSemaphoreSubmitInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
     info.pNext = nullptr;
@@ -63,7 +64,7 @@ VkSemaphoreSubmitInfo GF::init_vk_submit_semaphore(VkSemaphore semaphore, VkPipe
     info.value = 1;
     return info;
 }
-VkCommandBufferSubmitInfo GF::init_vk_submit_command(VkCommandBuffer cmd) {
+VkCommandBufferSubmitInfo gf::vk_init::submit_command(VkCommandBuffer cmd) {
     VkCommandBufferSubmitInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
     info.pNext = nullptr;
@@ -71,7 +72,7 @@ VkCommandBufferSubmitInfo GF::init_vk_submit_command(VkCommandBuffer cmd) {
     info.deviceMask = 0;
     return info;
 }
-VkSubmitInfo2 GF::init_vk_submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signal_semaphore, VkSemaphoreSubmitInfo* wait_semaphore) {
+VkSubmitInfo2 gf::vk_init::submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signal_semaphore, VkSemaphoreSubmitInfo* wait_semaphore) {
     VkSubmitInfo2 info = {};
     info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
     info.pNext = nullptr;
@@ -82,4 +83,15 @@ VkSubmitInfo2 GF::init_vk_submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphor
     info.commandBufferInfoCount = 1;
     info.pCommandBufferInfos = cmd;
     return info;
+}
+VkPresentInfoKHR gf::vk_init::present_info(VkSwapchainKHR* swapchain, VkSemaphore* wait_semaphore, uint32_t* image_idx) {
+    VkPresentInfoKHR present_info = {};
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.pNext = nullptr;
+    present_info.pSwapchains = swapchain;
+    present_info.swapchainCount = 1;
+    present_info.pWaitSemaphores = wait_semaphore;
+    present_info.waitSemaphoreCount = 1;
+    present_info.pImageIndices = image_idx;
+    return present_info;
 }

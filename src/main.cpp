@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     
-    GF::Engine engine;
+    gf::Engine engine;
 
     engine.run();
 

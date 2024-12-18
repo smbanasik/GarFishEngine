@@ -13,9 +13,9 @@
 
 #include <vk_initializers.hpp>
 
-GF::VkManager* GF::VkManager::loaded_vk = nullptr;
+gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
-GF::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
+gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     assert(loaded_vk == nullptr);
     loaded_vk = this;
 
@@ -26,7 +26,7 @@ GF::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     is_init = true;
 
 }
-GF::VkManager::~VkManager() {
+gf::VkManager::~VkManager() {
 
     destroy_framedata();
     destroy_swapchain();
@@ -36,11 +36,11 @@ GF::VkManager::~VkManager() {
     vkDestroyInstance(instance, nullptr);
 }
 
-GF::VkManager& GF::VkManager::get() {
+gf::VkManager& gf::VkManager::get() {
     return *loaded_vk;
 }
 
-void GF::VkManager::init_vulkan(GLFWwindow* window) {
+void gf::VkManager::init_vulkan(GLFWwindow* window) {
     vkb::InstanceBuilder builder;
 
     auto inst = builder.set_app_name("GarFishEngine")
@@ -86,7 +86,7 @@ void GF::VkManager::init_vulkan(GLFWwindow* window) {
     graphics_queue_family = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
 }
 
-void GF::VkManager::create_swapchain(uint32_t width, uint32_t height) {
+void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
     vkb::SwapchainBuilder swapchain_builder{ gpu, device, surface };
     swapchain.swapchain_format = VK_FORMAT_B8G8R8A8_UNORM;
 
@@ -104,7 +104,7 @@ void GF::VkManager::create_swapchain(uint32_t width, uint32_t height) {
     swapchain.swapchain_image_views = vkb_swapchain.get_image_views().value();
 }
 
-void GF::VkManager::destroy_swapchain() {
+void gf::VkManager::destroy_swapchain() {
 
     vkDestroySwapchainKHR(device, swapchain.swapchain, nullptr);
 
@@ -113,16 +113,16 @@ void GF::VkManager::destroy_swapchain() {
     }
 }
 
-void GF::VkManager::create_framedata() {
+void gf::VkManager::create_framedata() {
 
-    VkCommandPoolCreateInfo pool_info = init_vk_command_pool_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-    VkFenceCreateInfo fence_info = init_vk_fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
-    VkSemaphoreCreateInfo semaphore_info = init_vk_semaphore_info();
+    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    VkFenceCreateInfo fence_info = vk_init::fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
+    VkSemaphoreCreateInfo semaphore_info = vk_init::semaphore_info();
 
     for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
 
         vkCreateCommandPool(device, &pool_info, nullptr, &(*it).command_pool);
-        VkCommandBufferAllocateInfo alloc_info = init_vk_command_allocate_info((*it).command_pool);
+        VkCommandBufferAllocateInfo alloc_info = vk_init::command_allocate_info((*it).command_pool);
         vkAllocateCommandBuffers(device, &alloc_info, &(*it).command_buffer);
 
         vkCreateFence(device, &fence_info, nullptr, &(*it).render_fence);
@@ -132,7 +132,7 @@ void GF::VkManager::create_framedata() {
 
 }
 
-void GF::VkManager::destroy_framedata() {
+void gf::VkManager::destroy_framedata() {
     vkDeviceWaitIdle(device);
 
     for (auto it = active_frames.begin(); it != active_frames.end(); it++) {

@@ -11,9 +11,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
 
-GF::GLFWManager* GF::GLFWManager::loaded_glfw = nullptr;
+gf::GLFWManager* gf::GLFWManager::loaded_glfw = nullptr;
 
-GF::GLFWManager::GLFWManager(uint32_t width, uint32_t height, const std::string& title) {
+gf::GLFWManager::GLFWManager(uint32_t width, uint32_t height, const std::string& title) {
     assert(loaded_glfw == nullptr);
     loaded_glfw = this;
 
@@ -30,18 +30,18 @@ GF::GLFWManager::GLFWManager(uint32_t width, uint32_t height, const std::string&
     is_init = true;
 
 }
-GF::GLFWManager::~GLFWManager() {
+gf::GLFWManager::~GLFWManager() {
     glfwDestroyWindow(window);
     window = nullptr;
 
     glfwTerminate();
 }
 
-GF::GLFWManager& GF::GLFWManager::get() {
+gf::GLFWManager& gf::GLFWManager::get() {
     return *loaded_glfw;
 }
 
-GLFWwindow* GF::GLFWManager::init_window(GLFWwindow* window, uint32_t width, uint32_t height, const std::string& title) {
+GLFWwindow* gf::GLFWManager::init_window(GLFWwindow* window, uint32_t width, uint32_t height, const std::string& title) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // TODO: change this later
     window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);

@@ -9,17 +9,18 @@
 
 #include<vulkan/vulkan.h>
 
-namespace GF {
-
-VkCommandPoolCreateInfo init_vk_command_pool_info(uint32_t queue_family, VkCommandPoolCreateFlags flags = 0);
-VkCommandBufferAllocateInfo init_vk_command_allocate_info(VkCommandPool pool);
-VkFenceCreateInfo init_vk_fence_info(VkFenceCreateFlags flags = 0);
-VkSemaphoreCreateInfo init_vk_semaphore_info(VkSemaphoreCreateFlags flags = 0);
-VkCommandBufferBeginInfo init_vk_begin_command(VkCommandBufferUsageFlags flags = 0);
-VkImageSubresourceRange init_vk_subresource_range(VkImageAspectFlags flags);
-VkSemaphoreSubmitInfo init_vk_submit_semaphore(VkSemaphore semaphore, VkPipelineStageFlags2 flags);
-VkCommandBufferSubmitInfo init_vk_submit_command(VkCommandBuffer cmd);
-VkSubmitInfo2 init_vk_submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signal_semaphore, VkSemaphoreSubmitInfo* wait_semaphore);
-    
+namespace gf {
+namespace vk_init {
+VkCommandPoolCreateInfo command_pool_info(uint32_t queue_family, VkCommandPoolCreateFlags flags = 0);
+VkCommandBufferAllocateInfo command_allocate_info(VkCommandPool pool);
+VkFenceCreateInfo fence_info(VkFenceCreateFlags flags = 0);
+VkSemaphoreCreateInfo semaphore_info(VkSemaphoreCreateFlags flags = 0);
+VkCommandBufferBeginInfo begin_command(VkCommandBufferUsageFlags flags = 0);
+VkImageSubresourceRange subresource_range(VkImageAspectFlags flags);
+VkSemaphoreSubmitInfo submit_semaphore(VkSemaphore semaphore, VkPipelineStageFlags2 flags);
+VkCommandBufferSubmitInfo submit_command(VkCommandBuffer cmd);
+VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signal_semaphore, VkSemaphoreSubmitInfo* wait_semaphore);
+VkPresentInfoKHR present_info(VkSwapchainKHR* swapchain, VkSemaphore* wait_semaphore, uint32_t* image_idx);
+}
 }
 #endif

@@ -8,7 +8,7 @@
 #ifndef VK_IMAGES_HPP
 #define VK_IMAGES_HPP
 #include <vulkan/vulkan.h>
-namespace GF {
+namespace gf {
     
 void transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout);
 }

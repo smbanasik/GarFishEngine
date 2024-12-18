@@ -5,7 +5,7 @@
 
 #include <vk_initializers.hpp>
 
-void GF::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout) {
+void gf::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout) {
     VkImageMemoryBarrier2 image_barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2, .pNext = nullptr };
 
     image_barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
@@ -17,7 +17,7 @@ void GF::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout curr
     image_barrier.newLayout = new_layout;
 
     VkImageAspectFlags aspect_mask = (new_layout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-    image_barrier.subresourceRange = init_vk_subresource_range(aspect_mask);
+    image_barrier.subresourceRange = vk_init::subresource_range(aspect_mask);
     image_barrier.image = image;
 
     VkDependencyInfo dep_info{};

@@ -18,9 +18,9 @@
 #include <vk_initializers.hpp>
 #include <vk_images.hpp>
 
-GF::Engine* GF::Engine::loaded_engine = nullptr;
+gf::Engine* gf::Engine::loaded_engine = nullptr;
 
-GF::Engine::Engine() : gl_context(window_dims.width, window_dims.height, title), vk_context(gl_context.window, window_dims.width, window_dims.height) {
+gf::Engine::Engine() : gl_context(window_dims.width, window_dims.height, title), vk_context(gl_context.window, window_dims.width, window_dims.height) {
 
     assert(loaded_engine == nullptr);
     loaded_engine = this;
@@ -30,14 +30,14 @@ GF::Engine::Engine() : gl_context(window_dims.width, window_dims.height, title),
     // TODO: and mouse scroll
 }
 
-GF::Engine::~Engine() {
+gf::Engine::~Engine() {
 }
 
-GF::Engine& GF::Engine::get() {
+gf::Engine& gf::Engine::get() {
     return *loaded_engine;
 }
 
-void GF::Engine::run() {
+void gf::Engine::run() {
 
     while (should_kill_game == false) {
 
@@ -58,7 +58,7 @@ void GF::Engine::run() {
 
 }
 
-void GF::Engine::draw() {
+void gf::Engine::draw() {
 
     vkWaitForFences(vk_context.device, 1, &get_current_frame().render_fence, true, 1000000000);
     vkResetFences(vk_context.device, 1, &get_current_frame().render_fence);
@@ -69,35 +69,27 @@ void GF::Engine::draw() {
     VkCommandBuffer cmd = get_current_frame().command_buffer;
     vkResetCommandBuffer(cmd, 0);
 
-    VkCommandBufferBeginInfo cmd_begin_info = init_vk_begin_command(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    VkCommandBufferBeginInfo cmd_begin_info = vk_init::begin_command(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     vkBeginCommandBuffer(cmd, &cmd_begin_info);
 
     transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     VkClearColorValue screen_color;
     float blue_flash = std::abs(std::sin(frame_number / 120.0f));
     screen_color = { {0.0f, 0.1f, blue_flash, 1.0f} };
-    VkImageSubresourceRange clear_range = init_vk_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+    VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
     vkCmdClearColorImage(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_GENERAL, &screen_color, 1, &clear_range);
     transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(cmd);
 
-    VkCommandBufferSubmitInfo cmd_info = init_vk_submit_command(cmd);
-    VkSemaphoreSubmitInfo wait_info = init_vk_submit_semaphore(get_current_frame().swapchain_semaphore, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR);
-    VkSemaphoreSubmitInfo signal_info = init_vk_submit_semaphore(get_current_frame().render_semaphore, VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT);
-    VkSubmitInfo2 submit = init_vk_submit_info(&cmd_info, &signal_info, &wait_info);
+    VkCommandBufferSubmitInfo cmd_info = vk_init::submit_command(cmd);
+    VkSemaphoreSubmitInfo wait_info = vk_init::submit_semaphore(get_current_frame().swapchain_semaphore, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR);
+    VkSemaphoreSubmitInfo signal_info = vk_init::submit_semaphore(get_current_frame().render_semaphore, VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT);
+    VkSubmitInfo2 submit = vk_init::submit_info(&cmd_info, &signal_info, &wait_info);
 
     vkQueueSubmit2(vk_context.graphics_queue, 1, &submit, get_current_frame().render_fence);
 
-    // TODO: move this to info function
-    VkPresentInfoKHR present_info = {};
-    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.pNext = nullptr;
-    present_info.pSwapchains = &vk_context.swapchain.swapchain;
-    present_info.swapchainCount = 1;
-    present_info.pWaitSemaphores = &get_current_frame().render_semaphore;
-    present_info.waitSemaphoreCount = 1;
-    present_info.pImageIndices = &swapchain_image_idx;
+    VkPresentInfoKHR present_info = vk_init::present_info(&vk_context.swapchain.swapchain, &get_current_frame().render_semaphore, &swapchain_image_idx);
 
     vkQueuePresentKHR(vk_context.graphics_queue, &present_info);
 

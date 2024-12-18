@@ -6,6 +6,9 @@
 #ifndef GF_ENGINE_TYPES_HPP
 #define GF_ENGINE_TYPES_HPP
 
-namespace GF {
+namespace gf {
+
+// TODO: deletion queue
+
 }
 #endif

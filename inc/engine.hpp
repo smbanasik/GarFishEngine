@@ -19,7 +19,7 @@
 // Forward Declares
 struct GLFWwindow;
 
-namespace GF {
+namespace gf {
 
 class Engine {
 public:
