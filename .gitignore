@@ -1,6 +1,7 @@
 *.vcxproj
 *.vcxproj.*
 *.sln
+*.spv
 
 bin/
 build/
