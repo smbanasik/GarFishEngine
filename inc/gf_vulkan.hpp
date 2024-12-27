@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/16/2024
-// Last Modified: 12/18/2024
+// Last Modified: 12/27/2024
 // Description:
 // Handles abstract and low level vulkan concepts
 #ifndef GF_VULKAN_HPP
@@ -16,6 +16,7 @@
 
 #include <engine_types.hpp>
 #include <vk_types.hpp>
+#include <vk_descriptors.hpp>
 
 struct GLFWwindow;
 
@@ -38,9 +39,13 @@ public:
     VmaAllocator allocator;
     SwapChain swapchain;
     std::array<FrameData, FRAME_OVERLAP> active_frames;
+    DescriptorAllocator global_descriptor_allocator;
+    
     AllocatedImage drawn_image;
     VkExtent2D drawn_size;
-
+    VkDescriptorSet drawn_image_descriptors;
+    VkDescriptorSetLayout drawn_image_descriptor_layout;
+    
     bool is_init = false;
 
     VkManager(GLFWwindow* window, uint32_t width, uint32_t height);
@@ -60,6 +65,7 @@ private:
     void create_swapchain(uint32_t width, uint32_t height);
     void create_framedata();
     void create_allocator();
+    void init_descriptors();
 
 };
 }
