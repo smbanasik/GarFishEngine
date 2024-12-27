@@ -65,6 +65,22 @@ for testing purposes and could be safely removed.
 ## Code Structure
 
 ### Names
-- `vk_*` files are low level files that directly act with vulkan. They are not meant to be directly used.
-- `gf_*` files are meant to serve as more interface files?
-- `engine` files are ???
+- `vk_*` files are low level files that directly act with vulkan. They are not abstracted.
+- `gf_*` files are meant to serve more as interface files, to make utilizing vulkan or other libraries easier.
+- `engine` files are files that build upon the interface files, providing engine functionality.
+
+## Future Plans
+- Base Engine
+    - Low level interface (handle what goes on the screen)
+	- Text interface
+	- Basic UI elements (buttons, boxes)
+- 2D Roguelike backport
+    - Sprite system
+	- Tile system
+	- Sound
+	- Particles
+	- Basic 2D Animations
+- 3D Voxel game
+    - Level of detail and culling
+	- Skeletal animations?
+	- Multiplayer/network functionality

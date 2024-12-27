@@ -7,6 +7,7 @@ ${HEADER_DIR}/gf_vulkan.hpp
 ${HEADER_DIR}/vk_initializers.hpp
 ${HEADER_DIR}/vk_images.hpp
 ${HEADER_DIR}/vk_types.hpp
+${HEADER_DIR}/vk_descriptors.hpp
 )
 
 set(SOURCES
@@ -16,6 +17,7 @@ gf_window.cpp
 gf_vulkan.cpp
 vk_initializers.cpp
 vk_images.cpp
+vk_descriptors.cpp
 )
 
 add_executable(garfish
