@@ -12,6 +12,7 @@ The GarFish engine promises at least the following features:
 - An abstraction of graphical data such as models, materials, and so on
 - A system for storing elements on the screen.
 - General UI elements such as buttons, draggable screens, etc.
+- See more below.
 
 ## Setup
 
@@ -65,22 +66,38 @@ for testing purposes and could be safely removed.
 ## Code Structure
 
 ### Names
-- `vk_*` files are low level files that directly act with vulkan. They are not abstracted.
-- `gf_*` files are meant to serve more as interface files, to make utilizing vulkan or other libraries easier.
-- `engine` files are files that build upon the interface files, providing engine functionality.
+- `vk_*` files are low level files that directly act with vulkan. They are not abstracted and serve as the low level abstractions with vulkan.
+- `gf_*` files are meant to serve more as interface files for a user, to make utilizing vulkan or other libraries easier.
+- `engine_*` files build upon the interface files, providing engine functionality.
 
 ## Future Plans
 - Base Engine
-    - Low level interface (handle what goes on the screen)
+    - Low level interface (given items to display on screen, display them)
 	- Text interface
-	- Basic UI elements (buttons, boxes)
+	- Basic UI elements (buttons, boxes, text boxes)
+	- Asset loading system (models, textures, images, etc.)
+	- Shader system
+	- Higher level interface (scene system, choose what goes on screen)
+	- Multithreading
 - 2D Roguelike backport
     - Sprite system
+	- Basic lighting
 	- Tile system
+	- Turn based gameplay system
 	- Sound
 	- Particles
 	- Basic 2D Animations
+	- LUA scripting
+	- ECS pattern
+	- Additional abstract patterns
+	- Advanced UI elements (draggable screens)
 - 3D Voxel game
+    - Material system
+	- Physics system
+	- Real time gameplay system
+	- Advanced lighting system
     - Level of detail and culling
 	- Skeletal animations?
 	- Multiplayer/network functionality
+- 2D Terraria Clone(?)
+- RTS/RPG Hybrid
