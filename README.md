@@ -17,12 +17,13 @@ The GarFish engine promises at least the following features:
 ## Setup
 
 Required:
-- GLFW
 - Vulkan
-- GLM
-- STB Image
+- GLFW
 - VMA
 - VKbootstrap
+- ImGui
+- GLM
+- STB Image
 
 ### Vulkan
 - Head to the [Vulkan website](https://vulkan.lunarg.com/sdk/home) and download. We're using Vulkan 1.3.296.0, run the installer.
@@ -44,9 +45,18 @@ Required:
 - Create a folder called `vkbootstrap` in the `third_party` folder.
 - Place the files into the `vkbootstrap` folder.
 
+### ImGui
+- Head to the [ImGui github](https://github.com/ocornut/imgui), and download all of the .h and .cpp files on the main folder
+- Go to the backends folder and download:
+    - imgui_impl_glfw (.h/.cpp)
+	- imgui_impl_vulkan (.h/.cpp)
+- Create a folder called `imgui` in the `third_party` folder.
+- Place all of the files into the `imgui` folder.
+
 ### GLM
 - Head to the [glm github](https://github.com/g-truc/glm/tree/master/glm) and download the glm directory.
-- Place the folder into `third_party`
+- Place the folder into `third_party/glm`
+- The final directory should look like: `third_party/glm/glm/...`
 
 ### STB Image
 - Head to the stb github, download
