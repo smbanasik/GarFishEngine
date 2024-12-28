@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
@@ -28,6 +29,7 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     create_swapchain(width, height);
     create_framedata();
     init_descriptors();
+    init_pipelines();
 
     is_init = true;
 
@@ -45,7 +47,10 @@ gf::VkManager& gf::VkManager::get() {
 
 void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clear) {
     VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-    vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
+    //vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout, 0, 1, &drawn_image_descriptors, 0, nullptr);
+    vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
 }
 
 void gf::VkManager::init_vulkan(GLFWwindow* window) {
@@ -223,5 +228,44 @@ void gf::VkManager::init_descriptors() {
     global_deletion_stack.push_function([this]() {
         global_descriptor_allocator.destroy_pool(device);
         vkDestroyDescriptorSetLayout(device, drawn_image_descriptor_layout, nullptr);
+        });
+}
+
+void gf::VkManager::init_pipelines() {
+    init_background_pipelines();
+}
+void gf::VkManager::init_background_pipelines() {
+
+    VkPipelineLayoutCreateInfo compute_layout{};
+    compute_layout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    compute_layout.pNext = nullptr;
+    compute_layout.pSetLayouts = &drawn_image_descriptor_layout;
+    compute_layout.setLayoutCount = 1;
+    vkCreatePipelineLayout(device, &compute_layout, nullptr, &gradient_pipeline_layout);
+
+    VkShaderModule compute_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/gradient.comp.spv", device, &compute_shader))
+        std::cout << "| ERROR: compute shader was not built.\n";
+
+    VkPipelineShaderStageCreateInfo stage_info{};
+    stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stage_info.pNext = nullptr;
+    stage_info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    stage_info.module = compute_shader;
+    stage_info.pName = "main";
+
+    VkComputePipelineCreateInfo compute_create_info{};
+    compute_create_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    compute_create_info.pNext = nullptr;
+    compute_create_info.layout = gradient_pipeline_layout;
+    compute_create_info.stage = stage_info;
+
+    vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &gradient_pipeline);
+
+    vkDestroyShaderModule(device, compute_shader, nullptr);
+
+    global_deletion_stack.push_function([this]() {
+        vkDestroyPipelineLayout(device, gradient_pipeline_layout, nullptr);
+        vkDestroyPipeline(device, gradient_pipeline, nullptr);
         });
 }

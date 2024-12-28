@@ -59,17 +59,20 @@ only one submission is possible at a time.
     - Use when the CPU must wait for the GPU
 
 ### Shaders and Pipelines
-- Shader Module
+- ShaderModule
     - A processed shader file read in from a file. Consumed by pipeline
 - Descriptor Set Layout
     - The layout for a descriptor set
-- Descriptor Pool
+- DescriptorPool
     - Similar to a command pool, allocates descriptors
 	- Resetting a descriptor pool destroys all descriptor sets that it allocated
-- Descriptor Set
+- DescriptorSet
     - Provides data to shaders
-- Descriptor Allocator
+- DescriptorAllocator
     - A personal abstraction made to easily allocate and clear layouts
+- PipelineLayout
+    - A layout for a given pipeline, takes in a descriptor layout
 - Pipeline
+    - A structure describing a full graphics pipeline
 
 ## Engine Abstractions

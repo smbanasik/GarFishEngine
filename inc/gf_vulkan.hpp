@@ -17,6 +17,7 @@
 #include <engine_types.hpp>
 #include <vk_types.hpp>
 #include <vk_descriptors.hpp>
+#include <vk_pipelines.hpp>
 
 struct GLFWwindow;
 
@@ -40,6 +41,8 @@ public:
     SwapChain swapchain;
     std::array<FrameData, FRAME_OVERLAP> active_frames;
     DescriptorAllocator global_descriptor_allocator;
+    VkPipeline gradient_pipeline;
+    VkPipelineLayout gradient_pipeline_layout;
     
     AllocatedImage drawn_image;
     VkExtent2D drawn_size;
@@ -66,6 +69,8 @@ private:
     void create_framedata();
     void create_allocator();
     void init_descriptors();
+    void init_pipelines();
+    void init_background_pipelines();
 
 };
 }

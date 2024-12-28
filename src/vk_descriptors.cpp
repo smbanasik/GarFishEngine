@@ -14,7 +14,7 @@ void gf::DescriptorLayoutBuilder::add_binding(uint32_t location, VkDescriptorTyp
 void gf::DescriptorLayoutBuilder::clear() {
     bindings.clear();
 }
-VkDescriptorSetLayout gf::DescriptorLayoutBuilder::build(VkDevice device, VkShaderStageFlags shader_stages, void* pNext = nullptr, VkDescriptorSetLayoutCreateFlags flags) {
+VkDescriptorSetLayout gf::DescriptorLayoutBuilder::build(VkDevice device, VkShaderStageFlags shader_stages, void* pNext, VkDescriptorSetLayoutCreateFlags flags) {
     for (auto& b : bindings) {
         b.stageFlags |= shader_stages;
     }
