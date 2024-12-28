@@ -89,7 +89,7 @@ void gf::Engine::draw() {
     transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     
     // Action - perform actual commands
-    flash_bg(cmd, vk_context, frame_number);
+    flash_bg(cmd, vk_context, frame_number); // TEMP FUNCTION - hardcoded with drawn image
 
     // Transition and Copy - transition both images to optimal layout and copy image
     transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);

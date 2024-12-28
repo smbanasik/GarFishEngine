@@ -29,14 +29,10 @@ The structures below are needed to do virtually anything in vulkan. These are us
     - A view to the image handle, describing how to access the image and which part to access.
 - Swapchain (Structure)
     - Holds the swapchain, its format and size, and stores the images and image views for the swapchain.
-
-### Synchronization
-- Semaphore
-    - Use to order operations on the GPU. Used to define an order of operations on the GPU.
-	- Signal and Wait semaphores, an operation signals a semaphore, another waits on it.
-	    - Think of it like a linked list, where the semaphores are the connections.
-- Fence
-    - Use when the CPU must wait for the GPU
+- AllocatedImage
+    - An image and its information, along with its allocation
+- Drawn Image
+    - An allocated image that we draw to, then copy over to the swap chain image we wish to submit.
 
 ### Commands
 The structures here are needed to actually submit commands to the GPU. Multithreading is possible with 1 pool and 1 buffer per thread, but
@@ -51,11 +47,29 @@ only one submission is possible at a time.
 	- Queue submission is often the expensive part, recording commands is cheap.
 - FrameData
     - A personal abstraction made to bundle a command pool, command buffer, and synchronization structures together.
+- ActiveFrames
+    - The member variable that contains all of the command and synchronization structures for every swapchain image
+
+### Synchronization
+- Semaphore
+    - Use to order operations on the GPU. Used to define an order of operations on the GPU.
+	- Signal and Wait semaphores, an operation signals a semaphore, another waits on it.
+	    - Think of it like a linked list, where the semaphores are the connections.
+- Fence
+    - Use when the CPU must wait for the GPU
 
 ### Shaders and Pipelines
-- VkShaderModel
+- Shader Module
+    - A processed shader file read in from a file. Consumed by pipeline
+- Descriptor Set Layout
+    - The layout for a descriptor set
+- Descriptor Pool
+    - Similar to a command pool, allocates descriptors
+	- Resetting a descriptor pool destroys all descriptor sets that it allocated
+- Descriptor Set
+    - Provides data to shaders
+- Descriptor Allocator
+    - A personal abstraction made to easily allocate and clear layouts
 - Pipeline
-- Descriptor Sets
-
 
 ## Engine Abstractions
