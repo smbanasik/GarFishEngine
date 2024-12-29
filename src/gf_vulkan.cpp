@@ -52,8 +52,12 @@ gf::VkManager& gf::VkManager::get() {
 void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clear) {
     VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
     //vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline);
+
+    ComputeEffect& effect = background_effects[current_background_effect];
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout, 0, 1, &drawn_image_descriptors, 0, nullptr);
+
+    vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &effect.data);
     vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
 }
 
@@ -245,17 +249,29 @@ void gf::VkManager::init_background_pipelines() {
     compute_layout.pNext = nullptr;
     compute_layout.pSetLayouts = &drawn_image_descriptor_layout;
     compute_layout.setLayoutCount = 1;
+
+    VkPushConstantRange push_constant{};
+    push_constant.offset = 0;
+    push_constant.size = sizeof(ComputePushConstants);
+    push_constant.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+    compute_layout.pPushConstantRanges = &push_constant;
+    compute_layout.pushConstantRangeCount = 1;
+
     vkCreatePipelineLayout(device, &compute_layout, nullptr, &gradient_pipeline_layout);
 
-    VkShaderModule compute_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/gradient.comp.spv", device, &compute_shader))
+    VkShaderModule gradient_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", device, &gradient_shader))
+        std::cout << "| ERROR: compute shader was not built.\n";
+    VkShaderModule sky_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/sky.comp.spv", device, &sky_shader))
         std::cout << "| ERROR: compute shader was not built.\n";
 
     VkPipelineShaderStageCreateInfo stage_info{};
     stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     stage_info.pNext = nullptr;
     stage_info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-    stage_info.module = compute_shader;
+    stage_info.module = gradient_shader;
     stage_info.pName = "main";
 
     VkComputePipelineCreateInfo compute_create_info{};
@@ -264,13 +280,34 @@ void gf::VkManager::init_background_pipelines() {
     compute_create_info.layout = gradient_pipeline_layout;
     compute_create_info.stage = stage_info;
 
-    vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &gradient_pipeline);
+    ComputeEffect gradient;
+    gradient.layout = gradient_pipeline_layout;
+    gradient.name = "gradient";
+    gradient.data = {};
+    gradient.data.data1 = { 1, 0, 0, 1 };
+    gradient.data.data2 = { 0, 0.5, 1, 1 };
 
-    vkDestroyShaderModule(device, compute_shader, nullptr);
+    vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &gradient.pipeline);
 
-    global_deletion_stack.push_function([this]() {
+    compute_create_info.stage.module = sky_shader;
+    ComputeEffect sky;
+    sky.layout = gradient_pipeline_layout;
+    sky.name = "sky";
+    sky.data = {};
+    sky.data.data1 = { 0.1, 0.2, 0.4, 0.97 };
+
+    vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &sky.pipeline);
+
+    background_effects.push_back(gradient);
+    background_effects.push_back(sky);
+
+    vkDestroyShaderModule(device, gradient_shader, nullptr);
+    vkDestroyShaderModule(device, sky_shader, nullptr);
+
+    global_deletion_stack.push_function([=]() {
         vkDestroyPipelineLayout(device, gradient_pipeline_layout, nullptr);
-        vkDestroyPipeline(device, gradient_pipeline, nullptr);
+        vkDestroyPipeline(device, gradient.pipeline, nullptr);
+        vkDestroyPipeline(device, sky.pipeline, nullptr);
         });
 }
 

@@ -19,6 +19,11 @@ The structures below are needed to do virtually anything in vulkan. These are us
 - Device
     - Abstraction of the device, used to interface with the GPU. Must be destroyed.
 
+### General Concepts
+Oftentimes a structure will have an info structure associated with it. Info structures act as a way of capturing all of the information needed 
+for a given object. As an example, a pipeline layout will be created with pipeline layout info, which describes how the layout should be. This 
+layout in turn describes how the actual object should be.
+
 ### Swapchains and Images
 - Swapchain
     - The swapchain is a structure that stores "images" that can be drawn to and presented. Holds a list of images and image-views.
@@ -74,5 +79,7 @@ only one submission is possible at a time.
     - A layout for a given pipeline, takes in a descriptor layout
 - Pipeline
     - A structure describing a full graphics pipeline
+- Push constants
+    - Quick and small data that can be sent to a shader
 
 ## Engine Abstractions

@@ -10,6 +10,8 @@
 #include <deque>
 #include <functional>
 
+#include <glm/vec4.hpp>
+
 namespace gf {
 
 // Stores deletion functions, prefer deleting arrays in loops as opposed to storing callbacks like this
@@ -47,6 +49,20 @@ public:
 private:
     std::vector<T> aggregate;
     std::function<void()> deletion;
+};
+
+struct ComputePushConstants {
+    glm::vec4 data1;
+    glm::vec4 data2;
+    glm::vec4 data3;
+    glm::vec4 data4;
+};
+// For fun!
+struct ComputeEffect {
+    const char* name;
+    VkPipeline pipeline;
+    VkPipelineLayout layout;
+    ComputePushConstants data;
 };
 }
 #endif

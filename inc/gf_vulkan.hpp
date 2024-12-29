@@ -49,6 +49,9 @@ public:
     VkDescriptorSet drawn_image_descriptors;
     VkDescriptorSetLayout drawn_image_descriptor_layout;
     
+    std::vector<ComputeEffect> background_effects; // For fun!
+    int current_background_effect{ 0 }; // For fun!
+
     bool is_init = false;
 
     VkManager(GLFWwindow* window, uint32_t width, uint32_t height);
