@@ -5,10 +5,18 @@ the engine has grown to a point where it would be best to refactor things after 
 This document serves as a reminder for things I would like to do once I get to that point.
 
 ## General
-- Put namespaces around vk files to catogirze them
+In no particular order:
+- Put namespaces around vk files to categorize them
     - vk_types
 	- vk_images
 	- vk_descriptors
+- Actually check for support of things that we need
 - Create a vk core class which contains the instance, device, gpu, and so on. RAII
 - Create an aggregate for pipelines, shaders, and descriptors. RAII
 - Create a full class for the swapchain. RAII
+- Expand pipeline builder functionality
+- Remove compute effects and compute shader items
+- Give RAII to buffers
+- Move upload mesh function out of gf_vulkan
+- Move immediate submit and immediate member variables to its own data structure.
+- Review VkGuide for improvements with some patterns like mesh buffers

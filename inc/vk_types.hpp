@@ -11,6 +11,8 @@
 
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace gf {
 // All swapchain information bundled together
@@ -35,6 +37,33 @@ struct AllocatedImage {
     VmaAllocation allocation;
     VkExtent3D image_size;
     VkFormat image_format;
+};
+// Data for a buffer and it's vma info
+struct AllocatedBuffer {
+    VkBuffer buffer;
+    VmaAllocation allocation;
+    VmaAllocationInfo info;
+};
+// Interleaved to improve performance with alignment (3 vec4s ig)
+struct Vertex {
+    glm::vec3 position;
+    float uv_x;
+    glm::vec3 normal;
+    float uv_y;
+    glm::vec4 color;
+};
+
+// Resources for a full mesh
+struct GPUMeshBuffers {
+    AllocatedBuffer index_buffer;
+    AllocatedBuffer vertex_buffer;
+    VkDeviceAddress vertex_buffer_address;
+};
+
+// Push constants for a mesh
+struct GPUDrawPushConstants {
+    glm::mat4 world_matrix;
+    VkDeviceAddress vertex_buffer;
 };
 }
 #endif

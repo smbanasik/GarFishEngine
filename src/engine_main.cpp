@@ -114,8 +114,12 @@ void gf::Engine::draw() {
     // Action - perform actual commands
     flash_bg(cmd, vk_context, frame_number); // TEMP FUNCTION - hardcoded with drawn image
 
+    transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    vk_context.draw_geometry(cmd);
+
     // Transition and Copy - transition both images to optimal layout and copy image
-    transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     copy_image_to_image(cmd, vk_context.drawn_image.image, vk_context.swapchain.swapchain_images[swapchain_image_idx], vk_context.drawn_size, vk_context.swapchain.swapchain_extent);
 

@@ -148,3 +148,22 @@ VkRenderingInfo gf::vk_init::rendering_info(VkExtent2D render_extent, VkRenderin
     render_info.pStencilAttachment = nullptr;
     return render_info;
 }
+VkPipelineShaderStageCreateInfo gf::vk_init::pipeline_shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry_point) {
+    VkPipelineShaderStageCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.stage = stage;
+    info.module = shaderModule;
+    info.pName = entry_point;
+    return info;
+}
+VkPipelineLayoutCreateInfo gf::vk_init::pipeline_layout_info() {
+    VkPipelineLayoutCreateInfo info{ .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+    info.pNext = nullptr;
+    info.flags = 0;
+    info.setLayoutCount = 0;
+    info.pSetLayouts = nullptr;
+    info.pushConstantRangeCount = 0;
+    info.pPushConstantRanges = nullptr;
+    return info;
+}

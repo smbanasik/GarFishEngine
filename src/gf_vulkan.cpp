@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <cstring>
 
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
@@ -30,7 +31,7 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     init_vulkan(window);
     create_allocator();
     create_swapchain(width, height);
-    create_framedata();
+    init_commands();
     init_descriptors();
     init_pipelines();
     init_imgui(window);
@@ -59,6 +60,32 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
 
     vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &effect.data);
     vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
+}
+
+void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
+    VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, nullptr);
+    vkCmdBeginRendering(cmd, &render_info);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline);
+
+    VkViewport viewport = {};
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.width = drawn_size.width;
+    viewport.height = drawn_size.height;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    VkRect2D scissor = {};
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    scissor.extent.width = drawn_size.width;
+    scissor.extent.height = drawn_size.height;
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+    vkCmdDraw(cmd, 3, 1, 0, 0);
+    vkCmdEndRendering(cmd);
 }
 
 void gf::VkManager::init_vulkan(GLFWwindow* window) {
@@ -161,6 +188,21 @@ void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
 
 }
 
+void gf::VkManager::init_commands() {
+    create_framedata();
+
+    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    vkCreateCommandPool(device, &pool_info, nullptr, &imm_command_pool);
+    VkCommandBufferAllocateInfo cmd_alloc_info = vk_init::command_allocate_info(imm_command_pool);
+    vkAllocateCommandBuffers(device, &cmd_alloc_info, &imm_command_buffer);
+    VkFenceCreateInfo fence_info = vk_init::fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
+    vkCreateFence(device, &fence_info, nullptr, &imm_fence);
+    global_deletion_stack.push_function([this]() {
+        vkDestroyCommandPool(device, imm_command_pool, nullptr);
+        vkDestroyFence(device, imm_fence, nullptr);
+        });
+}
+
 void gf::VkManager::create_framedata() {
 
     VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -241,6 +283,7 @@ void gf::VkManager::init_descriptors() {
 
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
+    init_triangle_pipeline();
 }
 void gf::VkManager::init_background_pipelines() {
 
@@ -311,6 +354,40 @@ void gf::VkManager::init_background_pipelines() {
         });
 }
 
+void gf::VkManager::init_triangle_pipeline() {
+    VkShaderModule tri_vert_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.vert.spv", device, &tri_vert_shader))
+        std::cout << "| ERROR: vertex shader was not built.\n";
+    VkShaderModule tri_frag_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", device, &tri_frag_shader))
+        std::cout << "| ERROR: fragment shader was not built.\n";
+
+    VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
+    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &triangle_pipeline_layout);
+
+    vk_pipe::PipelineBuilder pipe_builder;
+    pipe_builder.pipeline_layout = triangle_pipeline_layout;
+    pipe_builder
+        .set_shaders(tri_vert_shader, tri_frag_shader)
+        .set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+        .set_polygon_mode(VK_POLYGON_MODE_FILL)
+        .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
+        .set_multisampling_none()
+        .disable_blending()
+        .disable_depthtest()
+        .set_color_attachment_format(drawn_image.image_format)
+        .set_depth_format(VK_FORMAT_UNDEFINED);
+    triangle_pipeline = pipe_builder.build_pipeline(device);
+
+    vkDestroyShaderModule(device, tri_vert_shader, nullptr);
+    vkDestroyShaderModule(device, tri_frag_shader, nullptr);
+
+    global_deletion_stack.push_function([this]() {
+        vkDestroyPipelineLayout(device, triangle_pipeline_layout, nullptr);
+        vkDestroyPipeline(device, triangle_pipeline, nullptr);
+    });
+}
+
 // Direct copy and paste, review later
 void gf::VkManager::init_imgui(GLFWwindow* window) {
 
@@ -359,4 +436,78 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
         ImGui_ImplVulkan_Shutdown();
         vkDestroyDescriptorPool(device, imguiPool, nullptr);
         });
+}
+
+gf::AllocatedBuffer gf::VkManager::create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) {
+    VkBufferCreateInfo buffer_info = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+    buffer_info.pNext = nullptr;
+    buffer_info.size = allocation_size;
+    buffer_info.usage = memory_usage;
+
+    VmaAllocationCreateInfo vmaallocInfo = {};
+    vmaallocInfo.usage = memory_usage;
+    vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    AllocatedBuffer new_buffer;
+    vmaCreateBuffer(allocator, &buffer_info, &vmaallocInfo, &new_buffer.buffer, &new_buffer.allocation, &new_buffer.info);
+
+    return new_buffer;
+}
+void gf::VkManager::destroy_buffer(const AllocatedBuffer& buffer) {
+    vmaDestroyBuffer(allocator, buffer.buffer, buffer.allocation);
+}
+gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices) {
+    const size_t index_buffer_size = indices.size() * sizeof(uint32_t);
+    const size_t vertex_buffer_size = vertices.size() * sizeof(Vertex);
+    GPUMeshBuffers new_mesh;
+    new_mesh.vertex_buffer = create_buffer(vertex_buffer_size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+        | VK_BUFFER_USAGE_TRANSFER_DST_BIT
+        | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+        VMA_MEMORY_USAGE_GPU_ONLY);
+
+    new_mesh.index_buffer = create_buffer(index_buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+        | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VMA_MEMORY_USAGE_GPU_ONLY);
+
+    VkBufferDeviceAddressInfo device_address_info{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, .buffer = new_mesh.vertex_buffer.buffer };
+    new_mesh.vertex_buffer_address = vkGetBufferDeviceAddress(device, &device_address_info);
+
+    AllocatedBuffer staging_buffer = create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+    void* data = staging_buffer.allocation->GetMappedData();
+    memcpy(data, vertices.data(), vertex_buffer_size);
+    memcpy((char*)data + vertex_buffer_size, indices.data(), index_buffer_size);
+
+    immediate_submit([&](VkCommandBuffer cmd) {
+        VkBufferCopy vertex_copy{ 0 };
+        vertex_copy.dstOffset = 0;
+        vertex_copy.srcOffset = 0;
+        vertex_copy.size = vertex_buffer_size;
+        vkCmdCopyBuffer(cmd, staging_buffer.buffer, new_mesh.vertex_buffer.buffer, 1, &vertex_copy);
+
+        VkBufferCopy index_copy{ 0 };
+        index_copy.dstOffset = 0;
+        index_copy.srcOffset = vertex_buffer_size;
+        index_copy.size = index_buffer_size;
+        vkCmdCopyBuffer(cmd, staging_buffer.buffer, new_mesh.index_buffer.buffer, 1, &index_copy);
+
+        });
+
+    destroy_buffer(staging_buffer);
+
+    return new_mesh;
+}
+
+void gf::VkManager::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function) {
+    vkResetFences(device, 1, &imm_fence);
+    vkResetCommandBuffer(imm_command_buffer, 0);
+    VkCommandBuffer cmd = imm_command_buffer;
+
+    VkCommandBufferBeginInfo cmd_begin_info = vk_init::begin_command(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    vkBeginCommandBuffer(cmd, &cmd_begin_info);
+    function(cmd);
+    vkEndCommandBuffer(cmd);
+
+    VkCommandBufferSubmitInfo cmd_submit_info = vk_init::submit_command(cmd);
+    VkSubmitInfo2 submit = vk_init::submit_info(&cmd_submit_info, nullptr, nullptr);
+    vkQueueSubmit2(graphics_queue, 1, &submit, imm_fence);
+    vkWaitForFences(device, 1, &imm_fence, true, 1000000000);
 }

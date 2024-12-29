@@ -40,9 +40,15 @@ public:
     VmaAllocator allocator;
     SwapChain swapchain;
     std::array<FrameData, FRAME_OVERLAP> active_frames;
+    VkFence imm_fence;
+    VkCommandBuffer imm_command_buffer;
+    VkCommandPool imm_command_pool;
     DescriptorAllocator global_descriptor_allocator;
+    
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
+    VkPipeline triangle_pipeline;
+    VkPipelineLayout triangle_pipeline_layout;
     
     AllocatedImage drawn_image;
     VkExtent2D drawn_size;
@@ -60,6 +66,7 @@ public:
     VkManager& get();
 
     void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear);
+    void draw_geometry(VkCommandBuffer cmd);
 
 private:
     static VkManager* loaded_vk;
@@ -69,13 +76,18 @@ private:
     VkManager& operator=(const VkManager& other) = delete;
     void init_vulkan(GLFWwindow* window);
     void create_swapchain(uint32_t width, uint32_t height);
+    void init_commands();
     void create_framedata();
     void create_allocator();
     void init_descriptors();
     void init_pipelines();
     void init_background_pipelines();
+    void init_triangle_pipeline();
     void init_imgui(GLFWwindow* window);
-
+    AllocatedBuffer create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage);
+    void destroy_buffer(const AllocatedBuffer& buffer);
+    GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
+    void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 };
 }
 
