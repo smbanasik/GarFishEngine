@@ -23,6 +23,8 @@ VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo*
 VkPresentInfoKHR present_info(VkSwapchainKHR* swapchain, VkSemaphore* wait_semaphore, uint32_t* image_idx);
 VkImageCreateInfo image_info(VkFormat format, VkExtent3D extent, VkImageUsageFlags flags);
 VkImageViewCreateInfo image_view_info(VkFormat format, VkImage image, VkImageAspectFlags flags);
+VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+VkRenderingInfo rendering_info(VkExtent2D render_extent, VkRenderingAttachmentInfo* color_attachment, VkRenderingAttachmentInfo* depth_attachment);
 }
 }
 #endif

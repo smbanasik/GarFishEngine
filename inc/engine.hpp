@@ -47,6 +47,7 @@ private:
 
     // Draw loop
     void draw();
+    void draw_imgui(VkCommandBuffer cmd, VkImageView image_view);
 
     static Engine* loaded_engine;
     Engine(const Engine& other) = delete;

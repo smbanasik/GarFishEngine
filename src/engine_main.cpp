@@ -14,6 +14,9 @@
 #include<GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
 
 #include <gf_vulkan.hpp>
 #include <vk_initializers.hpp>
@@ -50,6 +53,14 @@ void gf::Engine::run() {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
+
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow();
+
+        ImGui::Render();
 
         draw();
 
@@ -96,8 +107,13 @@ void gf::Engine::draw() {
     transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     copy_image_to_image(cmd, vk_context.drawn_image.image, vk_context.swapchain.swapchain_images[swapchain_image_idx], vk_context.drawn_size, vk_context.swapchain.swapchain_extent);
 
+    transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    // Imgui - Draw imgui
+    draw_imgui(cmd, vk_context.swapchain.swapchain_image_views[swapchain_image_idx]);
+
     // Final Transition - transition transition swapchain image to presentation
-    transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     // Submission and presentation - submit buffer, semaphores, and queue, then present
     vkEndCommandBuffer(cmd);
@@ -110,4 +126,14 @@ void gf::Engine::draw() {
     vkQueuePresentKHR(vk_context.graphics_queue, &present_info);
 
     frame_number++;
+}
+void gf::Engine::draw_imgui(VkCommandBuffer cmd, VkImageView target_image_view) {
+    VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(target_image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingInfo render_info = vk_init::rendering_info(vk_context.swapchain.swapchain_extent, &color_attachment, nullptr);
+
+    vkCmdBeginRendering(cmd, &render_info);
+
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+
+    vkCmdEndRendering(cmd);
 }
