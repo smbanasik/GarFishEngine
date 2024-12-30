@@ -48,11 +48,8 @@ public:
     
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
-    VkPipeline triangle_pipeline;
-    VkPipelineLayout triangle_pipeline_layout;
     VkPipeline mesh_pipeline;
     VkPipelineLayout mesh_pipeline_layout;
-    GPUMeshBuffers rectangle;
     std::vector<std::shared_ptr<vk_loader::MeshAsset>> test_meshes;
     
     AllocatedImage drawn_image;
@@ -90,7 +87,6 @@ private:
     void init_descriptors();
     void init_pipelines();
     void init_background_pipelines();
-    void init_triangle_pipeline();
     void init_mesh_pipeline();
     void init_imgui(GLFWwindow* window);
     void init_default_data();

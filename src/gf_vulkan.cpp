@@ -67,11 +67,17 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
 }
 
 void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
+    glm::mat4 view = glm::translate(glm::mat4(1.f), glm::vec3{ 0, 0, -5 });
+    glm::mat4 projection = glm::perspective(glm::radians(70.f), static_cast<float>(drawn_size.width) / static_cast<float>(drawn_size.height), 10000.f, 0.1f);
+    projection[1][1] *= -1;
+
     VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingAttachmentInfo depth_attachment = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
     VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
     vkCmdBeginRendering(cmd, &render_info);
 
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline);
+    
     VkViewport viewport = {};
     viewport.x = 0;
     viewport.y = 0;
@@ -87,24 +93,11 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
     scissor.extent.width = drawn_size.width;
     scissor.extent.height = drawn_size.height;
     vkCmdSetScissor(cmd, 0, 1, &scissor);
-
-    glm::mat4 view = glm::translate(glm::mat4(1.f), glm::vec3{ 0, 0, -5 });
-    glm::mat4 projection = glm::perspective(glm::radians(70.f), static_cast<float>(drawn_size.width) / static_cast<float>(drawn_size.height), 10000.f, 0.1f);
-    projection[1][1] *= -1;
-
-    //vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline);
-    //vkCmdDraw(cmd, 3, 1, 0, 0);
-
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline);
+    
     GPUDrawPushConstants p_constants;
     p_constants.world_matrix = projection * view;
-    p_constants.vertex_buffer = rectangle.vertex_buffer_address;
-    
-    //vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
-    //vkCmdBindIndexBuffer(cmd, rectangle.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-    //vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0);
-    
     p_constants.vertex_buffer = test_meshes[2]->mesh_buffers.vertex_buffer_address;
+
     vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
     vkCmdBindIndexBuffer(cmd, test_meshes[2]->mesh_buffers.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
     vkCmdDrawIndexed(cmd, test_meshes[2]->surfaces[0].count, 1, test_meshes[2]->surfaces[0].start_idx, 0, 0);
@@ -318,7 +311,6 @@ void gf::VkManager::init_descriptors() {
 
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
-    init_triangle_pipeline();
     init_mesh_pipeline();
 }
 void gf::VkManager::init_background_pipelines() {
@@ -388,40 +380,6 @@ void gf::VkManager::init_background_pipelines() {
         vkDestroyPipeline(device, gradient.pipeline, nullptr);
         vkDestroyPipeline(device, sky.pipeline, nullptr);
         });
-}
-
-void gf::VkManager::init_triangle_pipeline() {
-    VkShaderModule tri_vert_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.vert.spv", device, &tri_vert_shader))
-        std::cout << "| ERROR: vertex shader was not built.\n";
-    VkShaderModule tri_frag_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", device, &tri_frag_shader))
-        std::cout << "| ERROR: fragment shader was not built.\n";
-
-    VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
-    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &triangle_pipeline_layout);
-
-    vk_pipe::PipelineBuilder pipe_builder;
-    pipe_builder.pipeline_layout = triangle_pipeline_layout;
-    pipe_builder
-        .set_shaders(tri_vert_shader, tri_frag_shader)
-        .set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-        .set_polygon_mode(VK_POLYGON_MODE_FILL)
-        .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
-        .set_multisampling_none()
-        .disable_blending()
-        .disable_depthtest()
-        .set_color_attachment_format(drawn_image.image_format)
-        .set_depth_format(depth_image.image_format);
-    triangle_pipeline = pipe_builder.build_pipeline(device);
-
-    vkDestroyShaderModule(device, tri_vert_shader, nullptr);
-    vkDestroyShaderModule(device, tri_frag_shader, nullptr);
-
-    global_deletion_stack.push_function([this]() {
-        vkDestroyPipelineLayout(device, triangle_pipeline_layout, nullptr);
-        vkDestroyPipeline(device, triangle_pipeline, nullptr);
-    });
 }
 
 void gf::VkManager::init_mesh_pipeline() {
@@ -517,36 +475,10 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
 }
 
 void gf::VkManager::init_default_data() {
-    std::array<Vertex, 4> rect_vertices;
-
-    rect_vertices[0].position = { 0.5,-0.5, 0 };
-    rect_vertices[1].position = { 0.5,0.5, 0 };
-    rect_vertices[2].position = { -0.5,-0.5, 0 };
-    rect_vertices[3].position = { -0.5,0.5, 0 };
-
-    rect_vertices[0].color = { 0,0, 0,1 };
-    rect_vertices[1].color = { 0.5,0.5,0.5 ,1 };
-    rect_vertices[2].color = { 1,0, 0,1 };
-    rect_vertices[3].color = { 0,1, 0,1 };
-
-    std::array<uint32_t, 6> rect_indices;
-
-    rect_indices[0] = 0;
-    rect_indices[1] = 1;
-    rect_indices[2] = 2;
-
-    rect_indices[3] = 2;
-    rect_indices[4] = 1;
-    rect_indices[5] = 3;
-
-    rectangle = upload_mesh(rect_indices, rect_vertices);
 
     test_meshes = vk_loader::load_gltf_meshes(this, "..\\..\\assets\\basicmesh.glb").value();
 
     global_deletion_stack.push_function([this]() {
-        destroy_buffer(rectangle.index_buffer);
-        destroy_buffer(rectangle.vertex_buffer);
-
         for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {
             destroy_buffer(it->get()->mesh_buffers.index_buffer);
             destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
