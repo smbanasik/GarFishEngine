@@ -49,6 +49,9 @@ public:
     VkPipelineLayout gradient_pipeline_layout;
     VkPipeline triangle_pipeline;
     VkPipelineLayout triangle_pipeline_layout;
+    VkPipeline mesh_pipeline;
+    VkPipelineLayout mesh_pipeline_layout;
+    GPUMeshBuffers rectangle;
     
     AllocatedImage drawn_image;
     VkExtent2D drawn_size;
@@ -83,7 +86,9 @@ private:
     void init_pipelines();
     void init_background_pipelines();
     void init_triangle_pipeline();
+    void init_mesh_pipeline();
     void init_imgui(GLFWwindow* window);
+    void init_default_data();
     AllocatedBuffer create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage);
     void destroy_buffer(const AllocatedBuffer& buffer);
     GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);

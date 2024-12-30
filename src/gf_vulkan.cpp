@@ -35,6 +35,7 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
     init_descriptors();
     init_pipelines();
     init_imgui(window);
+    init_default_data();
 
     is_init = true;
 
@@ -85,6 +86,15 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     vkCmdDraw(cmd, 3, 1, 0, 0);
+
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline);
+    GPUDrawPushConstants p_constants;
+    p_constants.world_matrix = glm::mat4(1.f);
+    p_constants.vertex_buffer = rectangle.vertex_buffer_address;
+    vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
+    vkCmdBindIndexBuffer(cmd, rectangle.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0);
     vkCmdEndRendering(cmd);
 }
 
@@ -284,6 +294,7 @@ void gf::VkManager::init_descriptors() {
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
     init_triangle_pipeline();
+    init_mesh_pipeline();
 }
 void gf::VkManager::init_background_pipelines() {
 
@@ -388,6 +399,48 @@ void gf::VkManager::init_triangle_pipeline() {
     });
 }
 
+void gf::VkManager::init_mesh_pipeline() {
+    VkShaderModule tri_vert_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri_mesh.vert.spv", device, &tri_vert_shader))
+        std::cout << "| ERROR: vertex shader was not built.\n";
+    VkShaderModule tri_frag_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", device, &tri_frag_shader))
+        std::cout << "| ERROR: fragment shader was not built.\n";
+
+    VkPushConstantRange buffer_range{};
+    buffer_range.offset = 0;
+    buffer_range.size = sizeof(GPUDrawPushConstants);
+    buffer_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+    VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
+    pipeline_layout_info.pPushConstantRanges = &buffer_range;
+    pipeline_layout_info.pushConstantRangeCount = 1;
+
+    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &mesh_pipeline_layout);
+
+    vk_pipe::PipelineBuilder pipe_builder;
+    pipe_builder.pipeline_layout = mesh_pipeline_layout;
+    pipe_builder
+        .set_shaders(tri_vert_shader, tri_frag_shader)
+        .set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+        .set_polygon_mode(VK_POLYGON_MODE_FILL)
+        .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
+        .set_multisampling_none()
+        .disable_blending()
+        .disable_depthtest()
+        .set_color_attachment_format(drawn_image.image_format)
+        .set_depth_format(VK_FORMAT_UNDEFINED);
+    mesh_pipeline = pipe_builder.build_pipeline(device);
+
+    vkDestroyShaderModule(device, tri_vert_shader, nullptr);
+    vkDestroyShaderModule(device, tri_frag_shader, nullptr);
+
+    global_deletion_stack.push_function([this]() {
+        vkDestroyPipelineLayout(device, mesh_pipeline_layout, nullptr);
+        vkDestroyPipeline(device, mesh_pipeline, nullptr);
+        });
+}
+
 // Direct copy and paste, review later
 void gf::VkManager::init_imgui(GLFWwindow* window) {
 
@@ -438,11 +491,42 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
         });
 }
 
+void gf::VkManager::init_default_data() {
+    std::array<Vertex, 4> rect_vertices;
+
+    rect_vertices[0].position = { 0.5,-0.5, 0 };
+    rect_vertices[1].position = { 0.5,0.5, 0 };
+    rect_vertices[2].position = { -0.5,-0.5, 0 };
+    rect_vertices[3].position = { -0.5,0.5, 0 };
+
+    rect_vertices[0].color = { 0,0, 0,1 };
+    rect_vertices[1].color = { 0.5,0.5,0.5 ,1 };
+    rect_vertices[2].color = { 1,0, 0,1 };
+    rect_vertices[3].color = { 0,1, 0,1 };
+
+    std::array<uint32_t, 6> rect_indices;
+
+    rect_indices[0] = 0;
+    rect_indices[1] = 1;
+    rect_indices[2] = 2;
+
+    rect_indices[3] = 2;
+    rect_indices[4] = 1;
+    rect_indices[5] = 3;
+
+    rectangle = upload_mesh(rect_indices, rect_vertices);
+
+    global_deletion_stack.push_function([this]() {
+        destroy_buffer(rectangle.index_buffer);
+        destroy_buffer(rectangle.vertex_buffer);
+        });
+}
+
 gf::AllocatedBuffer gf::VkManager::create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) {
     VkBufferCreateInfo buffer_info = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
     buffer_info.pNext = nullptr;
     buffer_info.size = allocation_size;
-    buffer_info.usage = memory_usage;
+    buffer_info.usage = flags;
 
     VmaAllocationCreateInfo vmaallocInfo = {};
     vmaallocInfo.usage = memory_usage;
