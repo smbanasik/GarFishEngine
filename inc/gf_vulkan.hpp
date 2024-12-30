@@ -55,6 +55,7 @@ public:
     AllocatedImage drawn_image;
     AllocatedImage depth_image;
     VkExtent2D drawn_size;
+    float render_scale = 1.f;
     VkDescriptorSet drawn_image_descriptors;
     VkDescriptorSetLayout drawn_image_descriptor_layout;
     
@@ -62,7 +63,7 @@ public:
     int current_background_effect{ 0 }; // For fun!
 
     bool is_init = false;
-    bool resize_requested;
+    bool resize_requested = false;
 
     VkManager(GLFWwindow* window, uint32_t width, uint32_t height);
     ~VkManager();

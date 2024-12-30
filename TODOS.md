@@ -15,6 +15,7 @@ In no particular order:
 - Create an aggregate for pipelines, shaders, and descriptors. RAII
 - Create a full class for the swapchain. RAII
 - Separate the swapchain and draw/depth image creation logic
+- Draw image should use window size first
 - Expand pipeline builder functionality
 - Remove compute effects and compute shader items
 - Give RAII to buffers

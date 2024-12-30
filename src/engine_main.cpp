@@ -74,6 +74,8 @@ void gf::Engine::run() {
 
         //ImGui::ShowDemoWindow();
         if (ImGui::Begin("background")) {
+            ImGui::SliderFloat("Render Scale", &vk_context.render_scale, 0.3f, 1.0f);
+
             ComputeEffect& selected = vk_context.background_effects[vk_context.current_background_effect];
             ImGui::Text("Selected effect: ", selected.name);
             ImGui::SliderInt("Effect Index", &vk_context.current_background_effect, 0, vk_context.background_effects.size() - 1);
@@ -125,8 +127,8 @@ void gf::Engine::draw() {
     vkBeginCommandBuffer(cmd, &cmd_begin_info);
 
     // Image - Set up drawn image
-    vk_context.drawn_size.width = vk_context.drawn_image.image_size.width;
-    vk_context.drawn_size.height = vk_context.drawn_image.image_size.height;
+    vk_context.drawn_size.width = std::min(vk_context.swapchain.swapchain_extent.width, vk_context.drawn_image.image_size.width) * vk_context.render_scale;
+    vk_context.drawn_size.height = std::min(vk_context.swapchain.swapchain_extent.height, vk_context.drawn_image.image_size.height) * vk_context.render_scale;
     transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     
     // Action - perform actual commands
