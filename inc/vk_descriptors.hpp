@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/27/2024
-// Last Modified: 12/27/2024
+// Last Modified: 12/30/2024
 // Description:
 // Data types for handling descriptors
 #ifndef VK_DESCRIPTORS_HPP
@@ -8,6 +8,7 @@
 #include <vector>
 #include <stdint.h>
 #include <span>
+#include <deque>
 
 #include <vulkan/vulkan.h>
 
@@ -41,5 +42,38 @@ struct DescriptorAllocator {
 
     VkDescriptorSet allocate(VkDevice device, VkDescriptorSetLayout layout);
 };
+
+struct DescriptorAllocatorGrowable {
+    struct PoolSizeRatio {
+        VkDescriptorType type;
+        float ratio;
+    };
+
+    void init(VkDevice device, uint32_t initial_sets, std::span<PoolSizeRatio> pool_ratios);
+    void clear_pools(VkDevice device);
+    void destroy_pools(VkDevice device);
+
+    VkDescriptorSet allocate(VkDevice device, VkDescriptorSetLayout layout);
+private:
+    VkDescriptorPool get_pool(VkDevice device);
+    VkDescriptorPool create_pool(VkDevice device, uint32_t set_count, std::span<PoolSizeRatio> pool_ratio);
+
+    std::vector<PoolSizeRatio> ratios;
+    std::vector<VkDescriptorPool> full_pools;
+    std::vector<VkDescriptorPool> available_pools;
+    uint32_t sets_per_pool; 
+};
+
+struct DescriptorWriter {
+    std::deque<VkDescriptorImageInfo> image_infos;
+    std::deque<VkDescriptorBufferInfo> buffer_infos;
+    std::vector<VkWriteDescriptorSet> writes;
+
+    void write_image(int binding, VkImageView view, VkSampler sampler, VkImageLayout layout, VkDescriptorType type);
+    void write_buffer(int binding, VkBuffer buffer, size_t size, size_t offset, VkDescriptorType type);
+    void clear();
+    void update_set(VkDevice device, VkDescriptorSet set);
+};
+
 }
 #endif

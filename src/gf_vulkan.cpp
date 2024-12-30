@@ -296,21 +296,9 @@ void gf::VkManager::init_descriptors() {
 
     drawn_image_descriptors = global_descriptor_allocator.allocate(device, drawn_image_descriptor_layout);
 
-    VkDescriptorImageInfo img_info{};
-    img_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    img_info.imageView = drawn_image.image_view;
-
-    VkWriteDescriptorSet drawn_image_write = {};
-    drawn_image_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    drawn_image_write.pNext = nullptr;
-
-    drawn_image_write.dstBinding = 0;
-    drawn_image_write.dstSet = drawn_image_descriptors;
-    drawn_image_write.descriptorCount = 1;
-    drawn_image_write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-    drawn_image_write.pImageInfo = &img_info;
-
-    vkUpdateDescriptorSets(device, 1, &drawn_image_write, 0, nullptr);
+    DescriptorWriter writer;
+    writer.write_image(0, drawn_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+    writer.update_set(device, drawn_image_descriptors);
 
     global_deletion_stack.push_function([this]() {
         global_descriptor_allocator.destroy_pool(device);
