@@ -62,6 +62,7 @@ public:
     int current_background_effect{ 0 }; // For fun!
 
     bool is_init = false;
+    bool resize_requested;
 
     VkManager(GLFWwindow* window, uint32_t width, uint32_t height);
     ~VkManager();
@@ -72,6 +73,7 @@ public:
     void draw_geometry(VkCommandBuffer cmd);
 
     GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
+    void resize_swapchain(uint32_t width, uint32_t height);
 
 private:
     static VkManager* loaded_vk;
@@ -80,7 +82,9 @@ private:
     VkManager(const VkManager& other) = delete;
     VkManager& operator=(const VkManager& other) = delete;
     void init_vulkan(GLFWwindow* window);
+    void init_swapchain(uint32_t width, uint32_t height);
     void create_swapchain(uint32_t width, uint32_t height);
+    void destroy_swapchain();
     void init_commands();
     void create_framedata();
     void create_allocator();

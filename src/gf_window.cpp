@@ -43,8 +43,17 @@ gf::GLFWManager& gf::GLFWManager::get() {
 
 GLFWwindow* gf::GLFWManager::init_window(GLFWwindow* window, uint32_t width, uint32_t height, const std::string& title) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // TODO: change this later
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 
     return window;
+}
+void gf::GLFWManager::set_user_pointer(void* ptr) {
+    glfwSetWindowUserPointer(window, ptr);
+}
+void gf::GLFWManager::set_callbacak_window_resize(void(*function)(GLFWwindow* window, int width, int height)) {
+    glfwSetWindowSizeCallback(window, function);
+}
+void gf::GLFWManager::set_callback_window_iconified(void(*function)(GLFWwindow* window, int iconified)) {
+    glfwSetWindowIconifyCallback(window, function);
 }

@@ -14,6 +14,7 @@ In no particular order:
 - Create a vk core class which contains the instance, device, gpu, and so on. RAII
 - Create an aggregate for pipelines, shaders, and descriptors. RAII
 - Create a full class for the swapchain. RAII
+- Separate the swapchain and draw/depth image creation logic
 - Expand pipeline builder functionality
 - Remove compute effects and compute shader items
 - Give RAII to buffers

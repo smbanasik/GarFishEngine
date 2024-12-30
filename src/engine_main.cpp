@@ -29,9 +29,21 @@ gf::Engine::Engine() : gl_context(window_dims.width, window_dims.height, title),
     assert(loaded_engine == nullptr);
     loaded_engine = this;
 
-    // TODO: set callbacks for screen resize
-    // TODO: cursor position
-    // TODO: and mouse scroll
+    // Not strictly necessary since we can use loaded_engine
+    // but good to learn this pattern
+    gl_context.set_user_pointer(this);
+
+    gl_context.set_callbacak_window_resize([](GLFWwindow* window, int width, int height) {
+        Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+        engine->get_vk_context()->resize_requested = true;
+        engine->window_dims.width = width;
+        engine->window_dims.height = height;
+        });
+    gl_context.set_callback_window_iconified([](GLFWwindow* window, int iconified) {
+        Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+        (iconified) ? engine->should_render = false : engine->should_render = true;
+        });
+
 }
 
 gf::Engine::~Engine() {
@@ -49,10 +61,12 @@ void gf::Engine::run() {
         glfwPollEvents();
 
 
-        if (should_render == false) { // TODO: if the screen is minimized, set to false, else true.
+        if (should_render == false) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
+        if (vk_context.resize_requested == true)
+            vk_context.resize_swapchain(window_dims.width, window_dims.height);
 
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -98,7 +112,11 @@ void gf::Engine::draw() {
 
     // Acquire Swapchain - get the swapchain image
     uint32_t swapchain_image_idx;
-    vkAcquireNextImageKHR(vk_context.device, vk_context.swapchain.swapchain, 1000000000, get_current_frame().swapchain_semaphore, nullptr, &swapchain_image_idx);
+    VkResult err = vkAcquireNextImageKHR(vk_context.device, vk_context.swapchain.swapchain, 1000000000, get_current_frame().swapchain_semaphore, nullptr, &swapchain_image_idx);
+    if (err == VK_ERROR_OUT_OF_DATE_KHR) {
+        vk_context.resize_requested = true;
+        return;
+    }
 
     // Command Buffer - Reset command buffer and get ready for submission
     VkCommandBuffer cmd = get_current_frame().command_buffer;
@@ -140,7 +158,9 @@ void gf::Engine::draw() {
     VkSubmitInfo2 submit = vk_init::submit_info(&cmd_info, &signal_info, &wait_info);
     vkQueueSubmit2(vk_context.graphics_queue, 1, &submit, get_current_frame().render_fence);
     VkPresentInfoKHR present_info = vk_init::present_info(&vk_context.swapchain.swapchain, &get_current_frame().render_semaphore, &swapchain_image_idx);
-    vkQueuePresentKHR(vk_context.graphics_queue, &present_info);
+    VkResult present_res = vkQueuePresentKHR(vk_context.graphics_queue, &present_info);
+    if (present_res == VK_ERROR_OUT_OF_DATE_KHR)
+        vk_context.resize_requested = true;
 
     frame_number++;
 }

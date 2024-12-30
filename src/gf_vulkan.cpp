@@ -33,7 +33,7 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
 
     init_vulkan(window);
     create_allocator();
-    create_swapchain(width, height);
+    init_swapchain(width, height);
     init_commands();
     init_descriptors();
     init_pipelines();
@@ -158,22 +158,9 @@ void gf::VkManager::init_vulkan(GLFWwindow* window) {
         });
 }
 
-void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
-    vkb::SwapchainBuilder swapchain_builder{ gpu, device, surface };
-    swapchain.swapchain_format = VK_FORMAT_B8G8R8A8_UNORM;
-
-    vkb::Swapchain vkb_swapchain = swapchain_builder
-        .set_desired_format(VkSurfaceFormatKHR{ .format = swapchain.swapchain_format, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR })
-        .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
-        .set_desired_extent(width, height)
-        .add_image_usage_flags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
-        .build()
-        .value();
-
-    swapchain.swapchain_extent = vkb_swapchain.extent;
-    swapchain.swapchain = vkb_swapchain.swapchain;
-    swapchain.swapchain_images = vkb_swapchain.get_images().value();
-    swapchain.swapchain_image_views = vkb_swapchain.get_image_views().value();
+void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
+    
+    create_swapchain(width, height);
 
     VkExtent3D image_size = { width, height, 1 };
     drawn_image.image_format = VK_FORMAT_R16G16B16A16_SFLOAT;
@@ -203,17 +190,39 @@ void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
     VkImageViewCreateInfo depth_view_info = vk_init::image_view_info(depth_image.image_format, depth_image.image, VK_IMAGE_ASPECT_DEPTH_BIT);
     vkCreateImageView(device, &depth_view_info, nullptr, &depth_image.image_view);
     global_deletion_stack.push_function([this]() {
-        vkDestroySwapchainKHR(this->device, this->swapchain.swapchain, nullptr);
+        destroy_swapchain();
 
-        for (auto it = this->swapchain.swapchain_image_views.begin(); it != this->swapchain.swapchain_image_views.end(); it++) {
-            vkDestroyImageView(this->device, *it, nullptr);
-        }
         vkDestroyImageView(this->device, this->drawn_image.image_view, nullptr);
         vmaDestroyImage(this->allocator, this->drawn_image.image, this->drawn_image.allocation);
         vkDestroyImageView(this->device, this->depth_image.image_view, nullptr);
         vmaDestroyImage(this->allocator, this->depth_image.image, this->depth_image.allocation);
         });
 
+}
+
+void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
+    vkb::SwapchainBuilder swapchain_builder{ gpu, device, surface };
+    swapchain.swapchain_format = VK_FORMAT_B8G8R8A8_UNORM;
+
+    vkb::Swapchain vkb_swapchain = swapchain_builder
+        .set_desired_format(VkSurfaceFormatKHR{ .format = swapchain.swapchain_format, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR })
+        .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
+        .set_desired_extent(width, height)
+        .add_image_usage_flags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+        .build()
+        .value();
+
+    swapchain.swapchain_extent = vkb_swapchain.extent;
+    swapchain.swapchain = vkb_swapchain.swapchain;
+    swapchain.swapchain_images = vkb_swapchain.get_images().value();
+    swapchain.swapchain_image_views = vkb_swapchain.get_image_views().value();
+}
+
+void gf::VkManager::destroy_swapchain() {
+    vkDestroySwapchainKHR(this->device, this->swapchain.swapchain, nullptr);
+    for (auto it = this->swapchain.swapchain_image_views.begin(); it != this->swapchain.swapchain_image_views.end(); it++) {
+        vkDestroyImageView(this->device, *it, nullptr);
+    }
 }
 
 void gf::VkManager::init_commands() {
@@ -409,7 +418,7 @@ void gf::VkManager::init_mesh_pipeline() {
         .set_polygon_mode(VK_POLYGON_MODE_FILL)
         .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
         .set_multisampling_none()
-        .disable_blending()
+        .enable_blending_additive()
         .enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL)
         .set_color_attachment_format(drawn_image.image_format)
         .set_depth_format(depth_image.image_format);
@@ -559,4 +568,14 @@ void gf::VkManager::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& 
     VkSubmitInfo2 submit = vk_init::submit_info(&cmd_submit_info, nullptr, nullptr);
     vkQueueSubmit2(graphics_queue, 1, &submit, imm_fence);
     vkWaitForFences(device, 1, &imm_fence, true, 1000000000);
+}
+
+void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {
+    vkDeviceWaitIdle(device);
+    
+    destroy_swapchain();
+
+    create_swapchain(width, height);
+    
+    resize_requested = false;
 }
