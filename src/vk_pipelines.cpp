@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/28/2024
-// Last Modified: 12/28/2024
+// Last Modified: 12/30/2024
 #include <vk_pipelines.hpp>
 
 #include <fstream>
@@ -142,6 +142,18 @@ gf::vk_pipe::PipelineBuilder& gf::vk_pipe::PipelineBuilder::disable_depthtest() 
     depth_stencil.depthTestEnable = VK_FALSE;
     depth_stencil.depthWriteEnable = VK_FALSE;
     depth_stencil.depthCompareOp = VK_COMPARE_OP_NEVER;
+    depth_stencil.depthBoundsTestEnable = VK_FALSE;
+    depth_stencil.stencilTestEnable = VK_FALSE;
+    depth_stencil.front = {};
+    depth_stencil.back = {};
+    depth_stencil.minDepthBounds = 0.f;
+    depth_stencil.maxDepthBounds = 1.f;
+    return *this;
+}
+gf::vk_pipe::PipelineBuilder& gf::vk_pipe::PipelineBuilder::enable_depthtest(bool depth_write_enable, VkCompareOp op) {
+    depth_stencil.depthTestEnable = VK_TRUE;
+    depth_stencil.depthWriteEnable = depth_write_enable;
+    depth_stencil.depthCompareOp = op;
     depth_stencil.depthBoundsTestEnable = VK_FALSE;
     depth_stencil.stencilTestEnable = VK_FALSE;
     depth_stencil.front = {};

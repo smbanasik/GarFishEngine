@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/28/2024
-// Last Modified: 12/28/2024
+// Last Modified: 12/30/2024
 // Description:
 // Code for vulkan pipelines
 #ifndef VK_PIPELINES_HPP
@@ -43,6 +43,7 @@ public:
     PipelineBuilder& set_color_attachment_format(VkFormat format);
     PipelineBuilder& set_depth_format(VkFormat format);
     PipelineBuilder& disable_depthtest();
+    PipelineBuilder& enable_depthtest(bool depth_write_enable, VkCompareOp op);
 };
 
 }

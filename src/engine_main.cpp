@@ -115,6 +115,7 @@ void gf::Engine::draw() {
     flash_bg(cmd, vk_context, frame_number); // TEMP FUNCTION - hardcoded with drawn image
 
     transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    transition_image(cmd, vk_context.depth_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
     vk_context.draw_geometry(cmd);
 

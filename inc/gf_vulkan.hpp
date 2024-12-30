@@ -56,6 +56,7 @@ public:
     std::vector<std::shared_ptr<vk_loader::MeshAsset>> test_meshes;
     
     AllocatedImage drawn_image;
+    AllocatedImage depth_image;
     VkExtent2D drawn_size;
     VkDescriptorSet drawn_image_descriptors;
     VkDescriptorSetLayout drawn_image_descriptor_layout;

@@ -27,6 +27,7 @@ VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear,
 VkRenderingInfo rendering_info(VkExtent2D render_extent, VkRenderingAttachmentInfo* color_attachment, VkRenderingAttachmentInfo* depth_attachment);
 VkPipelineShaderStageCreateInfo pipeline_shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry_point = "main");
 VkPipelineLayoutCreateInfo pipeline_layout_info();
+VkRenderingAttachmentInfo depth_attachment_info(VkImageView view, VkImageLayout layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 }
 }
 #endif

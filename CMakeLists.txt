@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Vulkan REQUIRED)
 
+add_compile_definitions(GLM_FORCE_DEPTH_ZERO_TO_ONE)
 add_subdirectory(third_party)
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")

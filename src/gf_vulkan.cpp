@@ -17,6 +17,9 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
 #include <vk_initializers.hpp>
 #include <engine_types.hpp>
@@ -65,7 +68,8 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
 
 void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
     VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, nullptr);
+    VkRenderingAttachmentInfo depth_attachment = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+    VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
     vkCmdBeginRendering(cmd, &render_info);
 
     VkViewport viewport = {};
@@ -84,16 +88,21 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
     scissor.extent.height = drawn_size.height;
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline);
-    vkCmdDraw(cmd, 3, 1, 0, 0);
+    glm::mat4 view = glm::translate(glm::mat4(1.f), glm::vec3{ 0, 0, -5 });
+    glm::mat4 projection = glm::perspective(glm::radians(70.f), static_cast<float>(drawn_size.width) / static_cast<float>(drawn_size.height), 10000.f, 0.1f);
+    projection[1][1] *= -1;
+
+    //vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline);
+    //vkCmdDraw(cmd, 3, 1, 0, 0);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline);
     GPUDrawPushConstants p_constants;
-    p_constants.world_matrix = glm::mat4(1.f);
+    p_constants.world_matrix = projection * view;
     p_constants.vertex_buffer = rectangle.vertex_buffer_address;
-    vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
-    vkCmdBindIndexBuffer(cmd, rectangle.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0);
+    
+    //vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
+    //vkCmdBindIndexBuffer(cmd, rectangle.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+    //vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0);
     
     p_constants.vertex_buffer = test_meshes[2]->mesh_buffers.vertex_buffer_address;
     vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
@@ -182,15 +191,24 @@ void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
     drawn_image_usage |= VK_IMAGE_USAGE_STORAGE_BIT;
     drawn_image_usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    VkImageCreateInfo image_info = vk_init::image_info(drawn_image.image_format, image_size, drawn_image_usage);
     VmaAllocationCreateInfo image_alloc_info = {};
     image_alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
     image_alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    VkImageCreateInfo image_info = vk_init::image_info(drawn_image.image_format, image_size, drawn_image_usage);
     vmaCreateImage(allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation, nullptr);
     VkImageViewCreateInfo view_info = vk_init::image_view_info(drawn_image.image_format, drawn_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
     vkCreateImageView(device, &view_info, nullptr, &drawn_image.image_view);
 
+    depth_image.image_format = VK_FORMAT_D32_SFLOAT;
+    depth_image.image_size = image_size;
+    VkImageUsageFlags depth_usage_flags{};
+    depth_usage_flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
+    VkImageCreateInfo depth_image_info = vk_init::image_info(depth_image.image_format, image_size, depth_usage_flags);
+    vmaCreateImage(allocator, &depth_image_info, &image_alloc_info, &depth_image.image, &depth_image.allocation, nullptr);
+    VkImageViewCreateInfo depth_view_info = vk_init::image_view_info(depth_image.image_format, depth_image.image, VK_IMAGE_ASPECT_DEPTH_BIT);
+    vkCreateImageView(device, &depth_view_info, nullptr, &depth_image.image_view);
     global_deletion_stack.push_function([this]() {
         vkDestroySwapchainKHR(this->device, this->swapchain.swapchain, nullptr);
 
@@ -199,6 +217,8 @@ void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
         }
         vkDestroyImageView(this->device, this->drawn_image.image_view, nullptr);
         vmaDestroyImage(this->allocator, this->drawn_image.image, this->drawn_image.allocation);
+        vkDestroyImageView(this->device, this->depth_image.image_view, nullptr);
+        vmaDestroyImage(this->allocator, this->depth_image.image, this->depth_image.allocation);
         });
 
 }
@@ -392,7 +412,7 @@ void gf::VkManager::init_triangle_pipeline() {
         .disable_blending()
         .disable_depthtest()
         .set_color_attachment_format(drawn_image.image_format)
-        .set_depth_format(VK_FORMAT_UNDEFINED);
+        .set_depth_format(depth_image.image_format);
     triangle_pipeline = pipe_builder.build_pipeline(device);
 
     vkDestroyShaderModule(device, tri_vert_shader, nullptr);
@@ -432,9 +452,9 @@ void gf::VkManager::init_mesh_pipeline() {
         .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
         .set_multisampling_none()
         .disable_blending()
-        .disable_depthtest()
+        .enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL)
         .set_color_attachment_format(drawn_image.image_format)
-        .set_depth_format(VK_FORMAT_UNDEFINED);
+        .set_depth_format(depth_image.image_format);
     mesh_pipeline = pipe_builder.build_pipeline(device);
 
     vkDestroyShaderModule(device, tri_vert_shader, nullptr);
@@ -531,7 +551,6 @@ void gf::VkManager::init_default_data() {
             destroy_buffer(it->get()->mesh_buffers.index_buffer);
             destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
         }
-        
 
         });
 }
