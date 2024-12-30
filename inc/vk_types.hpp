@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/18/2024
-// Last Modified: 12/27/2024
+// Last Modified: 12/28/2024
 // Description:
 // Data types meant for gf_vulkan
 #ifndef VK_TYPES_HPP

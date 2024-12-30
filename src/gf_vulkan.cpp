@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/17/2024
-// Last Modified: 12/27/2024
+// Last Modified: 12/29/2024
 #include <gf_vulkan.hpp>
 
 #include <vector>
@@ -67,7 +67,6 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
     VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, nullptr);
     vkCmdBeginRendering(cmd, &render_info);
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline);
 
     VkViewport viewport = {};
     viewport.x = 0;
@@ -85,6 +84,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
     scissor.extent.height = drawn_size.height;
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline);
     vkCmdDraw(cmd, 3, 1, 0, 0);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline);
@@ -93,8 +93,13 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd) {
     p_constants.vertex_buffer = rectangle.vertex_buffer_address;
     vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
     vkCmdBindIndexBuffer(cmd, rectangle.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-
     vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0);
+    
+    p_constants.vertex_buffer = test_meshes[2]->mesh_buffers.vertex_buffer_address;
+    vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
+    vkCmdBindIndexBuffer(cmd, test_meshes[2]->mesh_buffers.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(cmd, test_meshes[2]->surfaces[0].count, 1, test_meshes[2]->surfaces[0].start_idx, 0, 0);
+    
     vkCmdEndRendering(cmd);
 }
 
@@ -516,9 +521,18 @@ void gf::VkManager::init_default_data() {
 
     rectangle = upload_mesh(rect_indices, rect_vertices);
 
+    test_meshes = vk_loader::load_gltf_meshes(this, "..\\..\\assets\\basicmesh.glb").value();
+
     global_deletion_stack.push_function([this]() {
         destroy_buffer(rectangle.index_buffer);
         destroy_buffer(rectangle.vertex_buffer);
+
+        for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {
+            destroy_buffer(it->get()->mesh_buffers.index_buffer);
+            destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
+        }
+        
+
         });
 }
 

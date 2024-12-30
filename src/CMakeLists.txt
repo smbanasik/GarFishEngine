@@ -9,6 +9,7 @@ ${HEADER_DIR}/vk_images.hpp
 ${HEADER_DIR}/vk_types.hpp
 ${HEADER_DIR}/vk_descriptors.hpp
 ${HEADER_DIR}/vk_pipelines.hpp
+${HEADER_DIR}/vk_loader.hpp
 )
 
 set(SOURCES
@@ -20,6 +21,7 @@ vk_initializers.cpp
 vk_images.cpp
 vk_descriptors.cpp
 vk_pipelines.cpp
+vk_loader.cpp
 )
 
 add_executable(garfish
@@ -33,4 +35,4 @@ CXX_STANDARD 20)
 
 target_include_directories(garfish PUBLIC "${PROJECT_SOURCE_DIR}/inc")
 
-target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap imgui glm)
+target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap imgui glm stb_image fastgltf::fastgltf)

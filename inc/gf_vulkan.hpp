@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/16/2024
-// Last Modified: 12/27/2024
+// Last Modified: 12/29/2024
 // Description:
 // Handles abstract and low level vulkan concepts
 #ifndef GF_VULKAN_HPP
@@ -18,6 +18,7 @@
 #include <vk_types.hpp>
 #include <vk_descriptors.hpp>
 #include <vk_pipelines.hpp>
+#include <vk_loader.hpp>
 
 struct GLFWwindow;
 
@@ -52,6 +53,7 @@ public:
     VkPipeline mesh_pipeline;
     VkPipelineLayout mesh_pipeline_layout;
     GPUMeshBuffers rectangle;
+    std::vector<std::shared_ptr<vk_loader::MeshAsset>> test_meshes;
     
     AllocatedImage drawn_image;
     VkExtent2D drawn_size;
@@ -70,6 +72,8 @@ public:
 
     void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear);
     void draw_geometry(VkCommandBuffer cmd);
+
+    GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
 
 private:
     static VkManager* loaded_vk;
@@ -91,7 +95,6 @@ private:
     void init_default_data();
     AllocatedBuffer create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage);
     void destroy_buffer(const AllocatedBuffer& buffer);
-    GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
     void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 };
 }

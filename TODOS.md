@@ -20,3 +20,4 @@ In no particular order:
 - Move upload mesh function out of gf_vulkan
 - Move immediate submit and immediate member variables to its own data structure.
 - Review VkGuide for improvements with some patterns like mesh buffers
+- Review the load mesh function at a deeper level
