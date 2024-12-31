@@ -61,6 +61,7 @@ public:
     VkDescriptorSetLayout drawn_image_descriptor_layout;
     GPUSceneData scene_data;
     VkDescriptorSetLayout gpu_scene_data_descriptor_layout;
+    VkDescriptorSetLayout single_image_descriptor_layout;
 
     AllocatedImage white_image;
     AllocatedImage black_image;
