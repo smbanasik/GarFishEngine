@@ -112,6 +112,9 @@ void gf::Engine::draw() {
     vkWaitForFences(vk_context.device, 1, &get_current_frame().render_fence, true, 1000000000);
     vkResetFences(vk_context.device, 1, &get_current_frame().render_fence);
 
+    get_current_frame().deletion_stack.flush();
+    get_current_frame().frame_descriptors.clear_pools(vk_context.device);
+
     // Acquire Swapchain - get the swapchain image
     uint32_t swapchain_image_idx;
     VkResult err = vkAcquireNextImageKHR(vk_context.device, vk_context.swapchain.swapchain, 1000000000, get_current_frame().swapchain_semaphore, nullptr, &swapchain_image_idx);
@@ -137,7 +140,7 @@ void gf::Engine::draw() {
     transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     transition_image(cmd, vk_context.depth_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
-    vk_context.draw_geometry(cmd);
+    vk_context.draw_geometry(cmd, &get_current_frame());
 
     // Transition and Copy - transition both images to optimal layout and copy image
     transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);

@@ -51,14 +51,24 @@ public:
     VkPipeline mesh_pipeline;
     VkPipelineLayout mesh_pipeline_layout;
     std::vector<std::shared_ptr<vk_loader::MeshAsset>> test_meshes;
-    
+
     AllocatedImage drawn_image;
     AllocatedImage depth_image;
     VkExtent2D drawn_size;
     float render_scale = 1.f;
+    
     VkDescriptorSet drawn_image_descriptors;
     VkDescriptorSetLayout drawn_image_descriptor_layout;
-    
+    GPUSceneData scene_data;
+    VkDescriptorSetLayout gpu_scene_data_descriptor_layout;
+
+    AllocatedImage white_image;
+    AllocatedImage black_image;
+    AllocatedImage gray_image;
+    AllocatedImage error_checkerboard_image;
+    VkSampler default_sampler_linear;
+    VkSampler default_sampler_nearest;
+
     std::vector<ComputeEffect> background_effects; // For fun!
     int current_background_effect{ 0 }; // For fun!
 
@@ -71,10 +81,14 @@ public:
     VkManager& get();
 
     void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear);
-    void draw_geometry(VkCommandBuffer cmd);
+    void draw_geometry(VkCommandBuffer cmd, FrameData* frame);
 
     GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
     void resize_swapchain(uint32_t width, uint32_t height);
+
+    AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+    AllocatedImage create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+    void destroy_image(const AllocatedImage& img);
 
 private:
     static VkManager* loaded_vk;

@@ -13,6 +13,7 @@ In no particular order:
 - Actually check for support of things that we need
 - Create a vk core class which contains the instance, device, gpu, and so on. RAII
 - Create an aggregate for pipelines, shaders, and descriptors. RAII
+- Create a series of deletion queue aggregates which take arrays of objects and delete them.
 - Create a full class for the swapchain. RAII
 - Separate the swapchain and draw/depth image creation logic
 - Draw image should use window size first
@@ -23,3 +24,4 @@ In no particular order:
 - Move immediate submit and immediate member variables to its own data structure.
 - Review VkGuide for improvements with some patterns like mesh buffers
 - Review the load mesh function at a deeper level
+- Move image creation to its own area
