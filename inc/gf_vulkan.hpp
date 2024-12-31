@@ -19,6 +19,7 @@
 #include <vk_descriptors.hpp>
 #include <vk_pipelines.hpp>
 #include <vk_loader.hpp>
+#include <vk_materials.hpp>
 
 struct GLFWwindow;
 
@@ -44,7 +45,7 @@ public:
     VkFence imm_fence;
     VkCommandBuffer imm_command_buffer;
     VkCommandPool imm_command_pool;
-    DescriptorAllocator global_descriptor_allocator;
+    DescriptorAllocatorGrowable global_descriptor_allocator;
     
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
@@ -69,6 +70,9 @@ public:
     AllocatedImage error_checkerboard_image;
     VkSampler default_sampler_linear;
     VkSampler default_sampler_nearest;
+
+    MaterialInstance default_data;
+    vk_mat::GLTFMetallic_Roughness metal_rough_material;
 
     std::vector<ComputeEffect> background_effects; // For fun!
     int current_background_effect{ 0 }; // For fun!

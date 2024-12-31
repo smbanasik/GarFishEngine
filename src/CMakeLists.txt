@@ -10,6 +10,7 @@ ${HEADER_DIR}/vk_types.hpp
 ${HEADER_DIR}/vk_descriptors.hpp
 ${HEADER_DIR}/vk_pipelines.hpp
 ${HEADER_DIR}/vk_loader.hpp
+${HEADER_DIR}/vk_materials.hpp
 )
 
 set(SOURCES
@@ -22,6 +23,7 @@ vk_images.cpp
 vk_descriptors.cpp
 vk_pipelines.cpp
 vk_loader.cpp
+vk_materials.cpp
 )
 
 add_executable(garfish

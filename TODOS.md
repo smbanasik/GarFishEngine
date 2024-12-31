@@ -25,3 +25,4 @@ In no particular order:
 - Review VkGuide for improvements with some patterns like mesh buffers
 - Review the load mesh function at a deeper level
 - Move image creation to its own area
+- Create files to handle the engine architecture (render obj, node, meshnode, etc)

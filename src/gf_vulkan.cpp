@@ -318,11 +318,11 @@ void gf::VkManager::create_allocator() {
 
 void gf::VkManager::init_descriptors() {
 
-    std::vector<DescriptorAllocator::PoolSizeRatio> sizes = {
+    std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> sizes = {
         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}
     };
 
-    global_descriptor_allocator.init_pool(device, 10, sizes);
+    global_descriptor_allocator.init(device, 10, sizes);
     
     {
         DescriptorLayoutBuilder builder;
@@ -346,7 +346,7 @@ void gf::VkManager::init_descriptors() {
     writer.update_set(device, drawn_image_descriptors);
 
     global_deletion_stack.push_function([this]() {
-        global_descriptor_allocator.destroy_pool(device);
+        global_descriptor_allocator.destroy_pools(device);
         vkDestroyDescriptorSetLayout(device, drawn_image_descriptor_layout, nullptr);
         vkDestroyDescriptorSetLayout(device, gpu_scene_data_descriptor_layout, nullptr);
         vkDestroyDescriptorSetLayout(device, single_image_descriptor_layout, nullptr);
@@ -356,6 +356,7 @@ void gf::VkManager::init_descriptors() {
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
     init_mesh_pipeline();
+    metal_rough_material.build_pipelines(this);
 }
 void gf::VkManager::init_background_pipelines() {
 
@@ -547,11 +548,25 @@ void gf::VkManager::init_default_data() {
 
     test_meshes = vk_loader::load_gltf_meshes(this, "..\\..\\assets\\basicmesh.glb").value();
 
-    global_deletion_stack.push_function([this]() {
+    vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources;
+    material_resources.color_image = white_image;
+    material_resources.color_sampler = default_sampler_linear;
+    material_resources.metal_rough_image = white_image;
+    material_resources.metal_rough_sampler = default_sampler_linear;
+    AllocatedBuffer material_constants = create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    vk_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vk_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
+    scene_uniform_data->color_factors = glm::vec4{ 1,1,1,1 };
+    scene_uniform_data->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
+    material_resources.data_buffer = material_constants.buffer;
+    material_resources.data_buffer_offset = 0;
+    default_data = metal_rough_material.write_material(device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
+
+    global_deletion_stack.push_function([&material_constants, this]() {
         for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {
             destroy_buffer(it->get()->mesh_buffers.index_buffer);
             destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
         }
+        destroy_buffer(material_constants);
 
         vkDestroySampler(device, default_sampler_nearest, nullptr);
         vkDestroySampler(device, default_sampler_linear, nullptr);
