@@ -21,6 +21,16 @@
 #include <gf_vulkan.hpp>
 #include <vk_initializers.hpp>
 #include <vk_images.hpp>
+// TEMPORARY
+#include <vulkan/vk_enum_string_helper.h>
+#define VK_CHECK(x)                                                     \
+    do {                                                                \
+        VkResult err = x;                                               \
+        if (err) {                                                      \
+            std::cout << "Detected Vulkan error: " << string_VkResult(err) << "\n"; \
+            abort();                                                    \
+        }                                                               \
+    } while (0)
 
 gf::Engine* gf::Engine::loaded_engine = nullptr;
 
@@ -108,9 +118,11 @@ void flash_bg(VkCommandBuffer cmd, gf::VkManager& context, uint32_t frame_number
 
 void gf::Engine::draw() {
 
+    vk_context.update_scene(window_dims.width, window_dims.height); 
+
     // Synchronization - Wait until frame is ready
-    vkWaitForFences(vk_context.device, 1, &get_current_frame().render_fence, true, 1000000000);
-    vkResetFences(vk_context.device, 1, &get_current_frame().render_fence);
+    VK_CHECK(vkWaitForFences(vk_context.device, 1, &get_current_frame().render_fence, true, 1000000000));
+    VK_CHECK(vkResetFences(vk_context.device, 1, &get_current_frame().render_fence));
 
     get_current_frame().deletion_stack.flush();
     get_current_frame().frame_descriptors.clear_pools(vk_context.device);
@@ -125,9 +137,9 @@ void gf::Engine::draw() {
 
     // Command Buffer - Reset command buffer and get ready for submission
     VkCommandBuffer cmd = get_current_frame().command_buffer;
-    vkResetCommandBuffer(cmd, 0);
+    VK_CHECK(vkResetCommandBuffer(cmd, 0));
     VkCommandBufferBeginInfo cmd_begin_info = vk_init::begin_command(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    vkBeginCommandBuffer(cmd, &cmd_begin_info);
+    VK_CHECK(vkBeginCommandBuffer(cmd, &cmd_begin_info));
 
     // Image - Set up drawn image
     vk_context.drawn_size.width = std::min(vk_context.swapchain.swapchain_extent.width, vk_context.drawn_image.image_size.width) * vk_context.render_scale;
@@ -156,12 +168,12 @@ void gf::Engine::draw() {
     transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     // Submission and presentation - submit buffer, semaphores, and queue, then present
-    vkEndCommandBuffer(cmd);
+    VK_CHECK(vkEndCommandBuffer(cmd));
     VkCommandBufferSubmitInfo cmd_info = vk_init::submit_command(cmd);
     VkSemaphoreSubmitInfo wait_info = vk_init::submit_semaphore(get_current_frame().swapchain_semaphore, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR);
     VkSemaphoreSubmitInfo signal_info = vk_init::submit_semaphore(get_current_frame().render_semaphore, VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT);
     VkSubmitInfo2 submit = vk_init::submit_info(&cmd_info, &signal_info, &wait_info);
-    vkQueueSubmit2(vk_context.graphics_queue, 1, &submit, get_current_frame().render_fence);
+    VK_CHECK(vkQueueSubmit2(vk_context.graphics_queue, 1, &submit, get_current_frame().render_fence));
     VkPresentInfoKHR present_info = vk_init::present_info(&vk_context.swapchain.swapchain, &get_current_frame().render_semaphore, &swapchain_image_idx);
     VkResult present_res = vkQueuePresentKHR(vk_context.graphics_queue, &present_info);
     if (present_res == VK_ERROR_OUT_OF_DATE_KHR)

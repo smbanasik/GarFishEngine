@@ -26,6 +26,16 @@
 #include <vk_types.hpp>
 #include <vk_descriptors.hpp>
 #include <vk_images.hpp>
+// TEMPORARY
+#include <vulkan/vk_enum_string_helper.h>
+#define VK_CHECK(x)                                                     \
+    do {                                                                \
+        VkResult err = x;                                               \
+        if (err) {                                                      \
+            std::cout << "Detected Vulkan error: " << string_VkResult(err) << "\n"; \
+            abort();                                                    \
+        }                                                               \
+    } while (0)
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
@@ -48,6 +58,8 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
 gf::VkManager::~VkManager() {
 
     vkDeviceWaitIdle(device);
+
+    metal_rough_material.clear_resources(device);
 
     global_deletion_stack.flush();
 }
@@ -82,17 +94,12 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, FrameData* frame) {
     writer.write_buffer(0, gpu_scene_data_buffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     writer.update_set(device, global_descriptor);
 
-    glm::mat4 view = glm::translate(glm::mat4(1.f), glm::vec3{ 0, 0, -5 });
-    glm::mat4 projection = glm::perspective(glm::radians(70.f), static_cast<float>(drawn_size.width) / static_cast<float>(drawn_size.height), 10000.f, 0.1f);
-    projection[1][1] *= -1;
-
     VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingAttachmentInfo depth_attachment = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
     VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
     vkCmdBeginRendering(cmd, &render_info);
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline);
-
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline.pipeline);
     VkViewport viewport = {};
     viewport.x = 0;
     viewport.y = 0;
@@ -109,23 +116,34 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, FrameData* frame) {
     scissor.extent.height = drawn_size.height;
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    VkDescriptorSet image_set = frame->frame_descriptors.allocate(device, single_image_descriptor_layout);
-    {
-        DescriptorWriter writer;
-        writer.write_image(0, error_checkerboard_image.image_view, default_sampler_nearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-        writer.update_set(device, image_set);
-    }
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline_layout, 0, 1, &image_set, 0, nullptr);
-    
-    GPUDrawPushConstants p_constants;
-    p_constants.world_matrix = projection * view;
-    p_constants.vertex_buffer = test_meshes[2]->mesh_buffers.vertex_buffer_address;
+    vkCmdDraw(cmd, 3, 1, 0, 0);
 
-    vkCmdPushConstants(cmd, mesh_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &p_constants);
-    vkCmdBindIndexBuffer(cmd, test_meshes[2]->mesh_buffers.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(cmd, test_meshes[2]->surfaces[0].count, 1, test_meshes[2]->surfaces[0].start_idx, 0, 0);
-    
+    for (const RenderObject& draw : main_draw_context.opaque_surfaces) {
+
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->pipeline);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 0, 1, &global_descriptor, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 1, 1, &draw.material->material_set, 0, nullptr);
+        vkCmdBindIndexBuffer(cmd, draw.index_buffer, 0, VK_INDEX_TYPE_UINT32);
+        GPUDrawPushConstants push_constants;
+        push_constants.vertex_buffer = draw.vertex_buffer_address;
+        push_constants.world_matrix = draw.transform;
+        vkCmdPushConstants(cmd, draw.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+        vkCmdDrawIndexed(cmd, draw.index_count, 1, draw.first_index, 0, 0);
+    }
     vkCmdEndRendering(cmd);
+}
+void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
+    main_draw_context.opaque_surfaces.clear();
+    loaded_nodes["Suzanne"]->draw(glm::mat4{ 1.f }, main_draw_context);
+        
+    scene_data.view = glm::translate(glm::mat4{ 1.f }, glm::vec3{ 0, 0, -5 });
+    scene_data.proj = glm::perspective(glm::radians(70.f), static_cast<float>(width) / static_cast<float>(height), 10000.f, 0.1f);
+    scene_data.proj[1][1] *= -1;
+    scene_data.viewproj = scene_data.proj * scene_data.view;
+
+    scene_data.ambient_color = glm::vec4(.1f);
+    scene_data.sunlight_color = glm::vec4(1.f);
+    scene_data.sunlight_direction = glm::vec4(0, 1, 0.5, 1.f);
 }
 
 void gf::VkManager::init_vulkan(GLFWwindow* window) {
@@ -355,6 +373,7 @@ void gf::VkManager::init_descriptors() {
 
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
+    init_triangle_pipeline();
     init_mesh_pipeline();
     metal_rough_material.build_pipelines(this);
 }
@@ -427,13 +446,49 @@ void gf::VkManager::init_background_pipelines() {
         });
 }
 
+void gf::VkManager::init_triangle_pipeline() {
+    VkShaderModule triangle_frag_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", device, &triangle_frag_shader))
+        std::cout << "Error when building the triangle fragment shader module\n";
+
+    VkShaderModule triangle_vertex_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.vert.spv", device, &triangle_vertex_shader))
+        std::cout << "Error when building the triangle vertex shader module\n";
+
+    VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
+    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &triangle_pipeline.layout);
+
+    vk_pipe::PipelineBuilder pipe_builder;
+
+    pipe_builder.set_shaders(triangle_vertex_shader, triangle_frag_shader)
+        .set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+        .set_polygon_mode(VK_POLYGON_MODE_FILL)
+        .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
+        .set_multisampling_none()
+        .disable_blending()
+        .disable_depthtest()
+        .set_color_attachment_format(drawn_image.image_format)
+        .set_depth_format(depth_image.image_format);
+    pipe_builder.pipeline_layout = triangle_pipeline.layout;
+
+    triangle_pipeline.pipeline = pipe_builder.build_pipeline(device);
+
+    vkDestroyShaderModule(device, triangle_frag_shader, nullptr);
+    vkDestroyShaderModule(device, triangle_vertex_shader, nullptr);
+
+    global_deletion_stack.push_function([this]() {
+        vkDestroyPipelineLayout(device, triangle_pipeline.layout, nullptr);
+        vkDestroyPipeline(device, triangle_pipeline.pipeline, nullptr);
+        });
+}
 void gf::VkManager::init_mesh_pipeline() {
-    VkShaderModule tri_vert_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri_mesh.vert.spv", device, &tri_vert_shader))
-        std::cout << "| ERROR: vertex shader was not built.\n";
-    VkShaderModule tri_frag_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/tex_image.frag.spv", device, &tri_frag_shader))
-        std::cout << "| ERROR: fragment shader was not built.\n";
+    VkShaderModule triangle_frag_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", device, &triangle_frag_shader))
+        std::cout << "Error when building the triangle fragment shader module\n";
+
+    VkShaderModule triangle_vertex_shader;
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri_mesh.vert.spv", device, &triangle_vertex_shader))
+        std::cout << "Error when building the triangle vertex shader module\n";
 
     VkPushConstantRange buffer_range{};
     buffer_range.offset = 0;
@@ -443,15 +498,12 @@ void gf::VkManager::init_mesh_pipeline() {
     VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
     pipeline_layout_info.pPushConstantRanges = &buffer_range;
     pipeline_layout_info.pushConstantRangeCount = 1;
-    pipeline_layout_info.pSetLayouts = &single_image_descriptor_layout;
-    pipeline_layout_info.setLayoutCount = 1;
 
-    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &mesh_pipeline_layout);
+    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &mesh_pipeline.layout);
 
     vk_pipe::PipelineBuilder pipe_builder;
-    pipe_builder.pipeline_layout = mesh_pipeline_layout;
-    pipe_builder
-        .set_shaders(tri_vert_shader, tri_frag_shader)
+
+    pipe_builder.set_shaders(triangle_vertex_shader, triangle_frag_shader)
         .set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
         .set_polygon_mode(VK_POLYGON_MODE_FILL)
         .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
@@ -460,14 +512,16 @@ void gf::VkManager::init_mesh_pipeline() {
         .enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL)
         .set_color_attachment_format(drawn_image.image_format)
         .set_depth_format(depth_image.image_format);
-    mesh_pipeline = pipe_builder.build_pipeline(device);
+    pipe_builder.pipeline_layout = mesh_pipeline.layout;
 
-    vkDestroyShaderModule(device, tri_vert_shader, nullptr);
-    vkDestroyShaderModule(device, tri_frag_shader, nullptr);
+    mesh_pipeline.pipeline = pipe_builder.build_pipeline(device);
+
+    vkDestroyShaderModule(device, triangle_frag_shader, nullptr);
+    vkDestroyShaderModule(device, triangle_vertex_shader, nullptr);
 
     global_deletion_stack.push_function([this]() {
-        vkDestroyPipelineLayout(device, mesh_pipeline_layout, nullptr);
-        vkDestroyPipeline(device, mesh_pipeline, nullptr);
+        vkDestroyPipelineLayout(device, mesh_pipeline.layout, nullptr);
+        vkDestroyPipeline(device, mesh_pipeline.pipeline, nullptr);
         });
 }
 
@@ -546,8 +600,6 @@ void gf::VkManager::init_default_data() {
     sampl.minFilter = VK_FILTER_LINEAR;
     vkCreateSampler(device, &sampl, nullptr, &default_sampler_linear);
 
-    test_meshes = vk_loader::load_gltf_meshes(this, "..\\..\\assets\\basicmesh.glb").value();
-
     vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources;
     material_resources.color_image = white_image;
     material_resources.color_sampler = default_sampler_linear;
@@ -559,9 +611,28 @@ void gf::VkManager::init_default_data() {
     scene_uniform_data->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
     material_resources.data_buffer = material_constants.buffer;
     material_resources.data_buffer_offset = 0;
+
     default_data = metal_rough_material.write_material(device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
 
-    global_deletion_stack.push_function([&material_constants, this]() {
+    test_meshes = vk_loader::load_gltf_meshes(this, "..\\..\\assets\\basicmesh.glb").value();
+
+
+
+    for (auto& m : test_meshes) {
+        std::shared_ptr<vk_render::MeshNode> new_node = std::make_shared<vk_render::MeshNode>();
+        new_node->mesh = m;
+    
+        new_node->local_transform = glm::mat4{ 1.f };
+        new_node->world_transform = glm::mat4{ 1.f };
+    
+        for (auto& s : new_node->mesh->surfaces) {
+            s.material = std::make_shared<vk_loader::GLTFMaterial>(default_data);
+        }
+    
+        loaded_nodes[m->name] = std::move(new_node);
+    }
+
+    global_deletion_stack.push_function([material_constants, this]() {
         for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {
             destroy_buffer(it->get()->mesh_buffers.index_buffer);
             destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
@@ -575,6 +646,7 @@ void gf::VkManager::init_default_data() {
         destroy_image(gray_image);
         destroy_image(black_image);
         destroy_image(error_checkerboard_image);
+        
         });
 }
 

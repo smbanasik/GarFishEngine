@@ -10,6 +10,8 @@
 #include <string>
 #include <stdint.h>
 #include <array>
+#include <unordered_map>
+#include <vector>
 
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
@@ -20,6 +22,7 @@
 #include <vk_pipelines.hpp>
 #include <vk_loader.hpp>
 #include <vk_materials.hpp>
+#include <vk_renderable.hpp>
 
 struct GLFWwindow;
 
@@ -49,9 +52,8 @@ public:
     
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
-    VkPipeline mesh_pipeline;
-    VkPipelineLayout mesh_pipeline_layout;
-    std::vector<std::shared_ptr<vk_loader::MeshAsset>> test_meshes;
+    MaterialPipeline triangle_pipeline;
+    MaterialPipeline mesh_pipeline;
 
     AllocatedImage drawn_image;
     AllocatedImage depth_image;
@@ -74,6 +76,10 @@ public:
     MaterialInstance default_data;
     vk_mat::GLTFMetallic_Roughness metal_rough_material;
 
+    vk_render::DrawContext main_draw_context;
+    std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> loaded_nodes;
+
+    std::vector<std::shared_ptr<gf::vk_loader::MeshAsset>> test_meshes;
     std::vector<ComputeEffect> background_effects; // For fun!
     int current_background_effect{ 0 }; // For fun!
 
@@ -84,6 +90,8 @@ public:
     ~VkManager();
 
     VkManager& get();
+
+    void update_scene(uint32_t width, uint32_t height);
 
     void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear);
     void draw_geometry(VkCommandBuffer cmd, FrameData* frame);
@@ -111,6 +119,7 @@ private:
     void init_descriptors();
     void init_pipelines();
     void init_background_pipelines();
+    void init_triangle_pipeline();
     void init_mesh_pipeline();
     void init_imgui(GLFWwindow* window);
     void init_default_data();

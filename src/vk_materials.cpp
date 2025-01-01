@@ -43,6 +43,7 @@ void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) 
     VkPipelineLayout new_layout;
     vkCreatePipelineLayout(engine->device, &mesh_layout_info, nullptr, &new_layout);
     
+    // This is a SOFT COPY! Meaning that we can only destroy one of them!
     opaque_pipeline.layout = new_layout;
     transparent_pipeline.layout = new_layout;
 
@@ -69,11 +70,11 @@ void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) 
     vkDestroyShaderModule(engine->device, mesh_vertex_shader, nullptr);
 }
 void gf::vk_mat::GLTFMetallic_Roughness::clear_resources(VkDevice device) {
-    vkDestroyPipelineLayout(device, opaque_pipeline.layout, nullptr);
     vkDestroyPipelineLayout(device, transparent_pipeline.layout, nullptr);
+    vkDestroyDescriptorSetLayout(device, material_layout, nullptr);
+
     vkDestroyPipeline(device, opaque_pipeline.pipeline, nullptr);
     vkDestroyPipeline(device, transparent_pipeline.pipeline, nullptr);
-    vkDestroyDescriptorSetLayout(device, material_layout, nullptr);
 }
 
 gf::MaterialInstance gf::vk_mat::GLTFMetallic_Roughness::write_material(VkDevice device, MaterialPass pass,

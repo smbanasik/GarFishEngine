@@ -26,3 +26,5 @@ In no particular order:
 - Review the load mesh function at a deeper level
 - Move image creation to its own area
 - Create files to handle the engine architecture (render obj, node, meshnode, etc)
+- Move structs GeoSurface and MeshAsset to a more sensible place
+- Sort the render context! Sort by pipeline to reduce bindings

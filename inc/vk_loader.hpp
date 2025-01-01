@@ -18,10 +18,13 @@ namespace gf {
 
 class VkManager;
 namespace vk_loader {
-// Used for submeshes within a gltf.
+struct GLTFMaterial {
+	MaterialInstance data;
+};
 struct GeoSurface {
-    uint32_t start_idx;
-    uint32_t count;
+	uint32_t start_idx;
+	uint32_t count;
+	std::shared_ptr<GLTFMaterial> material;
 };
 struct MeshAsset {
     std::string name;

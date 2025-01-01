@@ -64,7 +64,7 @@ Required:
 - Create a folder called `stb_image` in the `third_party` folder.
 - Place `stb_image.h` into the `stb_image` folder.
 
-### FastGLTF`
+### FastGLTF
 - Grab the [fastgltf github](https://github.com/spnda/fastgltf) link.
 - Naviage to the `third_party` folder.
 - Open a command prompt and type `git clone LINK` where `LINK` is the link you grabbed.
@@ -75,7 +75,9 @@ for testing purposes and could be safely removed.
 
 ## Supplementary files
 RESOURCES.md - A list of helpful resources that I'm collecting to best use Vulkan.
+
 DOCUMENTATION.md - A list of vulkan and personal structures so I can better keep track of the system.
+
 TODOS.md - A list of items I'd like to change in the code later.
 
 ## Code Guidelines
