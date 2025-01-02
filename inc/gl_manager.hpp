@@ -27,7 +27,7 @@ public:
 
     WindowContext create_window(ContextBuilder* builder);
     void set_callbacks(WindowContext context, CallbackBits callbacks);
-
+    
     // TODO: surface creation and deletion
     void create_surface();
     void delete_surface();
