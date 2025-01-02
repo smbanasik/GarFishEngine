@@ -6,6 +6,7 @@ This document serves as a reminder for things I would like to do once I get to t
 
 ## General
 In no particular order:
+- Error checking in gl files
 - Put namespaces around vk files to categorize them
     - vk_types
 	- vk_images

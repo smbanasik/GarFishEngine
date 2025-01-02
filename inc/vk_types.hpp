@@ -107,8 +107,5 @@ struct RenderObject {
     VkDeviceAddress vertex_buffer_address;
 };
 
-
-
-
 }
 #endif

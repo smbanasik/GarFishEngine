@@ -20,6 +20,8 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 #include <vk_initializers.hpp>
 #include <engine_types.hpp>
@@ -133,10 +135,19 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, FrameData* frame) {
     vkCmdEndRendering(cmd);
 }
 void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
+    camera.update();
+
     main_draw_context.opaque_surfaces.clear();
     loaded_nodes["Suzanne"]->draw(glm::mat4{ 1.f }, main_draw_context);
-        
-    scene_data.view = glm::translate(glm::mat4{ 1.f }, glm::vec3{ 0, 0, -5 });
+
+    for (int i = 0; i < 3; i++) {
+        glm::mat4 scale = glm::scale(glm::mat4{ 1.f }, glm::vec3{ 0.2 });
+        glm::mat4 translation = glm::translate(glm::mat4{ 1.f }, glm::vec3{ i, 1, 0 });
+
+        loaded_nodes["Cube"]->draw(translation * scale, main_draw_context);
+    }
+
+    scene_data.view = camera.get_view_matrix();
     scene_data.proj = glm::perspective(glm::radians(70.f), static_cast<float>(width) / static_cast<float>(height), 10000.f, 0.1f);
     scene_data.proj[1][1] *= -1;
     scene_data.viewproj = scene_data.proj * scene_data.view;
@@ -791,4 +802,85 @@ gf::AllocatedImage gf::VkManager::create_image(void* data, VkExtent3D size, VkFo
 void gf::VkManager::destroy_image(const AllocatedImage& img) {
     vkDestroyImageView(device, img.image_view, nullptr);
     vmaDestroyImage(allocator, img.image, img.allocation);
+}
+
+float gf::Camera::pitch = 0.f;
+float gf::Camera::yaw = 0.f;
+glm::vec3 gf::Camera::position{};
+glm::vec3 gf::Camera::velocity{};
+float gf::Camera::saved_x_pos = 0.f;
+float gf::Camera::saved_y_pos = 0.f;
+float gf::Camera::x_motion = 0.f;
+float gf::Camera::y_motion = 0.f;
+
+glm::mat4 gf::Camera::get_view_matrix() {
+    glm::mat4 camera_translation = glm::translate(glm::mat4(1.f), position);
+    glm::mat4 camera_rotation = get_rotation_matrix();
+    return glm::inverse(camera_translation * camera_rotation);
+}
+glm::mat4 gf::Camera::get_rotation_matrix() {
+    glm::quat pitch_rotation = glm::angleAxis(pitch, glm::vec3{ 1.f, 0.f, 0.f });
+    glm::quat yaw_rotation = glm::angleAxis(yaw, glm::vec3{ 0.f, -1.f, 0.f });
+    return glm::toMat4(yaw_rotation) * glm::toMat4(pitch_rotation);
+}
+
+void gf::Camera::glfw_camera_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    
+    if (action == GLFW_PRESS) {
+        switch (key) {
+        case GLFW_KEY_W:
+            Camera::velocity.z = -1;
+            break;
+        case GLFW_KEY_S:
+            Camera::velocity.z = 1;
+            break;
+        case GLFW_KEY_A:
+            Camera::velocity.x = -1;
+            break;
+        case GLFW_KEY_D:
+            Camera::velocity.x = 1;
+            break;
+        }
+    }
+    if (action == GLFW_RELEASE) {
+        switch (key) {
+        case GLFW_KEY_W:
+            Camera::velocity.z = 0;
+            break;
+        case GLFW_KEY_S:
+            Camera::velocity.z = 0;
+            break;
+        case GLFW_KEY_A:
+            Camera::velocity.x = 0;
+            break;
+        case GLFW_KEY_D:
+            Camera::velocity.x = 0;
+            break;
+        }
+    }
+}
+
+void gf::Camera::glfw_camera_mouse(GLFWwindow* window, double xpos, double ypos) {
+    static bool first_mouse = true;
+    if (first_mouse) {
+        yaw = static_cast<float>(xpos);
+        pitch = static_cast<float>(ypos);
+        first_mouse = false;
+    }
+    x_motion = static_cast<float>(xpos) - saved_x_pos;
+    y_motion = saved_y_pos - static_cast<float>(ypos);
+
+    yaw += static_cast<float>(x_motion) * 0.00075;
+    pitch += static_cast<float>(y_motion) * 0.00075;
+
+    saved_x_pos = xpos;
+    saved_y_pos = ypos;
+}
+
+void gf::Camera::update() {
+    glm::mat4 camera_rotation = get_rotation_matrix();
+    position += glm::vec3(camera_rotation * glm::vec4(velocity * 0.25f, 0.f));
+
+    x_motion = 0;
+    y_motion = 0;
 }

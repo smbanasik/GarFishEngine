@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/16/2024
-// Last Modified: 12/29/2024
+// Last Modified: 1/1/2025
 // Description:
 // Handles abstract and low level vulkan concepts
 #ifndef GF_VULKAN_HPP
@@ -29,6 +29,28 @@ struct GLFWwindow;
 namespace gf {
 constexpr bool DEBUG_USE_VALIDATION = true;
 constexpr uint8_t FRAME_OVERLAP = 2;
+
+struct Camera {
+    // Very hacky and awful but I don't care!
+    // I will be reworking this shortly
+    static glm::vec3 velocity;
+    static glm::vec3 position;
+    static float pitch;
+    static float yaw;
+    static float saved_x_pos;
+    static float saved_y_pos;
+    static float x_motion;
+    static float y_motion;
+
+    glm::mat4 get_view_matrix();
+    glm::mat4 get_rotation_matrix();
+
+    static void glfw_camera_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void glfw_camera_mouse(GLFWwindow* window, double xpos, double ypos);
+
+
+    void update();
+};
 
 // The VkManager owns all of the abstract vulkan constructs and handles the
 // initialization of the vulkan library
@@ -78,6 +100,7 @@ public:
 
     vk_render::DrawContext main_draw_context;
     std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> loaded_nodes;
+    Camera camera;
 
     std::vector<std::shared_ptr<gf::vk_loader::MeshAsset>> test_meshes;
     std::vector<ComputeEffect> background_effects; // For fun!

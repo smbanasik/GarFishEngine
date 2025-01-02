@@ -12,6 +12,13 @@ ${HEADER_DIR}/vk_pipelines.hpp
 ${HEADER_DIR}/vk_loader.hpp
 ${HEADER_DIR}/vk_materials.hpp
 ${HEADER_DIR}/vk_renderable.hpp
+${HEADER_DIR}/gf_options.hpp
+${HEADER_DIR}/gl_manager.hpp
+${HEADER_DIR}/gl_window.hpp
+${HEADER_DIR}/gl_keys.hpp
+${HEADER_DIR}/gl_mouse.hpp
+${HEADER_DIR}/gl_joystick.hpp
+${HEADER_DIR}/gl_types.hpp
 )
 
 set(SOURCES
@@ -26,6 +33,12 @@ vk_pipelines.cpp
 vk_loader.cpp
 vk_materials.cpp
 vk_renderable.cpp
+gf_options.cpp
+gl_manager.cpp
+gl_window.cpp
+gl_keys.cpp
+gl_mouse.cpp
+gl_joystick.cpp
 )
 
 add_executable(garfish

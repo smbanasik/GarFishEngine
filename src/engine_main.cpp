@@ -54,6 +54,11 @@ gf::Engine::Engine() : gl_context(window_dims.width, window_dims.height, title),
         (iconified) ? engine->should_render = false : engine->should_render = true;
         });
 
+    glfwSetKeyCallback(gl_context.window, Camera::glfw_camera_callback);
+    glfwSetInputMode(gl_context.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(gl_context.window, Camera::glfw_camera_mouse);
+
+
 }
 
 gf::Engine::~Engine() {
