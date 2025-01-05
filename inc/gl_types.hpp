@@ -25,21 +25,6 @@ enum class WindowType {
     BORDERLESS
 };
 
-enum class CallbackBits {
-
-};
-
-struct WindowContext {
-    Extent2D window_dims;
-    std::string title;
-    WindowType type;
-    GLFWmonitor* monitor;
-    GLFWwindow* window;
-
-    // TODO: callbacks for window
-
-};
-
 }
 }
 #endif

@@ -410,7 +410,7 @@ void gf::VkManager::init_background_pipelines() {
     if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", device, &gradient_shader))
         std::cout << "| ERROR: compute shader was not built.\n";
     VkShaderModule sky_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/sky.comp.spv", device, &sky_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", device, &sky_shader)) // TEMP CHANGED TO GRADIENT
         std::cout << "| ERROR: compute shader was not built.\n";
 
     VkPipelineShaderStageCreateInfo stage_info{};
