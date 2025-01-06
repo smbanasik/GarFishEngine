@@ -12,6 +12,7 @@
 
 #include <gl_window.hpp>
 #include <gl_mouse.hpp>
+#include <gl_keys.hpp>
 
 namespace gf {
 namespace gl {
@@ -20,11 +21,12 @@ public:
     friend gf::gl::GLManager;
     WindowContext window;
     MouseContext mouse;
-    //InputContext key;
+    KeyContext key;
     //JoyContext joystick;
 private:
     WInputContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr)
-        : window(type, window_dims, window_title, monitor), mouse(window_dims) {};
+        : window(type, window_dims, window_title, monitor), mouse(window_dims, window.window),
+        key(window.window) {};
 };
 
 class GLManager {

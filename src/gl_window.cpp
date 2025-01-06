@@ -97,9 +97,7 @@ GLFWwindow* gl::WindowContext::helper_create_window_borderless(gl::Extent2D wind
     return nullptr;
 }
 void gl::WindowContext::call_resize() {
-    if (!callback_window_resize)
-        return;
-    else
+    if (callback_window_resize)
         callback_window_resize();
 }
 

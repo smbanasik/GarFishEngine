@@ -10,6 +10,21 @@
 #include <gl_types.hpp>
 #include <gl_manager.hpp>
 
+gf::gl::MouseContext::MouseContext(Extent2D window_dims, GLFWwindow* window) 
+    : prior_mouse_time(0), current_mouse_time(0), window_handle(window)
+{
+    mouse_coordinates.x = window_dims.width;
+    mouse_coordinates.y = window_dims.height;
+    mouse_coordinates.x *= 0.5;
+    mouse_coordinates.y *= 0.5;
+    prior_mouse_coordinates.x = mouse_coordinates.x;
+    prior_mouse_coordinates.y = mouse_coordinates.y;
+    current_mouse_time = glfwGetTime();
+    prior_mouse_time = current_mouse_time;
+
+    glfwSetCursorPosCallback(window_handle, callback_movement);
+}
+
 gf::gl::Double2D gf::gl::MouseContext::get_mouse_coords() {
     return mouse_coordinates;
 }
@@ -60,8 +75,6 @@ void gf::gl::MouseContext::callback_movement(GLFWwindow* window, double xpos, do
 }
 
 void gf::gl::MouseContext::call_movement() {
-    if (!callback_mouse_move)
-        return;
-    else
+    if (callback_mouse_move)
         callback_mouse_move();
 }

@@ -3,7 +3,7 @@
 // Last Modified: 1/5/2025
 // Description:
 // Interface for all things related to glfw windows
-// gf::gl::GLManager is a friend of this class
+// gf::gl::GLManager and gf::gl::WInputContext is a friend of this class
 // gf::gl::WInputContext owns the user pointer.
 #ifndef GL_WINDOW_HPP
 #define GL_WINDOW_HPP
@@ -20,10 +20,12 @@
 namespace gf {
 namespace gl {
 class GLManager;
+class WInputContext;
 class WindowContext {
 public:
     friend class gf::gl::GLManager;
-    static std::vector<GLFWmonitor*> query_monitors();
+    friend class gf::gl::WInputContext;
+    static std::vector<GLFWmonitor*> query_monitors(); // TODO: implement
     WindowContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
     ~WindowContext();
     WindowContext(WindowContext& context);

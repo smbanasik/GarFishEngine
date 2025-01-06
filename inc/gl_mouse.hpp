@@ -20,16 +20,7 @@ class MouseContext {
     friend class gf::gl::GLManager;
 public:
 
-    MouseContext(Extent2D window_dims) : mouse_coordinates(window_dims),
-        prior_mouse_coordinates(window_dims), prior_mouse_time(0), current_mouse_time(0)
-    {
-        mouse_coordinates.x *= 0.5;
-        mouse_coordinates.y *= 0.5;
-        prior_mouse_coordinates.x = mouse_coordinates.x;
-        prior_mouse_coordinates.y = mouse_coordinates.y;
-        current_mouse_time = glfwGetTime();
-        prior_mouse_time = current_mouse_time;
-    }
+    MouseContext(Extent2D window_dims, GLFWwindow* window);
 
     Double2D get_mouse_coords();
     Double2D get_mouse_offset();
@@ -50,7 +41,6 @@ private:
     static void callback_movement(GLFWwindow* window, double xpos, double ypos);
 
     void call_movement();
-    void set_window_handle(GLFWwindow* window_handle) { this->window_handle = window_handle; };
 
     double prior_mouse_time;
     double current_mouse_time;
