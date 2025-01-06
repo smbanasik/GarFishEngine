@@ -30,7 +30,7 @@ void gf::gl::KeyContext::callback_key(GLFWwindow* window, int key, int scancode,
 }
 void gf::gl::KeyContext::callback_char(GLFWwindow* window, unsigned int codepoint) {
     gl::WInputContext* context = static_cast<gl::WInputContext*>(glfwGetWindowUserPointer(window));
-    context->key.char_buffer += std::to_string(codepoint);
+    context->key.char_buffer += std::to_wstring(codepoint);
     context->key.call_char();
 }
 

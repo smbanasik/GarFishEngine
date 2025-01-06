@@ -48,7 +48,7 @@ private:
     std::function<void()> callback_keyboard_key;
     GLFWwindow* window_handle = nullptr;
     std::unordered_map <int, std::function<void(Key)>> key_map;
-    std::string char_buffer;
+    std::wstring char_buffer;
 
 };
 }

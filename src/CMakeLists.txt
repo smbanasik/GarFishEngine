@@ -13,6 +13,7 @@ ${HEADER_DIR}/vk_loader.hpp
 ${HEADER_DIR}/vk_materials.hpp
 ${HEADER_DIR}/vk_renderable.hpp
 ${HEADER_DIR}/gf_options.hpp
+${HEADER_DIR}/gf_err.hpp
 ${HEADER_DIR}/gl_manager.hpp
 ${HEADER_DIR}/gl_window.hpp
 ${HEADER_DIR}/gl_keys.hpp
@@ -35,6 +36,7 @@ vk_loader.cpp
 vk_materials.cpp
 vk_renderable.cpp
 gf_options.cpp
+gf_err.cpp
 gl_manager.cpp
 gl_window.cpp
 gl_keys.cpp
