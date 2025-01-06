@@ -3,8 +3,8 @@
 // Last Modified: 1/5/2025
 // Description:
 // Interface for all things related to glfw windows
-// gf::GLManager is a friend of this class
-// gf::GLManager::WInputContext owns the user pointer.
+// gf::gl::GLManager is a friend of this class
+// gf::gl::WInputContext owns the user pointer.
 #ifndef GL_WINDOW_HPP
 #define GL_WINDOW_HPP
 
@@ -12,22 +12,28 @@
 #include <vector>
 #include <functional>
 
+#define GLFW_INCLUDE_VULKAN
+#include<GLFW/glfw3.h>
+
 #include <gl_types.hpp>
 
-struct GLFWwindow;
-struct GLFWmonitor;
-
 namespace gf {
-
-struct gf::GLManager::WInputConxtext;
 namespace gl {
-
+class GLManager;
 class WindowContext {
-    friend class gf::GLManager;
 public:
+    friend class gf::gl::GLManager;
     static std::vector<GLFWmonitor*> query_monitors();
     WindowContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
     ~WindowContext();
+    WindowContext(WindowContext& context);
+    WindowContext operator=(WindowContext& context) {
+        if (this == &context)
+            return *this;
+        this->window = context.window;
+        context.window = nullptr;
+        return *this;
+    }
 
     void make_fullscreen();
     void make_borderless();
@@ -43,8 +49,6 @@ public:
 private:
 
     static void callback_size(GLFWwindow* window, int width, int height);
-    WindowContext(const WindowContext& other) = delete;
-    WindowContext& operator=(const WindowContext& other) = delete;
 
     GLFWwindow* create_window(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
     GLFWwindow* helper_create_window_windowed(gl::Extent2D window_dims, std::string window_title);

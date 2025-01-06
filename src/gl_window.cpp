@@ -10,14 +10,13 @@
 #include <gl_manager.hpp>
 
 namespace gf {
-
 std::vector<GLFWmonitor*> gl::WindowContext::query_monitors() {
     int count = 0;
     std::vector<GLFWmonitor*> monitors;
     return monitors;
 }
 
-gl::WindowContext::WindowContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr)
+gl::WindowContext::WindowContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor)
 : type(type), window_dims(window_dims), monitor(monitor) {
 
     window = create_window(type, window_dims, window_title, monitor);
@@ -25,7 +24,13 @@ gl::WindowContext::WindowContext(gl::WindowType type, gl::Extent2D window_dims, 
 
 }
 gl::WindowContext::~WindowContext() {
-    glfwDestroyWindow(window);
+    if(window != nullptr)
+        glfwDestroyWindow(window);
+}
+gl::WindowContext::WindowContext(WindowContext& context) 
+    : type(context.type), window_dims(context.window_dims), monitor(context.monitor) {
+    this->window = context.window;
+    context.window = nullptr;
 }
 
 void gl::WindowContext::make_fullscreen() {
@@ -40,7 +45,7 @@ void gl::WindowContext::make_windowed() {
 }
 
 void gl::WindowContext::callback_size(GLFWwindow* window, int width, int height) {
-    GLManager::WInputConxtext* context = static_cast<GLManager::WInputConxtext*>(glfwGetWindowUserPointer(window));
+    gl::WInputContext* context = static_cast<gl::WInputContext*>(glfwGetWindowUserPointer(window));
 
     context->window.window_dims.width = width;
     context->window.window_dims.height = height;

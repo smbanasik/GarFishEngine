@@ -18,6 +18,14 @@ struct Extent2D {
     uint32_t width;
     uint32_t height;
 };
+struct Float2D {
+    float x;
+    float y;
+};
+struct Double2D {
+    double x;
+    double y
+};
 
 enum class WindowType {
     WINDOWED,
