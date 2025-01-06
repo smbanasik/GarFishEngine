@@ -27,7 +27,7 @@
 struct GLFWwindow;
 
 namespace gf {
-constexpr bool DEBUG_USE_VALIDATION = true;
+static constexpr bool DEBUG_USE_VALIDATION = true;
 constexpr uint8_t FRAME_OVERLAP = 2;
 
 struct Camera {

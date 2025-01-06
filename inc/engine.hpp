@@ -16,9 +16,6 @@
 #include <gf_vulkan.hpp>
 #include <engine_types.hpp>
 
-// Forward Declares
-struct GLFWwindow;
-
 namespace gf {
 
 class Engine {

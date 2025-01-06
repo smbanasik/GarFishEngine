@@ -8,6 +8,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
 
+#include <vk_core.hpp>
+
 gf::gl::GLManager* gf::gl::GLManager::loaded_glfw = nullptr;
 
 gf::gl::GLManager::GLManager() {
@@ -27,4 +29,8 @@ gf::gl::WInputContext gf::gl::GLManager::create_window(gl::WindowType type, gl::
     WInputContext context(type, window_dims, window_title, monitor);
     context.window.set_user_pointer(&context);
     return context;
+}
+
+void gf::gl::GLManager::create_surface(WInputContext* gl_context, vk_core::VKCore* vk_context) {
+    glfwCreateWindowSurface(vk_context->instance, gl_context->window.window, NULL, &vk_context->surface);
 }

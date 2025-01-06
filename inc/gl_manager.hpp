@@ -8,13 +8,18 @@
 #ifndef GL_MANAGER_HPP
 #define GL_MANAGER_HPP
 
-#include <gl_types.hpp>
+#define GLFW_INCLUDE_VULKAN
+#include<GLFW/glfw3.h>
 
+#include <gl_types.hpp>
 #include <gl_window.hpp>
 #include <gl_mouse.hpp>
 #include <gl_keys.hpp>
 
 namespace gf {
+namespace vk_core {
+class VKCore;
+}
 namespace gl {
 class WInputContext {
 public:
@@ -37,9 +42,7 @@ public:
 
     WInputContext create_window(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
 
-    // TODO: surface creation and deletion
-    void create_surface();
-    void delete_surface();
+    void create_surface(WInputContext* gl_context, vk_core::VKCore* vk_context);
 
     bool check_init() { return is_init; };
 

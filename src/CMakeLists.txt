@@ -19,6 +19,7 @@ ${HEADER_DIR}/gl_keys.hpp
 ${HEADER_DIR}/gl_mouse.hpp
 ${HEADER_DIR}/gl_joystick.hpp
 ${HEADER_DIR}/gl_types.hpp
+${HEADER_DIR}/vk_core.hpp
 )
 
 set(SOURCES
@@ -39,6 +40,7 @@ gl_window.cpp
 gl_keys.cpp
 gl_mouse.cpp
 gl_joystick.cpp
+vk_core.cpp
 )
 
 add_executable(garfish
