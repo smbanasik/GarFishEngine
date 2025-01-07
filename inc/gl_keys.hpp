@@ -18,19 +18,14 @@ namespace gf {
 namespace gl {
 class GLManager;
 class WInputContext;
+struct Key;
 class KeyContext {
     friend class gf::gl::GLManager;
 public:
 
-    struct Key {
-        int key;
-        int action;
-        int modifiers;
-    };
-
     KeyContext(GLFWwindow* window);
 
-    void set_key_mapping(int key, std::function<void(Key)>&& function);
+    void set_key_mapping(int key, std::function<void(Key* key)>&& function);
     void set_callback_keyboard_key(std::function<void(WInputContext* gl_context)>&& function) { callback_keyboard_key = std::move(function); };
     void set_callback_keyboard_char(std::function<void(WInputContext* gl_context)>&& function) { callback_keyboard_char = std::move(function); };
     const std::wstring& get_char_buffer() { return char_buffer; };
@@ -48,7 +43,7 @@ private:
     std::function<void(WInputContext* gl_context)> callback_keyboard_char;
     std::function<void(WInputContext* gl_context)> callback_keyboard_key;
     GLFWwindow* window_handle = nullptr;
-    std::unordered_map <int, std::function<void(Key)>> key_map;
+    std::unordered_map <int, std::function<void(Key* key)>> key_map;
     std::wstring char_buffer;
 
 };

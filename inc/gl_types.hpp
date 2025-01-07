@@ -34,6 +34,12 @@ enum class WindowType {
     BORDERLESS
 };
 
+struct Key {
+    int key;
+    int action;
+    int modifiers;
+};
+
 }
 }
 #endif

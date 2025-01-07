@@ -52,8 +52,14 @@ vk_context(gl_manager, gl_context) {
     //    (iconified) ? engine->should_render = false : engine->should_render = true;
     //    });
 
+    gl_context.key.set_key_mapping(GLFW_KEY_W, Camera::glfw_camera_callback);
+    gl_context.key.set_key_mapping(GLFW_KEY_S, Camera::glfw_camera_callback);
+    gl_context.key.set_key_mapping(GLFW_KEY_A, Camera::glfw_camera_callback);
+    gl_context.key.set_key_mapping(GLFW_KEY_D, Camera::glfw_camera_callback);
+
     gl_context.mouse.disable_cursor();
     gl_context.mouse.enable_raw_mouse();
+    gl_context.mouse.set_callback_mouse_movement(Camera::glfw_camera_mouse);
 
     //glfwSetKeyCallback(gl_context.window, Camera::glfw_camera_callback);
     //glfwSetCursorPosCallback(gl_context.window, Camera::glfw_camera_mouse);

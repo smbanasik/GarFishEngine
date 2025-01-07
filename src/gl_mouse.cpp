@@ -29,8 +29,8 @@ gf::gl::Double2D gf::gl::MouseContext::get_mouse_coords() {
     return mouse_coordinates;
 }
 gf::gl::Double2D gf::gl::MouseContext::get_mouse_offset() {
-    return { prior_mouse_coordinates.x - mouse_coordinates.x,
-        prior_mouse_coordinates.y - mouse_coordinates.y };
+    return { mouse_coordinates.x - prior_mouse_coordinates.x,
+        mouse_coordinates.y - prior_mouse_coordinates.y};
 }
 gf::gl::Double2D gf::gl::MouseContext::get_mouse_velocity() {
     Double2D vector = get_mouse_offset();

@@ -772,10 +772,10 @@ glm::mat4 gf::Camera::get_rotation_matrix() {
     return glm::toMat4(yaw_rotation) * glm::toMat4(pitch_rotation);
 }
 
-void gf::Camera::glfw_camera_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void gf::Camera::glfw_camera_callback(gl::Key* key) {
     
-    if (action == GLFW_PRESS) {
-        switch (key) {
+    if (key->action == GLFW_PRESS) {
+        switch (key->key) {
         case GLFW_KEY_W:
             Camera::velocity.z = -1;
             break;
@@ -790,8 +790,8 @@ void gf::Camera::glfw_camera_callback(GLFWwindow* window, int key, int scancode,
             break;
         }
     }
-    if (action == GLFW_RELEASE) {
-        switch (key) {
+    if (key->action == GLFW_RELEASE) {
+        switch (key->key) {
         case GLFW_KEY_W:
             Camera::velocity.z = 0;
             break;
@@ -808,21 +808,17 @@ void gf::Camera::glfw_camera_callback(GLFWwindow* window, int key, int scancode,
     }
 }
 
-void gf::Camera::glfw_camera_mouse(GLFWwindow* window, double xpos, double ypos) {
-    static bool first_mouse = true;
-    if (first_mouse) {
-        yaw = static_cast<float>(xpos);
-        pitch = static_cast<float>(ypos);
-        first_mouse = false;
+void gf::Camera::glfw_camera_mouse(gl::WInputContext* context) {
+    if (context->mouse.first_mouse) {
+        gl::Double2D new_pos = context->mouse.get_mouse_coords();
+        yaw = static_cast<float>(new_pos.x);
+        pitch = static_cast<float>(new_pos.y);
+        context->mouse.first_mouse = false;
     }
-    x_motion = static_cast<float>(xpos) - saved_x_pos;
-    y_motion = saved_y_pos - static_cast<float>(ypos);
+    gl::Double2D offsets = context->mouse.get_mouse_offset();
 
-    yaw += static_cast<float>(x_motion) * 0.00075;
-    pitch += static_cast<float>(y_motion) * 0.00075;
-
-    saved_x_pos = xpos;
-    saved_y_pos = ypos;
+    yaw += static_cast<float>(offsets.x) * 0.00075;
+    pitch -= static_cast<float>(offsets.y) * 0.00075;
 }
 
 void gf::Camera::update() {

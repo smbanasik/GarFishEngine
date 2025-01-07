@@ -31,6 +31,7 @@ namespace gf {
 namespace gl {
 class GLManager;
 class WInputContext;
+struct Key;
 }
 static constexpr bool DEBUG_USE_VALIDATION = true;
 constexpr uint8_t FRAME_OVERLAP = 2;
@@ -50,8 +51,8 @@ struct Camera {
     glm::mat4 get_view_matrix();
     glm::mat4 get_rotation_matrix();
 
-    static void glfw_camera_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void glfw_camera_mouse(GLFWwindow* window, double xpos, double ypos);
+    static void glfw_camera_callback(gl::Key* key);
+    static void glfw_camera_mouse(gl::WInputContext* context);
 
 
     void update();
@@ -150,5 +151,4 @@ private:
     void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 };
 }
-
 #endif
