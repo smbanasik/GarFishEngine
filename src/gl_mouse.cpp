@@ -76,5 +76,5 @@ void gf::gl::MouseContext::callback_movement(GLFWwindow* window, double xpos, do
 
 void gf::gl::MouseContext::call_movement() {
     if (callback_mouse_move)
-        callback_mouse_move();
+        callback_mouse_move(static_cast<gl::WInputContext*>(glfwGetWindowUserPointer(window_handle)));
 }

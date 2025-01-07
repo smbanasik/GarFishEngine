@@ -16,6 +16,7 @@ struct GLFWwindow;
 namespace gf {
 namespace gl {
 class GLManager;
+class WInputContext;
 class MouseContext {
     friend class gf::gl::GLManager;
 public:
@@ -26,7 +27,7 @@ public:
     Double2D get_mouse_offset();
     Double2D get_mouse_velocity();
 
-    void set_callback_mouse_movement(std::function<void()>&& function) { callback_mouse_move = std::move(function); };
+    void set_callback_mouse_movement(std::function<void(WInputContext* gl_context)>&& function) { callback_mouse_move = std::move(function); };
 
     void disable_cursor();
     void enable_cursor();
@@ -46,7 +47,7 @@ private:
     double current_mouse_time;
     Double2D mouse_coordinates;
     Double2D prior_mouse_coordinates;
-    std::function<void()> callback_mouse_move;
+    std::function<void(WInputContext* gl_context)> callback_mouse_move;
     GLFWwindow* window_handle = nullptr;
 };
 }

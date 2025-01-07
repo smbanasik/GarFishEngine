@@ -36,10 +36,10 @@ void gf::gl::KeyContext::callback_char(GLFWwindow* window, unsigned int codepoin
 
 void gf::gl::KeyContext::call_key() {
     if (callback_keyboard_key)
-        callback_keyboard_key();
+        callback_keyboard_key(static_cast<gl::WInputContext*>(glfwGetWindowUserPointer(window_handle)));
 
 }
 void gf::gl::KeyContext::call_char() {
     if (callback_keyboard_char)
-        callback_keyboard_char();
+        callback_keyboard_char(static_cast<gl::WInputContext*>(glfwGetWindowUserPointer(window_handle)));
 }

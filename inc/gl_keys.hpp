@@ -17,6 +17,7 @@ struct GLFWwindow;
 namespace gf {
 namespace gl {
 class GLManager;
+class WInputContext;
 class KeyContext {
     friend class gf::gl::GLManager;
 public:
@@ -30,8 +31,8 @@ public:
     KeyContext(GLFWwindow* window);
 
     void set_key_mapping(int key, std::function<void(Key)>&& function);
-    void set_callback_keyboard_key(std::function<void()>&& function) { callback_keyboard_key = std::move(function); };
-    void set_callback_keyboard_char(std::function<void()>&& function) { callback_keyboard_char = std::move(function); };
+    void set_callback_keyboard_key(std::function<void(WInputContext* gl_context)>&& function) { callback_keyboard_key = std::move(function); };
+    void set_callback_keyboard_char(std::function<void(WInputContext* gl_context)>&& function) { callback_keyboard_char = std::move(function); };
     const std::wstring& get_char_buffer() { return char_buffer; };
     void clear_char_buffer() { char_buffer.clear(); };
 
@@ -44,8 +45,8 @@ private:
     void call_char();
     void set_window_handle(GLFWwindow* window_handle) { this->window_handle = window_handle; };
 
-    std::function<void()> callback_keyboard_char;
-    std::function<void()> callback_keyboard_key;
+    std::function<void(WInputContext* gl_context)> callback_keyboard_char;
+    std::function<void(WInputContext* gl_context)> callback_keyboard_key;
     GLFWwindow* window_handle = nullptr;
     std::unordered_map <int, std::function<void(Key)>> key_map;
     std::wstring char_buffer;

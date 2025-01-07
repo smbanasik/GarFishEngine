@@ -29,7 +29,7 @@ public:
     KeyContext key;
     //JoyContext joystick;
 
-    WInputContext(WInputContext& other)
+    WInputContext(WInputContext& other) 
         : window(other.window), mouse(other.mouse), key(other.key) {};
 
     WInputContext(WInputContext&& other) noexcept

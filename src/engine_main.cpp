@@ -40,7 +40,7 @@ vk_context(gl_manager, gl_context) {
     assert(loaded_engine == nullptr);
     loaded_engine = this;
 
-    gl_context.window.set_callback_window_resize([this]() {
+    gl_context.window.set_callback_window_resize([this](gl::WInputContext* context) {
         this->get_vk_context()->resize_requested = true;
         gl::Extent2D dims = gl_context.window.get_window_dims();
         this->window_dims.height = dims.height;

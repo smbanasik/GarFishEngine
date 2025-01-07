@@ -62,7 +62,7 @@ public:
     void make_windowed();
     void set_monitor(GLFWmonitor* monitor) { this->monitor = monitor; };
     void set_title(std::string title) { glfwSetWindowTitle(window, title.c_str()); };
-    void set_callback_window_resize(std::function<void()>&& function) { callback_window_resize = std::move(function); };
+    void set_callback_window_resize(std::function<void(WInputContext* gl_context)>&& function) { callback_window_resize = std::move(function); };
 
     bool should_window_close() { return glfwWindowShouldClose(window); };
     
@@ -85,7 +85,7 @@ private:
 
     GLFWwindow* window;
     GLFWmonitor* monitor;
-    std::function<void()> callback_window_resize;
+    std::function<void(WInputContext* gl_context)> callback_window_resize;
 
 };
 }
