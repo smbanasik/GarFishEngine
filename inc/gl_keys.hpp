@@ -32,7 +32,7 @@ public:
     void set_key_mapping(int key, std::function<void(Key)>&& function);
     void set_callback_keyboard_key(std::function<void()>&& function) { callback_keyboard_key = std::move(function); };
     void set_callback_keyboard_char(std::function<void()>&& function) { callback_keyboard_char = std::move(function); };
-    const std::string& get_char_buffer() { return char_buffer; };
+    const std::wstring& get_char_buffer() { return char_buffer; };
     void clear_char_buffer() { char_buffer.clear(); };
 
 private:

@@ -11,7 +11,7 @@
 #include <gl_manager.hpp>
 
 gf::gl::KeyContext::KeyContext(GLFWwindow* window)
-    : window_handle(window), char_buffer("") {
+    : window_handle(window), char_buffer(L"") {
     glfwSetKeyCallback(window_handle, callback_key);
     glfwSetCharCallback(window_handle, callback_char);
 }

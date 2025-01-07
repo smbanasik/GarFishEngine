@@ -18,6 +18,7 @@
 
 #include <engine_types.hpp>
 #include <vk_types.hpp>
+#include <vk_core.hpp>
 #include <vk_descriptors.hpp>
 #include <vk_pipelines.hpp>
 #include <vk_loader.hpp>
@@ -27,6 +28,10 @@
 struct GLFWwindow;
 
 namespace gf {
+namespace gl {
+class GLManager;
+class WInputContext;
+}
 static constexpr bool DEBUG_USE_VALIDATION = true;
 constexpr uint8_t FRAME_OVERLAP = 2;
 
@@ -57,13 +62,7 @@ struct Camera {
 class VkManager {
 public:
 
-    VkInstance instance;
-    VkPhysicalDevice gpu;
-    VkDevice device;
-    VkSurfaceKHR surface;
-    VkDebugUtilsMessengerEXT debug_messenger;
-    VkQueue graphics_queue;
-    uint32_t graphics_queue_family;
+    vk_core::VKCore core;
     VmaAllocator allocator;
     SwapChain swapchain;
     std::array<FrameData, FRAME_OVERLAP> active_frames;
@@ -109,7 +108,7 @@ public:
     bool is_init = false;
     bool resize_requested = false;
 
-    VkManager(GLFWwindow* window, uint32_t width, uint32_t height);
+    VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context);
     ~VkManager();
 
     VkManager& get();

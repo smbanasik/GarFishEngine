@@ -27,12 +27,19 @@ gl::WindowContext::~WindowContext() {
     if(window != nullptr)
         glfwDestroyWindow(window);
 }
-gl::WindowContext::WindowContext(WindowContext& context) 
-    : type(context.type), window_dims(context.window_dims), monitor(context.monitor) {
-    this->window = context.window;
-    context.window = nullptr;
+gl::WindowContext::WindowContext(WindowContext& other)
+    : type(other.type), window_dims(other.window_dims), monitor(other.monitor),
+    callback_window_resize(other.callback_window_resize),
+    window(other.window) {
+    other.window = nullptr;
 }
 
+gl::WindowContext::WindowContext(WindowContext&& other) noexcept
+    : type(std::move(other.type)), window_dims(std::move(other.window_dims)), monitor(std::move(other.monitor)),
+    callback_window_resize(std::move(other.callback_window_resize)),
+    window(other.window) {;
+    other.window = nullptr;
+}
 void gl::WindowContext::make_fullscreen() {
     glfwSetWindowMonitor(window, (monitor == nullptr) ? glfwGetPrimaryMonitor() : monitor, 0, 0, window_dims.width, window_dims.height, GLFW_DONT_CARE);
 }
@@ -57,14 +64,14 @@ GLFWwindow* gl::WindowContext::create_window(gf::gl::WindowType type, gl::Extent
 
     switch (type) {
     case gl::WindowType::FULLSCREEN:
-        helper_create_window_fullscren(window_dims, window_title, monitor);
+        window = helper_create_window_fullscren(window_dims, window_title, monitor);
         break;
     case gl::WindowType::BORDERLESS:
-        helper_create_window_borderless(window_dims, window_title, monitor);
+        window = helper_create_window_borderless(window_dims, window_title, monitor);
         break;
     case gl::WindowType::WINDOWED:
     default:
-        helper_create_window_windowed(window_dims, window_title);
+        window = helper_create_window_windowed(window_dims, window_title);
         break;
     }
     return window;

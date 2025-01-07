@@ -28,6 +28,7 @@
 #include <vk_types.hpp>
 #include <vk_descriptors.hpp>
 #include <vk_images.hpp>
+#include <gl_manager.hpp>
 // TEMPORARY
 #include <vulkan/vk_enum_string_helper.h>
 #define VK_CHECK(x)                                                     \
@@ -41,17 +42,17 @@
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
-gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
+gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context)
+    : core(&gl_manager, &gl_context) {
     assert(loaded_vk == nullptr);
     loaded_vk = this;
 
-    init_vulkan(window);
     create_allocator();
-    init_swapchain(width, height);
+    init_swapchain(gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height);
     init_commands();
     init_descriptors();
     init_pipelines();
-    init_imgui(window);
+    init_imgui(gl_manager.get_window(&gl_context));
     init_default_data();
 
     is_init = true;
@@ -59,9 +60,9 @@ gf::VkManager::VkManager(GLFWwindow* window, uint32_t width, uint32_t height) {
 }
 gf::VkManager::~VkManager() {
 
-    vkDeviceWaitIdle(device);
+    vkDeviceWaitIdle(core.device);
 
-    metal_rough_material.clear_resources(device);
+    metal_rough_material.clear_resources(core.device);
 
     global_deletion_stack.flush();
 }
@@ -91,10 +92,10 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, FrameData* frame) {
     GPUSceneData* scene_uniform_data = reinterpret_cast<GPUSceneData*>(gpu_scene_data_buffer.allocation->GetMappedData());
     *scene_uniform_data = scene_data;
     
-    VkDescriptorSet global_descriptor = frame->frame_descriptors.allocate(device, gpu_scene_data_descriptor_layout);
+    VkDescriptorSet global_descriptor = frame->frame_descriptors.allocate(core.device, gpu_scene_data_descriptor_layout);
     DescriptorWriter writer;
     writer.write_buffer(0, gpu_scene_data_buffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    writer.update_set(device, global_descriptor);
+    writer.update_set(core.device, global_descriptor);
 
     VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingAttachmentInfo depth_attachment = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
@@ -157,59 +158,6 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
     scene_data.sunlight_direction = glm::vec4(0, 1, 0.5, 1.f);
 }
 
-void gf::VkManager::init_vulkan(GLFWwindow* window) {
-    vkb::InstanceBuilder builder;
-
-    auto inst = builder.set_app_name("GarFishEngine")
-        .request_validation_layers(DEBUG_USE_VALIDATION)
-        .use_default_debug_messenger()
-        .require_api_version(1, 3, 0)
-        .build();
-
-    vkb::Instance vkb_inst = inst.value();
-
-    instance = vkb_inst.instance;
-    debug_messenger = vkb_inst.debug_messenger;
-
-    auto err = glfwCreateWindowSurface(instance, window, NULL, &surface);
-    if (err) {
-        std::cout << "| ERROR: surface creation failed \n";
-        std::cout << err << "\n";
-    }
-
-    VkPhysicalDeviceVulkan13Features features13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
-    features13.dynamicRendering = true;
-    features13.synchronization2 = true;
-
-    VkPhysicalDeviceVulkan12Features features12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
-    features12.bufferDeviceAddress = true;
-    features12.descriptorIndexing = true;
-
-    vkb::PhysicalDeviceSelector selector{ vkb_inst };
-    vkb::PhysicalDevice vkb_phys_device = selector.set_minimum_version(1, 3)
-        .set_required_features_13(features13)
-        .set_required_features_12(features12)
-        .set_surface(surface)
-        .select()
-        .value();
-
-    vkb::DeviceBuilder device_builder{ vkb_phys_device };
-    vkb::Device vkb_device = device_builder.build().value();
-
-    device = vkb_device.device;
-    gpu = vkb_phys_device.physical_device;
-
-    graphics_queue = vkb_device.get_queue(vkb::QueueType::graphics).value();
-    graphics_queue_family = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
-
-    global_deletion_stack.push_function([this]() {
-        vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
-        vkDestroyDevice(this->device, nullptr);
-        vkb::destroy_debug_utils_messenger(this->instance, this->debug_messenger);
-        vkDestroyInstance(this->instance, nullptr);
-        });
-}
-
 void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     
     create_swapchain(width, height);
@@ -230,7 +178,7 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     VkImageCreateInfo image_info = vk_init::image_info(drawn_image.image_format, image_size, drawn_image_usage);
     vmaCreateImage(allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation, nullptr);
     VkImageViewCreateInfo view_info = vk_init::image_view_info(drawn_image.image_format, drawn_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-    vkCreateImageView(device, &view_info, nullptr, &drawn_image.image_view);
+    vkCreateImageView(core.device, &view_info, nullptr, &drawn_image.image_view);
 
     depth_image.image_format = VK_FORMAT_D32_SFLOAT;
     depth_image.image_size = image_size;
@@ -240,20 +188,20 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     VkImageCreateInfo depth_image_info = vk_init::image_info(depth_image.image_format, image_size, depth_usage_flags);
     vmaCreateImage(allocator, &depth_image_info, &image_alloc_info, &depth_image.image, &depth_image.allocation, nullptr);
     VkImageViewCreateInfo depth_view_info = vk_init::image_view_info(depth_image.image_format, depth_image.image, VK_IMAGE_ASPECT_DEPTH_BIT);
-    vkCreateImageView(device, &depth_view_info, nullptr, &depth_image.image_view);
+    vkCreateImageView(core.device, &depth_view_info, nullptr, &depth_image.image_view);
     global_deletion_stack.push_function([this]() {
         destroy_swapchain();
 
-        vkDestroyImageView(this->device, this->drawn_image.image_view, nullptr);
+        vkDestroyImageView(this->core.device, this->drawn_image.image_view, nullptr);
         vmaDestroyImage(this->allocator, this->drawn_image.image, this->drawn_image.allocation);
-        vkDestroyImageView(this->device, this->depth_image.image_view, nullptr);
+        vkDestroyImageView(this->core.device, this->depth_image.image_view, nullptr);
         vmaDestroyImage(this->allocator, this->depth_image.image, this->depth_image.allocation);
         });
 
 }
 
 void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
-    vkb::SwapchainBuilder swapchain_builder{ gpu, device, surface };
+    vkb::SwapchainBuilder swapchain_builder{ core.gpu, core.device, core.surface };
     swapchain.swapchain_format = VK_FORMAT_B8G8R8A8_UNORM;
 
     vkb::Swapchain vkb_swapchain = swapchain_builder
@@ -271,9 +219,9 @@ void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
 }
 
 void gf::VkManager::destroy_swapchain() {
-    vkDestroySwapchainKHR(this->device, this->swapchain.swapchain, nullptr);
+    vkDestroySwapchainKHR(this->core.device, this->swapchain.swapchain, nullptr);
     for (auto it = this->swapchain.swapchain_image_views.begin(); it != this->swapchain.swapchain_image_views.end(); it++) {
-        vkDestroyImageView(this->device, *it, nullptr);
+        vkDestroyImageView(this->core.device, *it, nullptr);
     }
 }
 
@@ -281,33 +229,33 @@ void gf::VkManager::init_commands() {
     create_framedata();
 
     // Immediate Rendering
-    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-    vkCreateCommandPool(device, &pool_info, nullptr, &imm_command_pool);
+    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(core.graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    vkCreateCommandPool(core.device, &pool_info, nullptr, &imm_command_pool);
     VkCommandBufferAllocateInfo cmd_alloc_info = vk_init::command_allocate_info(imm_command_pool);
-    vkAllocateCommandBuffers(device, &cmd_alloc_info, &imm_command_buffer);
+    vkAllocateCommandBuffers(core.device, &cmd_alloc_info, &imm_command_buffer);
     VkFenceCreateInfo fence_info = vk_init::fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
-    vkCreateFence(device, &fence_info, nullptr, &imm_fence);
+    vkCreateFence(core.device, &fence_info, nullptr, &imm_fence);
     global_deletion_stack.push_function([this]() {
-        vkDestroyCommandPool(device, imm_command_pool, nullptr);
-        vkDestroyFence(device, imm_fence, nullptr);
+        vkDestroyCommandPool(core.device, imm_command_pool, nullptr);
+        vkDestroyFence(core.device, imm_fence, nullptr);
         });
 }
 
 void gf::VkManager::create_framedata() {
 
-    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(core.graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     VkFenceCreateInfo fence_info = vk_init::fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
     VkSemaphoreCreateInfo semaphore_info = vk_init::semaphore_info();
 
     for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
 
-        vkCreateFence(device, &fence_info, nullptr, &(*it).render_fence);
-        vkCreateSemaphore(device, &semaphore_info, nullptr, &(*it).swapchain_semaphore);
-        vkCreateSemaphore(device, &semaphore_info, nullptr, &(*it).render_semaphore);
+        vkCreateFence(core.device, &fence_info, nullptr, &(*it).render_fence);
+        vkCreateSemaphore(core.device, &semaphore_info, nullptr, &(*it).swapchain_semaphore);
+        vkCreateSemaphore(core.device, &semaphore_info, nullptr, &(*it).render_semaphore);
 
-        vkCreateCommandPool(device, &pool_info, nullptr, &(*it).command_pool);
+        vkCreateCommandPool(core.device, &pool_info, nullptr, &(*it).command_pool);
         VkCommandBufferAllocateInfo alloc_info = vk_init::command_allocate_info((*it).command_pool);
-        vkAllocateCommandBuffers(device, &alloc_info, &(*it).command_buffer);
+        vkAllocateCommandBuffers(core.device, &alloc_info, &(*it).command_buffer);
 
         std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> frame_pool_sizes = {
             { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
@@ -317,17 +265,17 @@ void gf::VkManager::create_framedata() {
         };
 
         it->frame_descriptors = DescriptorAllocatorGrowable{};
-        it->frame_descriptors.init(device, 1000, frame_pool_sizes);
+        it->frame_descriptors.init(core.device, 1000, frame_pool_sizes);
     }
 
     global_deletion_stack.push_function([this]() {
         for (auto it = this->active_frames.begin(); it != this->active_frames.end(); it++) {
-            vkDestroyCommandPool(device, (*it).command_pool, nullptr);
-            vkDestroyFence(device, (*it).render_fence, nullptr);
-            vkDestroySemaphore(device, (*it).render_semaphore, nullptr);
-            vkDestroySemaphore(device, (*it).swapchain_semaphore, nullptr);
+            vkDestroyCommandPool(core.device, (*it).command_pool, nullptr);
+            vkDestroyFence(core.device, (*it).render_fence, nullptr);
+            vkDestroySemaphore(core.device, (*it).render_semaphore, nullptr);
+            vkDestroySemaphore(core.device, (*it).swapchain_semaphore, nullptr);
             it->deletion_stack.flush();
-            it->frame_descriptors.destroy_pools(device);
+            it->frame_descriptors.destroy_pools(core.device);
         }
         });
 
@@ -335,9 +283,9 @@ void gf::VkManager::create_framedata() {
 
 void gf::VkManager::create_allocator() {
     VmaAllocatorCreateInfo allocator_info = {};
-    allocator_info.physicalDevice = gpu;
-    allocator_info.device = device;
-    allocator_info.instance = instance;
+    allocator_info.physicalDevice = core.gpu;
+    allocator_info.device = core.device;
+    allocator_info.instance = core.instance;
     allocator_info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
     vmaCreateAllocator(&allocator_info, &allocator);
     global_deletion_stack.push_function([this]() {
@@ -351,34 +299,34 @@ void gf::VkManager::init_descriptors() {
         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}
     };
 
-    global_descriptor_allocator.init(device, 10, sizes);
+    global_descriptor_allocator.init(core.device, 10, sizes);
     
     {
         DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-        drawn_image_descriptor_layout = builder.build(device, VK_SHADER_STAGE_COMPUTE_BIT);
+        drawn_image_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_COMPUTE_BIT);
     }
-    drawn_image_descriptors = global_descriptor_allocator.allocate(device, drawn_image_descriptor_layout);
+    drawn_image_descriptors = global_descriptor_allocator.allocate(core.device, drawn_image_descriptor_layout);
     {
         DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-        gpu_scene_data_descriptor_layout = builder.build(device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+        gpu_scene_data_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     }
     {
         DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-        single_image_descriptor_layout = builder.build(device, VK_SHADER_STAGE_FRAGMENT_BIT);
+        single_image_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_FRAGMENT_BIT);
     }
 
     DescriptorWriter writer;
     writer.write_image(0, drawn_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-    writer.update_set(device, drawn_image_descriptors);
+    writer.update_set(core.device, drawn_image_descriptors);
 
     global_deletion_stack.push_function([this]() {
-        global_descriptor_allocator.destroy_pools(device);
-        vkDestroyDescriptorSetLayout(device, drawn_image_descriptor_layout, nullptr);
-        vkDestroyDescriptorSetLayout(device, gpu_scene_data_descriptor_layout, nullptr);
-        vkDestroyDescriptorSetLayout(device, single_image_descriptor_layout, nullptr);
+        global_descriptor_allocator.destroy_pools(core.device);
+        vkDestroyDescriptorSetLayout(core.device, drawn_image_descriptor_layout, nullptr);
+        vkDestroyDescriptorSetLayout(core.device, gpu_scene_data_descriptor_layout, nullptr);
+        vkDestroyDescriptorSetLayout(core.device, single_image_descriptor_layout, nullptr);
         });
 }
 
@@ -404,13 +352,13 @@ void gf::VkManager::init_background_pipelines() {
     compute_layout.pPushConstantRanges = &push_constant;
     compute_layout.pushConstantRangeCount = 1;
 
-    vkCreatePipelineLayout(device, &compute_layout, nullptr, &gradient_pipeline_layout);
+    vkCreatePipelineLayout(core.device, &compute_layout, nullptr, &gradient_pipeline_layout);
 
     VkShaderModule gradient_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", device, &gradient_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", core.device, &gradient_shader))
         std::cout << "| ERROR: compute shader was not built.\n";
     VkShaderModule sky_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", device, &sky_shader)) // TEMP CHANGED TO GRADIENT
+    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", core.device, &sky_shader)) // TEMP CHANGED TO GRADIENT
         std::cout << "| ERROR: compute shader was not built.\n";
 
     VkPipelineShaderStageCreateInfo stage_info{};
@@ -433,7 +381,7 @@ void gf::VkManager::init_background_pipelines() {
     gradient.data.data1 = { 1, 0, 0, 1 };
     gradient.data.data2 = { 0, 0.5, 1, 1 };
 
-    vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &gradient.pipeline);
+    vkCreateComputePipelines(core.device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &gradient.pipeline);
 
     compute_create_info.stage.module = sky_shader;
     ComputeEffect sky;
@@ -442,32 +390,32 @@ void gf::VkManager::init_background_pipelines() {
     sky.data = {};
     sky.data.data1 = { 0.1, 0.2, 0.4, 0.97 };
 
-    vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &sky.pipeline);
+    vkCreateComputePipelines(core.device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &sky.pipeline);
 
     background_effects.push_back(gradient);
     background_effects.push_back(sky);
 
-    vkDestroyShaderModule(device, gradient_shader, nullptr);
-    vkDestroyShaderModule(device, sky_shader, nullptr);
+    vkDestroyShaderModule(core.device, gradient_shader, nullptr);
+    vkDestroyShaderModule(core.device, sky_shader, nullptr);
 
     global_deletion_stack.push_function([=]() {
-        vkDestroyPipelineLayout(device, gradient_pipeline_layout, nullptr);
-        vkDestroyPipeline(device, gradient.pipeline, nullptr);
-        vkDestroyPipeline(device, sky.pipeline, nullptr);
+        vkDestroyPipelineLayout(core.device, gradient_pipeline_layout, nullptr);
+        vkDestroyPipeline(core.device, gradient.pipeline, nullptr);
+        vkDestroyPipeline(core.device, sky.pipeline, nullptr);
         });
 }
 
 void gf::VkManager::init_triangle_pipeline() {
     VkShaderModule triangle_frag_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", device, &triangle_frag_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", core.device, &triangle_frag_shader))
         std::cout << "Error when building the triangle fragment shader module\n";
 
     VkShaderModule triangle_vertex_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.vert.spv", device, &triangle_vertex_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.vert.spv", core.device, &triangle_vertex_shader))
         std::cout << "Error when building the triangle vertex shader module\n";
 
     VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
-    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &triangle_pipeline.layout);
+    vkCreatePipelineLayout(core.device, &pipeline_layout_info, nullptr, &triangle_pipeline.layout);
 
     vk_pipe::PipelineBuilder pipe_builder;
 
@@ -482,23 +430,23 @@ void gf::VkManager::init_triangle_pipeline() {
         .set_depth_format(depth_image.image_format);
     pipe_builder.pipeline_layout = triangle_pipeline.layout;
 
-    triangle_pipeline.pipeline = pipe_builder.build_pipeline(device);
+    triangle_pipeline.pipeline = pipe_builder.build_pipeline(core.device);
 
-    vkDestroyShaderModule(device, triangle_frag_shader, nullptr);
-    vkDestroyShaderModule(device, triangle_vertex_shader, nullptr);
+    vkDestroyShaderModule(core.device, triangle_frag_shader, nullptr);
+    vkDestroyShaderModule(core.device, triangle_vertex_shader, nullptr);
 
     global_deletion_stack.push_function([this]() {
-        vkDestroyPipelineLayout(device, triangle_pipeline.layout, nullptr);
-        vkDestroyPipeline(device, triangle_pipeline.pipeline, nullptr);
+        vkDestroyPipelineLayout(core.device, triangle_pipeline.layout, nullptr);
+        vkDestroyPipeline(core.device, triangle_pipeline.pipeline, nullptr);
         });
 }
 void gf::VkManager::init_mesh_pipeline() {
     VkShaderModule triangle_frag_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", device, &triangle_frag_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", core.device, &triangle_frag_shader))
         std::cout << "Error when building the triangle fragment shader module\n";
 
     VkShaderModule triangle_vertex_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri_mesh.vert.spv", device, &triangle_vertex_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/colored_tri_mesh.vert.spv", core.device, &triangle_vertex_shader))
         std::cout << "Error when building the triangle vertex shader module\n";
 
     VkPushConstantRange buffer_range{};
@@ -510,7 +458,7 @@ void gf::VkManager::init_mesh_pipeline() {
     pipeline_layout_info.pPushConstantRanges = &buffer_range;
     pipeline_layout_info.pushConstantRangeCount = 1;
 
-    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &mesh_pipeline.layout);
+    vkCreatePipelineLayout(core.device, &pipeline_layout_info, nullptr, &mesh_pipeline.layout);
 
     vk_pipe::PipelineBuilder pipe_builder;
 
@@ -525,14 +473,14 @@ void gf::VkManager::init_mesh_pipeline() {
         .set_depth_format(depth_image.image_format);
     pipe_builder.pipeline_layout = mesh_pipeline.layout;
 
-    mesh_pipeline.pipeline = pipe_builder.build_pipeline(device);
+    mesh_pipeline.pipeline = pipe_builder.build_pipeline(core.device);
 
-    vkDestroyShaderModule(device, triangle_frag_shader, nullptr);
-    vkDestroyShaderModule(device, triangle_vertex_shader, nullptr);
+    vkDestroyShaderModule(core.device, triangle_frag_shader, nullptr);
+    vkDestroyShaderModule(core.device, triangle_vertex_shader, nullptr);
 
     global_deletion_stack.push_function([this]() {
-        vkDestroyPipelineLayout(device, mesh_pipeline.layout, nullptr);
-        vkDestroyPipeline(device, mesh_pipeline.pipeline, nullptr);
+        vkDestroyPipelineLayout(core.device, mesh_pipeline.layout, nullptr);
+        vkDestroyPipeline(core.device, mesh_pipeline.pipeline, nullptr);
         });
 }
 
@@ -559,15 +507,15 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
     pool_info.pPoolSizes = pool_sizes;
 
     VkDescriptorPool imguiPool;
-    vkCreateDescriptorPool(device, &pool_info, nullptr, &imguiPool);
+    vkCreateDescriptorPool(core.device, &pool_info, nullptr, &imguiPool);
 
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo init_info = {};
-    init_info.Instance = instance;
-    init_info.PhysicalDevice = gpu;
-    init_info.Device = device;
-    init_info.Queue = graphics_queue;
+    init_info.Instance = core.instance;
+    init_info.PhysicalDevice = core.gpu;
+    init_info.Device = core.device;
+    init_info.Queue = core.graphics_queue;
     init_info.DescriptorPool = imguiPool;
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
@@ -582,7 +530,7 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
 
     global_deletion_stack.push_function([=]() {
         ImGui_ImplVulkan_Shutdown();
-        vkDestroyDescriptorPool(device, imguiPool, nullptr);
+        vkDestroyDescriptorPool(core.device, imguiPool, nullptr);
         });
 }
 
@@ -606,10 +554,10 @@ void gf::VkManager::init_default_data() {
     VkSamplerCreateInfo sampl{ .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
     sampl.magFilter = VK_FILTER_NEAREST;
     sampl.minFilter = VK_FILTER_NEAREST;
-    vkCreateSampler(device, &sampl, nullptr, &default_sampler_nearest);
+    vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_nearest);
     sampl.magFilter = VK_FILTER_LINEAR;
     sampl.minFilter = VK_FILTER_LINEAR;
-    vkCreateSampler(device, &sampl, nullptr, &default_sampler_linear);
+    vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_linear);
 
     vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources;
     material_resources.color_image = white_image;
@@ -623,7 +571,7 @@ void gf::VkManager::init_default_data() {
     material_resources.data_buffer = material_constants.buffer;
     material_resources.data_buffer_offset = 0;
 
-    default_data = metal_rough_material.write_material(device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
+    default_data = metal_rough_material.write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
 
     test_meshes = vk_loader::load_gltf_meshes(this, "..\\..\\assets\\basicmesh.glb").value();
 
@@ -650,8 +598,8 @@ void gf::VkManager::init_default_data() {
         }
         destroy_buffer(material_constants);
 
-        vkDestroySampler(device, default_sampler_nearest, nullptr);
-        vkDestroySampler(device, default_sampler_linear, nullptr);
+        vkDestroySampler(core.device, default_sampler_nearest, nullptr);
+        vkDestroySampler(core.device, default_sampler_linear, nullptr);
 
         destroy_image(white_image);
         destroy_image(gray_image);
@@ -692,7 +640,7 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
         VMA_MEMORY_USAGE_GPU_ONLY);
 
     VkBufferDeviceAddressInfo device_address_info{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, .buffer = new_mesh.vertex_buffer.buffer };
-    new_mesh.vertex_buffer_address = vkGetBufferDeviceAddress(device, &device_address_info);
+    new_mesh.vertex_buffer_address = vkGetBufferDeviceAddress(core.device, &device_address_info);
 
     AllocatedBuffer staging_buffer = create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
     void* data = staging_buffer.allocation->GetMappedData();
@@ -720,7 +668,7 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
 }
 
 void gf::VkManager::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function) {
-    vkResetFences(device, 1, &imm_fence);
+    vkResetFences(core.device, 1, &imm_fence);
     vkResetCommandBuffer(imm_command_buffer, 0);
     VkCommandBuffer cmd = imm_command_buffer;
 
@@ -731,12 +679,12 @@ void gf::VkManager::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& 
 
     VkCommandBufferSubmitInfo cmd_submit_info = vk_init::submit_command(cmd);
     VkSubmitInfo2 submit = vk_init::submit_info(&cmd_submit_info, nullptr, nullptr);
-    vkQueueSubmit2(graphics_queue, 1, &submit, imm_fence);
-    vkWaitForFences(device, 1, &imm_fence, true, 1000000000);
+    vkQueueSubmit2(core.graphics_queue, 1, &submit, imm_fence);
+    vkWaitForFences(core.device, 1, &imm_fence, true, 1000000000);
 }
 
 void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {
-    vkDeviceWaitIdle(device);
+    vkDeviceWaitIdle(core.device);
     
     destroy_swapchain();
 
@@ -764,7 +712,7 @@ gf::AllocatedImage gf::VkManager::create_image(VkExtent3D size, VkFormat format,
 
     VkImageViewCreateInfo view_info = vk_init::image_view_info(format, new_image.image, aspect_flag);
     view_info.subresourceRange.levelCount = img_info.mipLevels;
-    vkCreateImageView(device, &view_info, nullptr, &new_image.image_view);
+    vkCreateImageView(core.device, &view_info, nullptr, &new_image.image_view);
 
     return new_image;
 }
@@ -800,7 +748,7 @@ gf::AllocatedImage gf::VkManager::create_image(void* data, VkExtent3D size, VkFo
 
 }
 void gf::VkManager::destroy_image(const AllocatedImage& img) {
-    vkDestroyImageView(device, img.image_view, nullptr);
+    vkDestroyImageView(core.device, img.image_view, nullptr);
     vmaDestroyImage(allocator, img.image, img.allocation);
 }
 

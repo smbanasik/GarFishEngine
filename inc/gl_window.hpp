@@ -28,12 +28,32 @@ public:
     static std::vector<GLFWmonitor*> query_monitors(); // TODO: implement
     WindowContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
     ~WindowContext();
-    WindowContext(WindowContext& context);
-    WindowContext operator=(WindowContext& context) {
-        if (this == &context)
+    WindowContext(WindowContext& other);
+    WindowContext(WindowContext&& other) noexcept;
+    WindowContext operator=(WindowContext& other) {
+        if (this == &other)
             return *this;
-        this->window = context.window;
-        context.window = nullptr;
+        type = other.type;
+        window_dims = other.window_dims;
+        monitor = other.monitor;
+        callback_window_resize = other.callback_window_resize;
+        if (window)
+            glfwDestroyWindow(window);
+        this->window = other.window;
+        other.window = nullptr;
+        return *this;
+    }
+    WindowContext& operator=(WindowContext&& other) noexcept {
+        if (this == &other)
+            return *this;
+        type = std::move(other.type);
+        window_dims = std::move(other.window_dims);
+        monitor = std::move(other.monitor);
+        callback_window_resize = std::move(other.callback_window_resize);
+        if (window)
+            glfwDestroyWindow(window);
+        this->window = other.window;
+        other.window = nullptr;
         return *this;
     }
 

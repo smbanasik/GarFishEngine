@@ -28,6 +28,13 @@ public:
     MouseContext mouse;
     KeyContext key;
     //JoyContext joystick;
+
+    WInputContext(WInputContext& other)
+        : window(other.window), mouse(other.mouse), key(other.key) {};
+
+    WInputContext(WInputContext&& other) noexcept
+        : window(std::move(other.window)), mouse(std::move(other.mouse)), key(std::move(other.key)) {};
+
 private:
     WInputContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr)
         : window(type, window_dims, window_title, monitor), mouse(window_dims, window.window),
@@ -45,6 +52,9 @@ public:
     void create_surface(WInputContext* gl_context, vk_core::VKCore* vk_context);
 
     bool check_init() { return is_init; };
+
+    // Temporary function for imgui
+    GLFWwindow* get_window(WInputContext* gl_context) { return gl_context->window.window; };
 
 private:
     static GLManager* loaded_glfw;

@@ -34,29 +34,29 @@
 
 gf::Engine* gf::Engine::loaded_engine = nullptr;
 
-gf::Engine::Engine() : gl_context(window_dims.width, window_dims.height, title), vk_context(gl_context.window, window_dims.width, window_dims.height) {
+gf::Engine::Engine() : gl_manager(), gl_context(gl_manager.create_window(gf::gl::WindowType::WINDOWED, {window_dims.width, window_dims.height}, title)),
+vk_context(gl_manager, gl_context) {
 
     assert(loaded_engine == nullptr);
     loaded_engine = this;
 
-    // Not strictly necessary since we can use loaded_engine
-    // but good to learn this pattern
-    gl_context.set_user_pointer(this);
-
-    gl_context.set_callbacak_window_resize([](GLFWwindow* window, int width, int height) {
-        Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
-        engine->get_vk_context()->resize_requested = true;
-        engine->window_dims.width = width;
-        engine->window_dims.height = height;
-        });
-    gl_context.set_callback_window_iconified([](GLFWwindow* window, int iconified) {
-        Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
-        (iconified) ? engine->should_render = false : engine->should_render = true;
+    gl_context.window.set_callback_window_resize([this]() {
+        this->get_vk_context()->resize_requested = true;
+        gl::Extent2D dims = gl_context.window.get_window_dims();
+        this->window_dims.height = dims.height;
+        this->window_dims.width = dims.width;
         });
 
-    glfwSetKeyCallback(gl_context.window, Camera::glfw_camera_callback);
-    glfwSetInputMode(gl_context.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(gl_context.window, Camera::glfw_camera_mouse);
+    //gl_context.set_callback_window_iconified([](GLFWwindow* window, int iconified) {
+    //    Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+    //    (iconified) ? engine->should_render = false : engine->should_render = true;
+    //    });
+
+    gl_context.mouse.disable_cursor();
+    gl_context.mouse.enable_raw_mouse();
+
+    //glfwSetKeyCallback(gl_context.window, Camera::glfw_camera_callback);
+    //glfwSetCursorPosCallback(gl_context.window, Camera::glfw_camera_mouse);
 
 
 }
@@ -108,7 +108,7 @@ void gf::Engine::run() {
         draw();
 
 
-        should_kill_game = glfwWindowShouldClose(gl_context.window);
+        should_kill_game = gl_context.window.should_window_close();
     }
 
 }
@@ -126,15 +126,15 @@ void gf::Engine::draw() {
     vk_context.update_scene(window_dims.width, window_dims.height); 
 
     // Synchronization - Wait until frame is ready
-    VK_CHECK(vkWaitForFences(vk_context.device, 1, &get_current_frame().render_fence, true, 1000000000));
-    VK_CHECK(vkResetFences(vk_context.device, 1, &get_current_frame().render_fence));
+    VK_CHECK(vkWaitForFences(vk_context.core.device, 1, &get_current_frame().render_fence, true, 1000000000));
+    VK_CHECK(vkResetFences(vk_context.core.device, 1, &get_current_frame().render_fence));
 
     get_current_frame().deletion_stack.flush();
-    get_current_frame().frame_descriptors.clear_pools(vk_context.device);
+    get_current_frame().frame_descriptors.clear_pools(vk_context.core.device);
 
     // Acquire Swapchain - get the swapchain image
     uint32_t swapchain_image_idx;
-    VkResult err = vkAcquireNextImageKHR(vk_context.device, vk_context.swapchain.swapchain, 1000000000, get_current_frame().swapchain_semaphore, nullptr, &swapchain_image_idx);
+    VkResult err = vkAcquireNextImageKHR(vk_context.core.device, vk_context.swapchain.swapchain, 1000000000, get_current_frame().swapchain_semaphore, nullptr, &swapchain_image_idx);
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
         vk_context.resize_requested = true;
         return;
@@ -178,9 +178,9 @@ void gf::Engine::draw() {
     VkSemaphoreSubmitInfo wait_info = vk_init::submit_semaphore(get_current_frame().swapchain_semaphore, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR);
     VkSemaphoreSubmitInfo signal_info = vk_init::submit_semaphore(get_current_frame().render_semaphore, VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT);
     VkSubmitInfo2 submit = vk_init::submit_info(&cmd_info, &signal_info, &wait_info);
-    VK_CHECK(vkQueueSubmit2(vk_context.graphics_queue, 1, &submit, get_current_frame().render_fence));
+    VK_CHECK(vkQueueSubmit2(vk_context.core.graphics_queue, 1, &submit, get_current_frame().render_fence));
     VkPresentInfoKHR present_info = vk_init::present_info(&vk_context.swapchain.swapchain, &get_current_frame().render_semaphore, &swapchain_image_idx);
-    VkResult present_res = vkQueuePresentKHR(vk_context.graphics_queue, &present_info);
+    VkResult present_res = vkQueuePresentKHR(vk_context.core.graphics_queue, &present_info);
     if (present_res == VK_ERROR_OUT_OF_DATE_KHR)
         vk_context.resize_requested = true;
 

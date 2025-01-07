@@ -12,10 +12,10 @@
 
 void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) {
     VkShaderModule mesh_vertex_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/mesh.vert.spv", engine->device, &mesh_vertex_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/mesh.vert.spv", engine->core.device, &mesh_vertex_shader))
         std::cout << "| ERROR: vertex shader not built.\n";
     VkShaderModule mesh_frag_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/mesh.frag.spv", engine->device, &mesh_frag_shader))
+    if (!vk_pipe::load_shader_module("../../shaders/mesh.frag.spv", engine->core.device, &mesh_frag_shader))
         std::cout << "| ERROR: fragment shader not built.\n";
 
     VkPushConstantRange matrix_range{};
@@ -28,7 +28,7 @@ void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) 
     layout_builder.add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     layout_builder.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
-    material_layout = layout_builder.build(engine->device,
+    material_layout = layout_builder.build(engine->core.device,
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
     VkDescriptorSetLayout layouts[] = { engine->gpu_scene_data_descriptor_layout,
@@ -41,7 +41,7 @@ void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) 
     mesh_layout_info.pushConstantRangeCount = 1;
 
     VkPipelineLayout new_layout;
-    vkCreatePipelineLayout(engine->device, &mesh_layout_info, nullptr, &new_layout);
+    vkCreatePipelineLayout(engine->core.device, &mesh_layout_info, nullptr, &new_layout);
     
     // This is a SOFT COPY! Meaning that we can only destroy one of them!
     opaque_pipeline.layout = new_layout;
@@ -59,15 +59,15 @@ void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) 
         .set_depth_format(engine->depth_image.image_format);
     pipe_builder.pipeline_layout = new_layout;
     
-    opaque_pipeline.pipeline = pipe_builder.build_pipeline(engine->device);
+    opaque_pipeline.pipeline = pipe_builder.build_pipeline(engine->core.device);
 
     pipe_builder.enable_blending_additive();
     pipe_builder.enable_depthtest(false, VK_COMPARE_OP_GREATER_OR_EQUAL);
 
-    transparent_pipeline.pipeline = pipe_builder.build_pipeline(engine->device);
+    transparent_pipeline.pipeline = pipe_builder.build_pipeline(engine->core.device);
 
-    vkDestroyShaderModule(engine->device, mesh_frag_shader, nullptr);
-    vkDestroyShaderModule(engine->device, mesh_vertex_shader, nullptr);
+    vkDestroyShaderModule(engine->core.device, mesh_frag_shader, nullptr);
+    vkDestroyShaderModule(engine->core.device, mesh_vertex_shader, nullptr);
 }
 void gf::vk_mat::GLTFMetallic_Roughness::clear_resources(VkDevice device) {
     vkDestroyPipelineLayout(device, transparent_pipeline.layout, nullptr);
