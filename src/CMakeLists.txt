@@ -4,23 +4,8 @@ ${HEADER_DIR}/engine.hpp
 ${HEADER_DIR}/engine_types.hpp
 ${HEADER_DIR}/gf_window.hpp
 ${HEADER_DIR}/gf_vulkan.hpp
-${HEADER_DIR}/vk_initializers.hpp
-${HEADER_DIR}/vk_images.hpp
-${HEADER_DIR}/vk_types.hpp
-${HEADER_DIR}/vk_descriptors.hpp
-${HEADER_DIR}/vk_pipelines.hpp
-${HEADER_DIR}/vk_loader.hpp
-${HEADER_DIR}/vk_materials.hpp
-${HEADER_DIR}/vk_renderable.hpp
 ${HEADER_DIR}/gf_options.hpp
 ${HEADER_DIR}/gf_err.hpp
-${HEADER_DIR}/gl_manager.hpp
-${HEADER_DIR}/gl_window.hpp
-${HEADER_DIR}/gl_keys.hpp
-${HEADER_DIR}/gl_mouse.hpp
-${HEADER_DIR}/gl_joystick.hpp
-${HEADER_DIR}/gl_types.hpp
-${HEADER_DIR}/vk_core.hpp
 )
 
 set(SOURCES
@@ -28,24 +13,39 @@ main.cpp
 engine_main.cpp
 gf_window.cpp
 gf_vulkan.cpp
-vk_initializers.cpp
-vk_images.cpp
-vk_descriptors.cpp
-vk_pipelines.cpp
-vk_loader.cpp
-vk_materials.cpp
-vk_renderable.cpp
 gf_options.cpp
 gf_err.cpp
-gl_manager.cpp
-gl_window.cpp
-gl_keys.cpp
-gl_mouse.cpp
-gl_joystick.cpp
-vk_core.cpp
 )
 
+# Adding Groups
+file (GLOB_RECURSE HEADER_GL
+    "${HEADER_DIR}/gl_*.hpp"
+)
+source_group("WInput Header" FILES ${HEADER_GL})
+
+file (GLOB_RECURSE SRC_GL
+    "gl_*.cpp"
+)
+source_group("WInput Source" FILES ${SRC_GL})
+
+file (GLOB_RECURSE HEADER_VK
+    "${HEADER_DIR}/vk_*.hpp"
+)
+source_group("Vulkan Header" FILES ${HEADER_VK})
+
+file (GLOB_RECURSE SRC_VK
+    "vk_*.cpp"
+)
+source_group("Vulkan Source" FILES ${SRC_VK})
+
+source_group("Other Header" FILES ${HEADERS})
+source_group("Other Source" FILES ${SOURCES})
+
 add_executable(garfish
+${HEADER_GL}
+${SRC_GL}
+${HEADER_VK}
+${SRC_VK}
 ${SOURCES}
 ${HEADERS}
 )
