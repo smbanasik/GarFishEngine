@@ -43,14 +43,14 @@
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
 gf::VkManager::VkManager(gl::GLManager & gl_manager, gl::WInputContext & gl_context)
-    : core(&gl_manager, &gl_context), alloc(&core),
+    : core(&gl_manager, &gl_context), alloc(&core), 
     swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
-    frame_data(&core) {
+    frame_data(&core), imm_frame(&core) {
+    
     assert(loaded_vk == nullptr);
     loaded_vk = this;
 
     init_swapchain(gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height);
-    init_commands();
     init_descriptors();
     init_pipelines();
     init_imgui(gl_manager.get_window(&gl_context));
@@ -199,22 +199,6 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
         vmaDestroyImage(this->alloc.allocator, this->depth_image.image, this->depth_image.allocation);
         });
 
-}
-
-void gf::VkManager::init_commands() {
-    //create_framedata();
-
-    // Immediate Rendering
-    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(core.graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-    vkCreateCommandPool(core.device, &pool_info, nullptr, &imm_command_pool);
-    VkCommandBufferAllocateInfo cmd_alloc_info = vk_init::command_allocate_info(imm_command_pool);
-    vkAllocateCommandBuffers(core.device, &cmd_alloc_info, &imm_command_buffer);
-    VkFenceCreateInfo fence_info = vk_init::fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
-    vkCreateFence(core.device, &fence_info, nullptr, &imm_fence);
-    global_deletion_stack.push_function([this]() {
-        vkDestroyCommandPool(core.device, imm_command_pool, nullptr);
-        vkDestroyFence(core.device, imm_fence, nullptr);
-        });
 }
 
 void gf::VkManager::init_descriptors() {
@@ -592,19 +576,7 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
 }
 
 void gf::VkManager::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function) {
-    vkResetFences(core.device, 1, &imm_fence);
-    vkResetCommandBuffer(imm_command_buffer, 0);
-    VkCommandBuffer cmd = imm_command_buffer;
-
-    VkCommandBufferBeginInfo cmd_begin_info = vk_init::begin_command(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    vkBeginCommandBuffer(cmd, &cmd_begin_info);
-    function(cmd);
-    vkEndCommandBuffer(cmd);
-
-    VkCommandBufferSubmitInfo cmd_submit_info = vk_init::submit_command(cmd);
-    VkSubmitInfo2 submit = vk_init::submit_info(&cmd_submit_info, nullptr, nullptr);
-    vkQueueSubmit2(core.graphics_queue, 1, &submit, imm_fence);
-    vkWaitForFences(core.device, 1, &imm_fence, true, 1000000000);
+    imm_frame.immediate_submit(std::move(function));
 }
 
 void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {

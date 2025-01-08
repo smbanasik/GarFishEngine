@@ -64,9 +64,7 @@ public:
     vk_core::Alloc alloc;
     vk_frames::SwapChain swapchain;
     vk_frames::FrameData frame_data;
-    VkFence imm_fence;
-    VkCommandBuffer imm_command_buffer;
-    VkCommandPool imm_command_pool;
+    vk_frames::ImmediateFrame imm_frame;
     DescriptorAllocatorGrowable global_descriptor_allocator;
     
     VkPipeline gradient_pipeline;
@@ -130,7 +128,6 @@ private:
     VkManager(const VkManager& other) = delete;
     VkManager& operator=(const VkManager& other) = delete;
     void init_swapchain(uint32_t width, uint32_t height);
-    void init_commands();
     void init_descriptors();
     void init_pipelines();
     void init_background_pipelines();

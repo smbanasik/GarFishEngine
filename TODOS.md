@@ -16,8 +16,6 @@ In no particular order:
 	- vk_descriptors
 - gl_window needs to have its copying capabilities disabled.
 - Actually check for support of things that we need
-- Create a full class for the swapchain. RAII
-- Separate the swapchain and draw/depth image creation logic
 - Create an aggregate for pipelines, shaders, and descriptors. RAII
 - Create a series of deletion queue aggregates which take arrays of objects and delete them.
 - Draw image should use window size first
