@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/14/2024
-// Last Modified: 12/28/2024
+// Last Modified: 1/6/2025
 #include <engine.hpp>
 
 #include <stdint.h>
@@ -47,11 +47,6 @@ vk_context(gl_manager, gl_context) {
         this->window_dims.width = dims.width;
         });
 
-    //gl_context.set_callback_window_iconified([](GLFWwindow* window, int iconified) {
-    //    Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
-    //    (iconified) ? engine->should_render = false : engine->should_render = true;
-    //    });
-
     gl_context.key.set_key_mapping(GLFW_KEY_W, Camera::glfw_camera_callback);
     gl_context.key.set_key_mapping(GLFW_KEY_S, Camera::glfw_camera_callback);
     gl_context.key.set_key_mapping(GLFW_KEY_A, Camera::glfw_camera_callback);
@@ -60,9 +55,6 @@ vk_context(gl_manager, gl_context) {
     gl_context.mouse.disable_cursor();
     gl_context.mouse.enable_raw_mouse();
     gl_context.mouse.set_callback_mouse_movement(Camera::glfw_camera_mouse);
-
-    //glfwSetKeyCallback(gl_context.window, Camera::glfw_camera_callback);
-    //glfwSetCursorPosCallback(gl_context.window, Camera::glfw_camera_mouse);
 
 
 }

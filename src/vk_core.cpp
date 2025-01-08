@@ -3,6 +3,8 @@
 // Last Modified: 1/6/2025
 #include <vk_core.hpp>
 
+#include <utility>
+
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
 
@@ -55,8 +57,26 @@ gf::vk_core::VKCore::VKCore(gl::GLManager* gl_manager, gl::WInputContext* gl_con
 gf::vk_core::VKCore::~VKCore() {
 
     vkDeviceWaitIdle(device);
-    vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
-    vkDestroyDevice(this->device, nullptr);
-    vkb::destroy_debug_utils_messenger(this->instance, this->debug_messenger);
-    vkDestroyInstance(this->instance, nullptr);
+    if (instance != nullptr) {
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        vkDestroyDevice(device, nullptr);
+        vkb::destroy_debug_utils_messenger(instance, debug_messenger);
+        vkDestroyInstance(instance, nullptr);
+    }
+}
+gf::vk_core::VKCore::VKCore(VKCore&& other) noexcept 
+    : instance(std::move(other.instance)),
+    gpu (std::move(other.gpu)),
+    device (std::move(other.device)),
+    surface (std::move(other.surface)),
+    debug_messenger (std::move(other.debug_messenger)),
+    graphics_queue (std::move(other.graphics_queue)),
+    graphics_queue_family (std::move(other.graphics_queue_family)) {
+    other.instance = nullptr;
+    other.gpu = nullptr;
+    other.device = nullptr;
+    other.surface = nullptr;
+    other.debug_messenger = nullptr;
+    other.graphics_queue = nullptr;
+    other.graphics_queue_family = 0;
 }

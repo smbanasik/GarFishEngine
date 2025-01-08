@@ -26,7 +26,7 @@ public:
     void run();
 
     Engine& get();
-    FrameData& get_current_frame() { return vk_context.active_frames[frame_number % FRAME_OVERLAP]; }
+    Frame& get_current_frame() { return vk_context.frame_data.active_frames[frame_number % FRAME_OVERLAP]; }
     uint64_t get_frame() { return frame_number; }
     gl::WInputContext* get_glfw_context() { return &gl_context; }
     VkManager* get_vk_context() { return &vk_context; };

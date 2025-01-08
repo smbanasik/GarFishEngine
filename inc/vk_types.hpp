@@ -19,16 +19,8 @@
 #include <engine_types.hpp>
 
 namespace gf {
-// All swapchain information bundled together
-struct SwapChain {
-    VkSwapchainKHR swapchain{};
-    VkFormat swapchain_format{};
-    VkExtent2D swapchain_extent{};
-    std::vector<VkImage> swapchain_images;
-    std::vector<VkImageView> swapchain_image_views;
-};
 // All data for a given frame bundled together
-struct FrameData {
+struct Frame {
     VkFence render_fence{};
     VkSemaphore swapchain_semaphore{}, render_semaphore{};
 

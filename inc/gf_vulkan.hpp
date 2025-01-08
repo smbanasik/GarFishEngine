@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/16/2024
-// Last Modified: 1/1/2025
+// Last Modified: 1/7/2025
 // Description:
 // Handles abstract and low level vulkan concepts
 #ifndef GF_VULKAN_HPP
@@ -24,6 +24,7 @@
 #include <vk_loader.hpp>
 #include <vk_materials.hpp>
 #include <vk_renderable.hpp>
+#include <vk_frames.hpp>
 
 struct GLFWwindow;
 
@@ -43,10 +44,6 @@ struct Camera {
     static glm::vec3 position;
     static float pitch;
     static float yaw;
-    static float saved_x_pos;
-    static float saved_y_pos;
-    static float x_motion;
-    static float y_motion;
 
     glm::mat4 get_view_matrix();
     glm::mat4 get_rotation_matrix();
@@ -64,9 +61,9 @@ class VkManager {
 public:
 
     vk_core::VKCore core;
-    VmaAllocator allocator;
-    SwapChain swapchain;
-    std::array<FrameData, FRAME_OVERLAP> active_frames;
+    vk_core::Alloc alloc;
+    vk_frames::SwapChain swapchain;
+    vk_frames::FrameData frame_data;
     VkFence imm_fence;
     VkCommandBuffer imm_command_buffer;
     VkCommandPool imm_command_pool;
@@ -117,7 +114,7 @@ public:
     void update_scene(uint32_t width, uint32_t height);
 
     void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear);
-    void draw_geometry(VkCommandBuffer cmd, FrameData* frame);
+    void draw_geometry(VkCommandBuffer cmd, Frame* frame);
 
     GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
     void resize_swapchain(uint32_t width, uint32_t height);
@@ -132,13 +129,8 @@ private:
 
     VkManager(const VkManager& other) = delete;
     VkManager& operator=(const VkManager& other) = delete;
-    void init_vulkan(GLFWwindow* window);
     void init_swapchain(uint32_t width, uint32_t height);
-    void create_swapchain(uint32_t width, uint32_t height);
-    void destroy_swapchain();
     void init_commands();
-    void create_framedata();
-    void create_allocator();
     void init_descriptors();
     void init_pipelines();
     void init_background_pipelines();

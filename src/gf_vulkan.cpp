@@ -42,12 +42,13 @@
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
-gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context)
-    : core(&gl_manager, &gl_context) {
+gf::VkManager::VkManager(gl::GLManager & gl_manager, gl::WInputContext & gl_context)
+    : core(&gl_manager, &gl_context), alloc(&core),
+    swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
+    frame_data(&core) {
     assert(loaded_vk == nullptr);
     loaded_vk = this;
 
-    create_allocator();
     init_swapchain(gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height);
     init_commands();
     init_descriptors();
@@ -83,7 +84,7 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
     vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
 }
 
-void gf::VkManager::draw_geometry(VkCommandBuffer cmd, FrameData* frame) {
+void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     
     AllocatedBuffer gpu_scene_data_buffer = create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
@@ -160,7 +161,7 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
 
 void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     
-    create_swapchain(width, height);
+    //create_swapchain(width, height);
 
     VkExtent3D image_size = { width, height, 1 };
     drawn_image.image_format = VK_FORMAT_R16G16B16A16_SFLOAT;
@@ -176,7 +177,7 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     image_alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     VkImageCreateInfo image_info = vk_init::image_info(drawn_image.image_format, image_size, drawn_image_usage);
-    vmaCreateImage(allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation, nullptr);
+    vmaCreateImage(alloc.allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation, nullptr);
     VkImageViewCreateInfo view_info = vk_init::image_view_info(drawn_image.image_format, drawn_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
     vkCreateImageView(core.device, &view_info, nullptr, &drawn_image.image_view);
 
@@ -186,47 +187,22 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     depth_usage_flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
     VkImageCreateInfo depth_image_info = vk_init::image_info(depth_image.image_format, image_size, depth_usage_flags);
-    vmaCreateImage(allocator, &depth_image_info, &image_alloc_info, &depth_image.image, &depth_image.allocation, nullptr);
+    vmaCreateImage(alloc.allocator, &depth_image_info, &image_alloc_info, &depth_image.image, &depth_image.allocation, nullptr);
     VkImageViewCreateInfo depth_view_info = vk_init::image_view_info(depth_image.image_format, depth_image.image, VK_IMAGE_ASPECT_DEPTH_BIT);
     vkCreateImageView(core.device, &depth_view_info, nullptr, &depth_image.image_view);
     global_deletion_stack.push_function([this]() {
-        destroy_swapchain();
+        //destroy_swapchain();
 
         vkDestroyImageView(this->core.device, this->drawn_image.image_view, nullptr);
-        vmaDestroyImage(this->allocator, this->drawn_image.image, this->drawn_image.allocation);
+        vmaDestroyImage(this->alloc.allocator, this->drawn_image.image, this->drawn_image.allocation);
         vkDestroyImageView(this->core.device, this->depth_image.image_view, nullptr);
-        vmaDestroyImage(this->allocator, this->depth_image.image, this->depth_image.allocation);
+        vmaDestroyImage(this->alloc.allocator, this->depth_image.image, this->depth_image.allocation);
         });
 
 }
 
-void gf::VkManager::create_swapchain(uint32_t width, uint32_t height) {
-    vkb::SwapchainBuilder swapchain_builder{ core.gpu, core.device, core.surface };
-    swapchain.swapchain_format = VK_FORMAT_B8G8R8A8_UNORM;
-
-    vkb::Swapchain vkb_swapchain = swapchain_builder
-        .set_desired_format(VkSurfaceFormatKHR{ .format = swapchain.swapchain_format, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR })
-        .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
-        .set_desired_extent(width, height)
-        .add_image_usage_flags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
-        .build()
-        .value();
-
-    swapchain.swapchain_extent = vkb_swapchain.extent;
-    swapchain.swapchain = vkb_swapchain.swapchain;
-    swapchain.swapchain_images = vkb_swapchain.get_images().value();
-    swapchain.swapchain_image_views = vkb_swapchain.get_image_views().value();
-}
-
-void gf::VkManager::destroy_swapchain() {
-    vkDestroySwapchainKHR(this->core.device, this->swapchain.swapchain, nullptr);
-    for (auto it = this->swapchain.swapchain_image_views.begin(); it != this->swapchain.swapchain_image_views.end(); it++) {
-        vkDestroyImageView(this->core.device, *it, nullptr);
-    }
-}
-
 void gf::VkManager::init_commands() {
-    create_framedata();
+    //create_framedata();
 
     // Immediate Rendering
     VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(core.graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -238,58 +214,6 @@ void gf::VkManager::init_commands() {
     global_deletion_stack.push_function([this]() {
         vkDestroyCommandPool(core.device, imm_command_pool, nullptr);
         vkDestroyFence(core.device, imm_fence, nullptr);
-        });
-}
-
-void gf::VkManager::create_framedata() {
-
-    VkCommandPoolCreateInfo pool_info = vk_init::command_pool_info(core.graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-    VkFenceCreateInfo fence_info = vk_init::fence_info(VK_FENCE_CREATE_SIGNALED_BIT);
-    VkSemaphoreCreateInfo semaphore_info = vk_init::semaphore_info();
-
-    for (auto it = active_frames.begin(); it != active_frames.end(); it++) {
-
-        vkCreateFence(core.device, &fence_info, nullptr, &(*it).render_fence);
-        vkCreateSemaphore(core.device, &semaphore_info, nullptr, &(*it).swapchain_semaphore);
-        vkCreateSemaphore(core.device, &semaphore_info, nullptr, &(*it).render_semaphore);
-
-        vkCreateCommandPool(core.device, &pool_info, nullptr, &(*it).command_pool);
-        VkCommandBufferAllocateInfo alloc_info = vk_init::command_allocate_info((*it).command_pool);
-        vkAllocateCommandBuffers(core.device, &alloc_info, &(*it).command_buffer);
-
-        std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> frame_pool_sizes = {
-            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 },
-            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
-            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 }
-        };
-
-        it->frame_descriptors = DescriptorAllocatorGrowable{};
-        it->frame_descriptors.init(core.device, 1000, frame_pool_sizes);
-    }
-
-    global_deletion_stack.push_function([this]() {
-        for (auto it = this->active_frames.begin(); it != this->active_frames.end(); it++) {
-            vkDestroyCommandPool(core.device, (*it).command_pool, nullptr);
-            vkDestroyFence(core.device, (*it).render_fence, nullptr);
-            vkDestroySemaphore(core.device, (*it).render_semaphore, nullptr);
-            vkDestroySemaphore(core.device, (*it).swapchain_semaphore, nullptr);
-            it->deletion_stack.flush();
-            it->frame_descriptors.destroy_pools(core.device);
-        }
-        });
-
-}
-
-void gf::VkManager::create_allocator() {
-    VmaAllocatorCreateInfo allocator_info = {};
-    allocator_info.physicalDevice = core.gpu;
-    allocator_info.device = core.device;
-    allocator_info.instance = core.instance;
-    allocator_info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-    vmaCreateAllocator(&allocator_info, &allocator);
-    global_deletion_stack.push_function([this]() {
-        vmaDestroyAllocator(this->allocator);
         });
 }
 
@@ -619,12 +543,12 @@ gf::AllocatedBuffer gf::VkManager::create_buffer(size_t allocation_size, VkBuffe
     vmaallocInfo.usage = memory_usage;
     vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
     AllocatedBuffer new_buffer;
-    vmaCreateBuffer(allocator, &buffer_info, &vmaallocInfo, &new_buffer.buffer, &new_buffer.allocation, &new_buffer.info);
+    vmaCreateBuffer(alloc.allocator, &buffer_info, &vmaallocInfo, &new_buffer.buffer, &new_buffer.allocation, &new_buffer.info);
 
     return new_buffer;
 }
 void gf::VkManager::destroy_buffer(const AllocatedBuffer& buffer) {
-    vmaDestroyBuffer(allocator, buffer.buffer, buffer.allocation);
+    vmaDestroyBuffer(alloc.allocator, buffer.buffer, buffer.allocation);
 }
 gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices) {
     const size_t index_buffer_size = indices.size() * sizeof(uint32_t);
@@ -686,9 +610,9 @@ void gf::VkManager::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& 
 void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {
     vkDeviceWaitIdle(core.device);
     
-    destroy_swapchain();
+    swapchain.destroy_swapchain();
 
-    create_swapchain(width, height);
+    swapchain.remake_swapchain(width, height);
     
     resize_requested = false;
 }
@@ -704,7 +628,7 @@ gf::AllocatedImage gf::VkManager::create_image(VkExtent3D size, VkFormat format,
     VmaAllocationCreateInfo alloc_info = {};
     alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
     alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    vmaCreateImage(allocator, &img_info, &alloc_info, &new_image.image, &new_image.allocation, nullptr);
+    vmaCreateImage(alloc.allocator, &img_info, &alloc_info, &new_image.image, &new_image.allocation, nullptr);
     
     VkImageAspectFlags aspect_flag = VK_IMAGE_ASPECT_COLOR_BIT;
     if (format == VK_FORMAT_D32_SFLOAT)
@@ -749,17 +673,13 @@ gf::AllocatedImage gf::VkManager::create_image(void* data, VkExtent3D size, VkFo
 }
 void gf::VkManager::destroy_image(const AllocatedImage& img) {
     vkDestroyImageView(core.device, img.image_view, nullptr);
-    vmaDestroyImage(allocator, img.image, img.allocation);
+    vmaDestroyImage(alloc.allocator, img.image, img.allocation);
 }
 
 float gf::Camera::pitch = 0.f;
 float gf::Camera::yaw = 0.f;
 glm::vec3 gf::Camera::position{};
 glm::vec3 gf::Camera::velocity{};
-float gf::Camera::saved_x_pos = 0.f;
-float gf::Camera::saved_y_pos = 0.f;
-float gf::Camera::x_motion = 0.f;
-float gf::Camera::y_motion = 0.f;
 
 glm::mat4 gf::Camera::get_view_matrix() {
     glm::mat4 camera_translation = glm::translate(glm::mat4(1.f), position);
@@ -824,7 +744,4 @@ void gf::Camera::glfw_camera_mouse(gl::WInputContext* context) {
 void gf::Camera::update() {
     glm::mat4 camera_rotation = get_rotation_matrix();
     position += glm::vec3(camera_rotation * glm::vec4(velocity * 0.25f, 0.f));
-
-    x_motion = 0;
-    y_motion = 0;
 }
