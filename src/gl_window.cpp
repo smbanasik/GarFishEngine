@@ -27,13 +27,6 @@ gl::WindowContext::~WindowContext() {
     if(window != nullptr)
         glfwDestroyWindow(window);
 }
-gl::WindowContext::WindowContext(WindowContext& other)
-    : type(other.type), window_dims(other.window_dims), monitor(other.monitor),
-    callback_window_resize(other.callback_window_resize),
-    window(other.window) {
-    other.window = nullptr;
-}
-
 gl::WindowContext::WindowContext(WindowContext&& other) noexcept
     : type(std::move(other.type)), window_dims(std::move(other.window_dims)), monitor(std::move(other.monitor)),
     callback_window_resize(std::move(other.callback_window_resize)),

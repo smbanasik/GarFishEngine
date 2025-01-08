@@ -29,8 +29,7 @@ public:
     KeyContext key;
     //JoyContext joystick;
 
-    WInputContext(WInputContext& other) 
-        : window(other.window), mouse(other.mouse), key(other.key) {};
+    WInputContext(WInputContext& other) = delete;
 
     WInputContext(WInputContext&& other) noexcept
         : window(std::move(other.window)), mouse(std::move(other.mouse)), key(std::move(other.key)) {};
