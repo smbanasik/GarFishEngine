@@ -15,7 +15,7 @@
 // TODO: revamp this once we get into pipelines and full on shader usage
 
 namespace gf {
-
+namespace vk_desc {
 // Builder for descriptor layouts, which are a pack of bindings for a shader
 struct DescriptorLayoutBuilder {
     std::vector<VkDescriptorSetLayoutBinding> bindings;
@@ -61,7 +61,7 @@ private:
     std::vector<PoolSizeRatio> ratios;
     std::vector<VkDescriptorPool> full_pools;
     std::vector<VkDescriptorPool> available_pools;
-    uint32_t sets_per_pool; 
+    uint32_t sets_per_pool;
 };
 
 struct DescriptorWriter {
@@ -74,6 +74,6 @@ struct DescriptorWriter {
     void clear();
     void update_set(VkDevice device, VkDescriptorSet set);
 };
-
+}
 }
 #endif

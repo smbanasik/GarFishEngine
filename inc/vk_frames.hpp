@@ -80,7 +80,8 @@ public:
 private:
     vk_core::VKCore* core_handle;
 };
-
+// A RAII structure containing what's needed for immediate submission to the GPU
+// Can only be moved, not copied.
 class ImmediateFrame {
 public:
 
@@ -105,7 +106,7 @@ public:
 private:
     vk_core::VKCore* core_handle;
 };
-
+// A RAII implementation of a rendering pipeline
 class Renderer {
 public:
 

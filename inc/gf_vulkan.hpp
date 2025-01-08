@@ -51,7 +51,6 @@ struct Camera {
     static void glfw_camera_callback(gl::Key* key);
     static void glfw_camera_mouse(gl::WInputContext* context);
 
-
     void update();
 };
 
@@ -65,7 +64,7 @@ public:
     vk_frames::SwapChain swapchain;
     vk_frames::FrameData frame_data;
     vk_frames::ImmediateFrame imm_frame;
-    DescriptorAllocatorGrowable global_descriptor_allocator;
+    vk_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;

@@ -28,7 +28,7 @@ struct Frame {
     VkCommandBuffer command_buffer{};
 
     DeletionStack deletion_stack;
-    DescriptorAllocatorGrowable frame_descriptors;
+    vk_desc::DescriptorAllocatorGrowable frame_descriptors;
 };
 // All data for an image bundled together
 struct AllocatedImage {

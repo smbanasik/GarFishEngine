@@ -94,7 +94,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     *scene_uniform_data = scene_data;
     
     VkDescriptorSet global_descriptor = frame->frame_descriptors.allocate(core.device, gpu_scene_data_descriptor_layout);
-    DescriptorWriter writer;
+    vk_desc::DescriptorWriter writer;
     writer.write_buffer(0, gpu_scene_data_buffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     writer.update_set(core.device, global_descriptor);
 
@@ -203,30 +203,30 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
 
 void gf::VkManager::init_descriptors() {
 
-    std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> sizes = {
+    std::vector<vk_desc::DescriptorAllocatorGrowable::PoolSizeRatio> sizes = {
         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}
     };
 
     global_descriptor_allocator.init(core.device, 10, sizes);
     
     {
-        DescriptorLayoutBuilder builder;
+        vk_desc::DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
         drawn_image_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_COMPUTE_BIT);
     }
     drawn_image_descriptors = global_descriptor_allocator.allocate(core.device, drawn_image_descriptor_layout);
     {
-        DescriptorLayoutBuilder builder;
+        vk_desc::DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
         gpu_scene_data_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     }
     {
-        DescriptorLayoutBuilder builder;
+        vk_desc::DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
         single_image_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_FRAGMENT_BIT);
     }
 
-    DescriptorWriter writer;
+    vk_desc::DescriptorWriter writer;
     writer.write_image(0, drawn_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
     writer.update_set(core.device, drawn_image_descriptors);
 
@@ -620,7 +620,7 @@ gf::AllocatedImage gf::VkManager::create_image(void* data, VkExtent3D size, VkFo
     AllocatedImage new_image = create_image(size, format, usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, mipmapped);
     
     immediate_submit([new_image, upload_buffer, &size](VkCommandBuffer cmd) {
-        transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         VkBufferImageCopy copy_region = {};
         copy_region.bufferOffset = 0;
@@ -634,7 +634,7 @@ gf::AllocatedImage gf::VkManager::create_image(void* data, VkExtent3D size, VkFo
 
         vkCmdCopyBufferToImage(cmd, upload_buffer.buffer, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
-        transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         });
 

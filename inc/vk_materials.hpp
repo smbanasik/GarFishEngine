@@ -37,12 +37,12 @@ struct GLTFMetallic_Roughness {
         uint32_t data_buffer_offset;
     };
 
-    DescriptorWriter writer;
+    vk_desc::DescriptorWriter writer;
 
     void build_pipelines(VkManager* engine);
     void clear_resources(VkDevice device);
 
-    MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, DescriptorAllocatorGrowable& descriptor_allocator);
+    MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator);
 };
 }
 }

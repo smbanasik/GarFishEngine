@@ -5,7 +5,7 @@
 
 #include <vk_initializers.hpp>
 
-void gf::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout) {
+void gf::vk_img::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout) {
     VkImageMemoryBarrier2 image_barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2, .pNext = nullptr };
 
     image_barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
@@ -29,7 +29,7 @@ void gf::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout curr
 
     vkCmdPipelineBarrier2(cmd, &dep_info);
 }
-void gf::copy_image_to_image(VkCommandBuffer cmd, VkImage src, VkImage dst, VkExtent2D src_size, VkExtent2D dst_size) {
+void gf::vk_img::copy_image_to_image(VkCommandBuffer cmd, VkImage src, VkImage dst, VkExtent2D src_size, VkExtent2D dst_size) {
 	VkImageBlit2 blit_region{ .sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2, .pNext = nullptr };
 
 	blit_region.srcOffsets[1].x = src_size.width;

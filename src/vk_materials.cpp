@@ -23,7 +23,7 @@ void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) 
     matrix_range.size = sizeof(GPUDrawPushConstants);
     matrix_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-    DescriptorLayoutBuilder layout_builder;
+    vk_desc::DescriptorLayoutBuilder layout_builder;
     layout_builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     layout_builder.add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     layout_builder.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
@@ -78,7 +78,7 @@ void gf::vk_mat::GLTFMetallic_Roughness::clear_resources(VkDevice device) {
 }
 
 gf::MaterialInstance gf::vk_mat::GLTFMetallic_Roughness::write_material(VkDevice device, MaterialPass pass,
-    const MaterialResources& resources, DescriptorAllocatorGrowable& descriptor_allocator) {
+    const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
 
     MaterialInstance mat_data;
     mat_data.pass_type = pass;
