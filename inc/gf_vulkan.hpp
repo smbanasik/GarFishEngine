@@ -25,6 +25,7 @@
 #include <vk_materials.hpp>
 #include <vk_renderable.hpp>
 #include <vk_frames.hpp>
+#include <vk_images.hpp>
 
 struct GLFWwindow;
 
@@ -64,6 +65,7 @@ public:
     vk_frames::SwapChain swapchain;
     vk_frames::FrameData frame_data;
     vk_frames::ImmediateFrame imm_frame;
+    vk_img::ImageBufferAllocator img_buff_allocator;
     vk_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     
     VkPipeline gradient_pipeline;
@@ -116,10 +118,6 @@ public:
     GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
     void resize_swapchain(uint32_t width, uint32_t height);
 
-    AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-    AllocatedImage create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-    void destroy_image(const AllocatedImage& img);
-
 private:
     static VkManager* loaded_vk;
     DeletionStack global_deletion_stack;
@@ -134,8 +132,6 @@ private:
     void init_mesh_pipeline();
     void init_imgui(GLFWwindow* window);
     void init_default_data();
-    AllocatedBuffer create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage);
-    void destroy_buffer(const AllocatedBuffer& buffer);
 };
 }
 #endif

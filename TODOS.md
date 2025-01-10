@@ -31,4 +31,5 @@ In no particular order:
 - Create or #include a logging system
 - Textures!
 - Give RAII to buffers and images
-    - This is hard to do! Things fall out of scope fairly easily, and I can't quite figure what the matter is.
+    - This is hard to do right now! Things fall out of scope before they should sometimes, other times things aren't being copied correctly. For now we'll manage memory manually and give this another shot. Refer to this commit to find my results: 236c572
+    - Come back to this later when we have a better understanding of things.

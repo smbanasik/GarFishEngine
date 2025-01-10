@@ -45,7 +45,7 @@ gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 gf::VkManager::VkManager(gl::GLManager & gl_manager, gl::WInputContext & gl_context)
     : core(&gl_manager, &gl_context), alloc(&core), 
     swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
-    frame_data(&core), imm_frame(&core) {
+    frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame) {
     
     assert(loaded_vk == nullptr);
     loaded_vk = this;
@@ -86,9 +86,9 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
 
 void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     
-    AllocatedBuffer gpu_scene_data_buffer = create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
-        destroy_buffer(gpu_scene_data_buffer);
+        img_buff_allocator.destroy_buffer(gpu_scene_data_buffer);
         });
     GPUSceneData* scene_uniform_data = reinterpret_cast<GPUSceneData*>(gpu_scene_data_buffer.allocation->GetMappedData());
     *scene_uniform_data = scene_data;
@@ -445,11 +445,11 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
 void gf::VkManager::init_default_data() {
 
     uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
-    white_image = create_image((void*)&white, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+    white_image = img_buff_allocator.create_image((void*)&white, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
     uint32_t gray = glm::packUnorm4x8(glm::vec4(0.66f, 0.66f, 0.66f, 1));
-    gray_image = create_image((void*)&gray, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+    gray_image = img_buff_allocator.create_image((void*)&gray, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
     uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 1));
-    black_image = create_image((void*)&black, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+    black_image = img_buff_allocator.create_image((void*)&black, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
     uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
     std::array<uint32_t, 16 * 16> pixels;
     for (int x = 0; x < 16; x++) {
@@ -457,7 +457,7 @@ void gf::VkManager::init_default_data() {
             pixels[y * 16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
         }
     }
-    error_checkerboard_image = create_image(pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+    error_checkerboard_image = img_buff_allocator.create_image(pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
 
     VkSamplerCreateInfo sampl{ .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
     sampl.magFilter = VK_FILTER_NEAREST;
@@ -472,7 +472,7 @@ void gf::VkManager::init_default_data() {
     material_resources.color_sampler = default_sampler_linear;
     material_resources.metal_rough_image = white_image;
     material_resources.metal_rough_sampler = default_sampler_linear;
-    AllocatedBuffer material_constants = create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     vk_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vk_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
     scene_uniform_data->color_factors = glm::vec4{ 1,1,1,1 };
     scene_uniform_data->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
@@ -501,55 +501,37 @@ void gf::VkManager::init_default_data() {
 
     global_deletion_stack.push_function([material_constants, this]() {
         for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {
-            destroy_buffer(it->get()->mesh_buffers.index_buffer);
-            destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
+            img_buff_allocator.destroy_buffer(it->get()->mesh_buffers.index_buffer);
+            img_buff_allocator.destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
         }
-        destroy_buffer(material_constants);
+        img_buff_allocator.destroy_buffer(material_constants);
 
         vkDestroySampler(core.device, default_sampler_nearest, nullptr);
         vkDestroySampler(core.device, default_sampler_linear, nullptr);
 
-        destroy_image(white_image);
-        destroy_image(gray_image);
-        destroy_image(black_image);
-        destroy_image(error_checkerboard_image);
+        img_buff_allocator.destroy_image(white_image);
+        img_buff_allocator.destroy_image(gray_image);
+        img_buff_allocator.destroy_image(black_image);
+        img_buff_allocator.destroy_image(error_checkerboard_image);
         });
-}
-
-gf::AllocatedBuffer gf::VkManager::create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) {
-    VkBufferCreateInfo buffer_info = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-    buffer_info.pNext = nullptr;
-    buffer_info.size = allocation_size;
-    buffer_info.usage = flags;
-
-    VmaAllocationCreateInfo vmaallocInfo = {};
-    vmaallocInfo.usage = memory_usage;
-    vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-    AllocatedBuffer new_buffer;
-    vmaCreateBuffer(alloc.allocator, &buffer_info, &vmaallocInfo, &new_buffer.buffer, &new_buffer.allocation, &new_buffer.info);
-
-    return new_buffer;
-}
-void gf::VkManager::destroy_buffer(const AllocatedBuffer& buffer) {
-    vmaDestroyBuffer(alloc.allocator, buffer.buffer, buffer.allocation);
 }
 gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices) {
     const size_t index_buffer_size = indices.size() * sizeof(uint32_t);
     const size_t vertex_buffer_size = vertices.size() * sizeof(Vertex);
     GPUMeshBuffers new_mesh;
-    new_mesh.vertex_buffer = create_buffer(vertex_buffer_size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+    new_mesh.vertex_buffer = img_buff_allocator.create_buffer(vertex_buffer_size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
         | VK_BUFFER_USAGE_TRANSFER_DST_BIT
         | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
 
-    new_mesh.index_buffer = create_buffer(index_buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+    new_mesh.index_buffer = img_buff_allocator.create_buffer(index_buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT
         | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
 
     VkBufferDeviceAddressInfo device_address_info{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, .buffer = new_mesh.vertex_buffer.buffer };
     new_mesh.vertex_buffer_address = vkGetBufferDeviceAddress(core.device, &device_address_info);
 
-    AllocatedBuffer staging_buffer = create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+    AllocatedBuffer staging_buffer = img_buff_allocator.create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
     void* data = staging_buffer.allocation->GetMappedData();
     memcpy(data, vertices.data(), vertex_buffer_size);
     memcpy((char*)data + vertex_buffer_size, indices.data(), index_buffer_size);
@@ -569,7 +551,7 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
 
         });
 
-    destroy_buffer(staging_buffer);
+    img_buff_allocator.destroy_buffer(staging_buffer);
 
     return new_mesh;
 }
@@ -582,65 +564,6 @@ void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {
     swapchain.remake_swapchain(width, height);
     
     resize_requested = false;
-}
-
-gf::AllocatedImage gf::VkManager::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) {
-    AllocatedImage new_image;
-    new_image.image_format = format;
-    new_image.image_size = size;
-    VkImageCreateInfo img_info = vk_init::image_info(format, size, usage);
-    if (mipmapped)
-        img_info.mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(size.width, size.height)))) + 1;
-
-    VmaAllocationCreateInfo alloc_info = {};
-    alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-    alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    vmaCreateImage(alloc.allocator, &img_info, &alloc_info, &new_image.image, &new_image.allocation, nullptr);
-    
-    VkImageAspectFlags aspect_flag = VK_IMAGE_ASPECT_COLOR_BIT;
-    if (format == VK_FORMAT_D32_SFLOAT)
-        aspect_flag = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-    VkImageViewCreateInfo view_info = vk_init::image_view_info(format, new_image.image, aspect_flag);
-    view_info.subresourceRange.levelCount = img_info.mipLevels;
-    vkCreateImageView(core.device, &view_info, nullptr, &new_image.image_view);
-
-    return new_image;
-}
-gf::AllocatedImage gf::VkManager::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) {
-    size_t data_size = size.depth * size.width * size.height * 4;
-    AllocatedBuffer upload_buffer = create_buffer(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    memcpy(upload_buffer.info.pMappedData, data, data_size);
-
-    AllocatedImage new_image = create_image(size, format, usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, mipmapped);
-    
-    imm_frame.immediate_submit([new_image, upload_buffer, &size](VkCommandBuffer cmd) {
-        vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-        VkBufferImageCopy copy_region = {};
-        copy_region.bufferOffset = 0;
-        copy_region.bufferRowLength = 0;
-        copy_region.bufferImageHeight = 0;
-        copy_region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        copy_region.imageSubresource.mipLevel = 0;
-        copy_region.imageSubresource.baseArrayLayer = 0;
-        copy_region.imageSubresource.layerCount = 1;
-        copy_region.imageExtent = size;
-
-        vkCmdCopyBufferToImage(cmd, upload_buffer.buffer, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
-
-        vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-        });
-
-    destroy_buffer(upload_buffer);
-
-    return new_image;
-
-}
-void gf::VkManager::destroy_image(const AllocatedImage& img) {
-    vkDestroyImageView(core.device, img.image_view, nullptr);
-    vmaDestroyImage(alloc.allocator, img.image, img.allocation);
 }
 
 float gf::Camera::pitch = 0.f;
