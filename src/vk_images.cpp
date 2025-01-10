@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/17/2024
-// Last Modified: 1/7/2025
+// Last Modified: 1/10/2025
 #include <vk_images.hpp>
 
 #include <vulkan/vulkan.h>
@@ -11,7 +11,7 @@
 #include <vk_core.hpp>
 #include <vk_frames.hpp>
 
-gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) {
+gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) {
 	AllocatedImage new_image(this);
 	new_image.image_format = format;
 	new_image.image_size = size;
@@ -34,7 +34,7 @@ gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExte
 
 	return new_image;
 }
-gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) {
+gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) {
 	size_t data_size = size.depth * size.width * size.height * 4;
 	AllocatedBuffer upload_buffer = create_buffer(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	memcpy(upload_buffer.info.pMappedData, data, data_size);
@@ -59,6 +59,7 @@ gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* 
 		vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		});
+
 	return new_image;
 }
 gf::vk_img::AllocatedBuffer gf::vk_img::ImageBufferAllocator::create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) {
@@ -76,7 +77,7 @@ gf::vk_img::AllocatedBuffer gf::vk_img::ImageBufferAllocator::create_buffer(size
 	return new_buffer;
 }
 
-gf::vk_img::AllocatedImage::AllocatedImage(AllocatedImage& other)
+gf::vk_img::AllocatedImage::AllocatedImage(const AllocatedImage& other)
 	: image(other.image), image_view(other.image_view),
 	allocation(other.allocation),
 	image_size(other.image_size),
@@ -98,54 +99,57 @@ gf::vk_img::AllocatedImage::AllocatedImage(AllocatedImage&& other) noexcept
 	other.allocator = nullptr;
 }
 gf::vk_img::AllocatedImage::~AllocatedImage() {
-	if (counter.get_count() == 1) {
+	;
+	if (counter.should_delete() && image != nullptr) {
 		vkDestroyImageView(allocator->core_handle->device, image_view, nullptr);
 		vmaDestroyImage(allocator->alloc_handle->allocator, image, allocation);
 	}
 }
-gf::vk_img::AllocatedBuffer::AllocatedBuffer(AllocatedBuffer& other)
+gf::vk_img::AllocatedBuffer::AllocatedBuffer(const AllocatedBuffer& other)
 	: buffer(other.buffer),
 	allocation(other.allocation),
 	info(other.info),
 	counter(other.counter),
 	allocator(other.allocator) {
 }
-gf::vk_img::AllocatedBuffer::AllocatedBuffer(AllocatedBuffer& other) noexcept
-	: buffer(other.buffer),
-	allocation(other.allocation),
-	info(other.info),
-	counter(other.counter),
-	allocator(other.allocator) {
+gf::vk_img::AllocatedBuffer::AllocatedBuffer(AllocatedBuffer&& other) noexcept
+	: buffer(std::move(other.buffer)),
+	allocation(std::move(other.allocation)),
+	info(std::move(other.info)),
+	counter(std::move(other.counter)),
+	allocator(std::move(other.allocator)) {
 	other.buffer = nullptr;
 	other.allocation = nullptr;
+	other.allocator = nullptr;
 }
 gf::vk_img::AllocatedBuffer::~AllocatedBuffer() {
-	vmaDestroyBuffer(allocator->alloc_handle->allocator, buffer, allocation);
+	if (counter.should_delete() && buffer != nullptr)
+		vmaDestroyBuffer(allocator->alloc_handle->allocator, buffer, allocation);
 }
 
 void gf::vk_img::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout) {
-    VkImageMemoryBarrier2 image_barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2, .pNext = nullptr };
+	VkImageMemoryBarrier2 image_barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2, .pNext = nullptr };
 
-    image_barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
-    image_barrier.srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT;
-    image_barrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
-    image_barrier.dstAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT;
+	image_barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+	image_barrier.srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT;
+	image_barrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+	image_barrier.dstAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT;
 
-    image_barrier.oldLayout = current_layout;
-    image_barrier.newLayout = new_layout;
+	image_barrier.oldLayout = current_layout;
+	image_barrier.newLayout = new_layout;
 
-    VkImageAspectFlags aspect_mask = (new_layout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-    image_barrier.subresourceRange = vk_init::subresource_range(aspect_mask);
-    image_barrier.image = image;
+	VkImageAspectFlags aspect_mask = (new_layout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+	image_barrier.subresourceRange = vk_init::subresource_range(aspect_mask);
+	image_barrier.image = image;
 
-    VkDependencyInfo dep_info{};
-    dep_info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-    dep_info.pNext = nullptr;
+	VkDependencyInfo dep_info{};
+	dep_info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+	dep_info.pNext = nullptr;
 
-    dep_info.imageMemoryBarrierCount = 1;
-    dep_info.pImageMemoryBarriers = &image_barrier;
+	dep_info.imageMemoryBarrierCount = 1;
+	dep_info.pImageMemoryBarriers = &image_barrier;
 
-    vkCmdPipelineBarrier2(cmd, &dep_info);
+	vkCmdPipelineBarrier2(cmd, &dep_info);
 }
 void gf::vk_img::copy_image_to_image(VkCommandBuffer cmd, VkImage src, VkImage dst, VkExtent2D src_size, VkExtent2D dst_size) {
 	VkImageBlit2 blit_region{ .sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2, .pNext = nullptr };

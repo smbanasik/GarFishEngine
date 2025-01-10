@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 1/8/2025
-// Last Modified: 1/8/2025
+// Last Modified: 1/10/2025
 // Description:
 // Utility structures for the engine
 #ifndef GF_UTIL_HPP
@@ -13,41 +13,50 @@ namespace util {
 class RefCounter {
 public:
 
-    RefCounter() 
-    : counter(new uint32_t) {
+    RefCounter()
+        : counter(new uint32_t) {
         *counter = 1;
     }
     ~RefCounter() {
         decrement_delete_counter();
         counter = nullptr;
     }
-    RefCounter(RefCounter& other)
-    : counter(other.counter) {
+    RefCounter(const RefCounter& other)
+        : counter(other.counter) {
         (*counter)++;
     }
-    RefCounter& operator=(RefCounter& other) {
+    RefCounter& operator=(const RefCounter& other) {
         if (this == &other)
-            return;
+            return *this;
 
         decrement_delete_counter();
         counter = other.counter;
         (*counter)++;
+        return *this;
     }
-    RefCounter(RefCounter&& other) noexcept 
-    : counter(other.counter) {
+    RefCounter(RefCounter&& other) noexcept
+        : counter(other.counter) {
         other.counter = nullptr;
     }
     RefCounter& operator=(RefCounter&& other) noexcept {
+        decrement_delete_counter();
         counter = other.counter;
         other.counter = nullptr;
+        return *this;
     }
 
-    uint32_t get_count() { return *counter; };
+    bool should_delete() {
+        if (counter == nullptr || *counter == 1)
+            return true;
+        return false;
+    }
 
 private:
     void decrement_delete_counter() {
+        if (counter == nullptr)
+            return;
         (*counter)--;
-        if (*counter = 0)
+        if (*counter == 0)
             delete counter;
     }
 

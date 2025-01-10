@@ -1,10 +1,12 @@
 // Spencer Banasik
 // Created: 12/17/2024
-// Last Modified: 1/7/2025
+// Last Modified: 1/10/2025
 // Description:
 // Holds information for images and buffers
 #ifndef VK_IMAGES_HPP
 #define VK_IMAGES_HPP
+#include <utility>
+
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
@@ -14,7 +16,7 @@ namespace vk_core {
 class VKCore;
 class Alloc;
 }
-namespace vk_frames{
+namespace vk_frames {
 class ImmediateFrame;
 }
 namespace vk_img {
@@ -37,16 +39,20 @@ private:
 
 class AllocatedImage {
 public:
-    
+
+    AllocatedImage() : image(nullptr), image_view(nullptr),
+        allocation(nullptr), image_size({ 0, 0, 0 }), image_format(VK_FORMAT_UNDEFINED),
+        allocator(nullptr), counter() {};
+
     AllocatedImage(ImageBufferAllocator* allocator) : image(nullptr), image_view(nullptr),
         allocation(nullptr), image_size({ 0, 0, 0 }), image_format(VK_FORMAT_UNDEFINED),
         allocator(allocator), counter() {};
-    
-    AllocatedImage(AllocatedImage& other);
+
+    AllocatedImage(const AllocatedImage& other);
     AllocatedImage(AllocatedImage&& other) noexcept;
-    AllocatedImage& operator=(AllocatedImage& other) {
+    AllocatedImage& operator=(const AllocatedImage& other) {
         if (this == &other)
-            return;
+            return *this;
         image = other.image;
         image_view = other.image_view;
         allocation = other.allocation;
@@ -54,19 +60,23 @@ public:
         image_format = other.image_format;
         allocator = other.allocator;
         counter = other.counter;
+        return *this;
     }
     AllocatedImage& operator=(AllocatedImage&& other) noexcept {
+        if (this == &other)
+            return *this;
         image = std::move(other.image);
         image_view = std::move(other.image_view);
         allocation = std::move(other.allocation);
         image_size = std::move(other.image_size);
         image_format = std::move(other.image_format);
         counter = std::move(other.counter);
-        allocator = std::move(allocator);
+        allocator = std::move(other.allocator);
         other.image = nullptr;
         other.image_view = nullptr;
         other.allocation = nullptr;
         other.allocator = nullptr;
+        return *this;
     }
     ~AllocatedImage();
 
@@ -82,33 +92,39 @@ private:
 
 class AllocatedBuffer {
 public:
-    
+
+    AllocatedBuffer() : buffer(nullptr), allocation(nullptr),
+        info(), allocator(nullptr), counter() {};
+
     AllocatedBuffer(ImageBufferAllocator* allocator) : buffer(nullptr), allocation(nullptr),
         info(),
         allocator(allocator), counter() {};
 
-    AllocatedBuffer(AllocatedBuffer& other);
-    AllocatedBuffer(AllocatedBuffer& other) noexcept;
+    AllocatedBuffer(const AllocatedBuffer& other);
+    AllocatedBuffer(AllocatedBuffer&& other) noexcept;
 
-    AllocatedBuffer& operator=(AllocatedBuffer& other) {
+    AllocatedBuffer& operator=(const AllocatedBuffer& other) {
         if (this == &other)
-            return;
+            return *this;
         buffer = other.buffer;
         allocation = other.allocation;
         info = other.info;
         counter = other.counter;
         allocator = other.allocator;
+        return *this;
     }
-    AllocatedBuffer& operator=(AllocatedBuffer & other) noexcept {
+    AllocatedBuffer& operator=(AllocatedBuffer&& other) noexcept {
         if (this == &other)
-            return;
-        buffer = other.buffer;
-        allocation = other.allocation;
-        info = other.info;
-        counter = other.counter;
-        allocator = other.allocator;
+            return *this;
+        buffer = std::move(other.buffer);
+        allocation = std::move(other.allocation);
+        info = std::move(other.info);
+        counter = std::move(other.counter);
+        allocator = std::move(other.allocator);
         other.buffer = nullptr;
         other.allocation = nullptr;
+        other.allocator = nullptr;
+        return *this;
     }
     ~AllocatedBuffer();
 

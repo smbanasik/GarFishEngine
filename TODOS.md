@@ -20,7 +20,6 @@ In no particular order:
 - Draw image should use window size first
 - Expand pipeline builder functionality
 - Remove compute effects and compute shader items
-- Give RAII to buffers
 - Move upload mesh function out of gf_vulkan
 - Move immediate submit and immediate member variables to its own data structure.
 - Review VkGuide for improvements with some patterns like mesh buffers
@@ -31,5 +30,5 @@ In no particular order:
 - Sort the render context! Sort by pipeline to reduce bindings
 - Create or #include a logging system
 - Textures!
-- Redo implementation of my allocated image and allocated buffer classes.
-    - Unhappy with static variables and initialization.
+- Give RAII to buffers and images
+    - This is hard to do! Things fall out of scope fairly easily, and I can't quite figure what the matter is.
