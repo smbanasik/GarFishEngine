@@ -8,9 +8,12 @@ This document serves as a reminder for things I would like to do once I get to t
 - Need two types of options: engine options & end user options
 - Seperate or together?
 
+### gf_util
+- Need to implement a unique_structure, which contains a structure and prevents copying. Only allows moving
+- Need to implement shared_structure, which contains a structure and allows copying. Has reference counting for resources
+
 ## General
 In no particular order:
-- gl_window needs to have its copying capabilities disabled.
 - Actually check for support of things that we need
 - Create an aggregate for pipelines, shaders, and descriptors. RAII
 - Create a series of deletion queue aggregates which take arrays of objects and delete them.
@@ -28,3 +31,5 @@ In no particular order:
 - Sort the render context! Sort by pipeline to reduce bindings
 - Create or #include a logging system
 - Textures!
+- Redo implementation of my allocated image and allocated buffer classes.
+    - Unhappy with static variables and initialization.

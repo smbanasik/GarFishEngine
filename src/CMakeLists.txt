@@ -5,6 +5,7 @@ ${HEADER_DIR}/engine_types.hpp
 ${HEADER_DIR}/gf_vulkan.hpp
 ${HEADER_DIR}/gf_options.hpp
 ${HEADER_DIR}/gf_err.hpp
+${HEADER_DIR}/gf_util.hpp
 )
 
 set(SOURCES
@@ -13,6 +14,7 @@ engine_main.cpp
 gf_vulkan.cpp
 gf_options.cpp
 gf_err.cpp
+gf_util.cpp
 )
 
 # Adding Groups

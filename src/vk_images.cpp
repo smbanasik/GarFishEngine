@@ -1,9 +1,127 @@
 // Spencer Banasik
 // Created: 12/17/2024
-// Last Modified: 12/17/2024
+// Last Modified: 1/7/2025
 #include <vk_images.hpp>
 
+#include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
+
 #include <vk_initializers.hpp>
+#include <vk_types.hpp>
+#include <vk_core.hpp>
+#include <vk_frames.hpp>
+
+gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) {
+	AllocatedImage new_image(this);
+	new_image.image_format = format;
+	new_image.image_size = size;
+	VkImageCreateInfo img_info = vk_init::image_info(format, size, usage);
+	if (mipmapped)
+		img_info.mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(size.width, size.height)))) + 1;
+
+	VmaAllocationCreateInfo alloc_info = {};
+	alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	vmaCreateImage(alloc_handle->allocator, &img_info, &alloc_info, &new_image.image, &new_image.allocation, nullptr);
+
+	VkImageAspectFlags aspect_flag = VK_IMAGE_ASPECT_COLOR_BIT;
+	if (format == VK_FORMAT_D32_SFLOAT)
+		aspect_flag = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+	VkImageViewCreateInfo view_info = vk_init::image_view_info(format, new_image.image, aspect_flag);
+	view_info.subresourceRange.levelCount = img_info.mipLevels;
+	vkCreateImageView(core_handle->device, &view_info, nullptr, &new_image.image_view);
+
+	return new_image;
+}
+gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) {
+	size_t data_size = size.depth * size.width * size.height * 4;
+	AllocatedBuffer upload_buffer = create_buffer(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+	memcpy(upload_buffer.info.pMappedData, data, data_size);
+
+	AllocatedImage new_image = create_image(size, format, usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, mipmapped);
+
+	imm_handle->immediate_submit([new_image, upload_buffer, &size](VkCommandBuffer cmd) {
+		vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+		VkBufferImageCopy copy_region = {};
+		copy_region.bufferOffset = 0;
+		copy_region.bufferRowLength = 0;
+		copy_region.bufferImageHeight = 0;
+		copy_region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		copy_region.imageSubresource.mipLevel = 0;
+		copy_region.imageSubresource.baseArrayLayer = 0;
+		copy_region.imageSubresource.layerCount = 1;
+		copy_region.imageExtent = size;
+
+		vkCmdCopyBufferToImage(cmd, upload_buffer.buffer, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
+
+		vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		});
+	return new_image;
+}
+gf::vk_img::AllocatedBuffer gf::vk_img::ImageBufferAllocator::create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) {
+	VkBufferCreateInfo buffer_info = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+	buffer_info.pNext = nullptr;
+	buffer_info.size = allocation_size;
+	buffer_info.usage = flags;
+
+	VmaAllocationCreateInfo vmaallocInfo = {};
+	vmaallocInfo.usage = memory_usage;
+	vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+	AllocatedBuffer new_buffer(this);
+	vmaCreateBuffer(alloc_handle->allocator, &buffer_info, &vmaallocInfo, &new_buffer.buffer, &new_buffer.allocation, &new_buffer.info);
+
+	return new_buffer;
+}
+
+gf::vk_img::AllocatedImage::AllocatedImage(AllocatedImage& other)
+	: image(other.image), image_view(other.image_view),
+	allocation(other.allocation),
+	image_size(other.image_size),
+	image_format(other.image_format),
+	counter(other.counter),
+	allocator(other.allocator) {
+}
+gf::vk_img::AllocatedImage::AllocatedImage(AllocatedImage&& other) noexcept
+	: image(std::move(other.image)),
+	image_view(std::move(other.image_view)),
+	allocation(std::move(other.allocation)),
+	image_size(std::move(other.image_size)),
+	image_format(std::move(other.image_format)),
+	counter(std::move(other.counter)),
+	allocator(std::move(other.allocator)) {
+	other.image = nullptr;
+	other.image_view = nullptr;
+	other.allocation = nullptr;
+	other.allocator = nullptr;
+}
+gf::vk_img::AllocatedImage::~AllocatedImage() {
+	if (counter.get_count() == 1) {
+		vkDestroyImageView(allocator->core_handle->device, image_view, nullptr);
+		vmaDestroyImage(allocator->alloc_handle->allocator, image, allocation);
+	}
+}
+gf::vk_img::AllocatedBuffer::AllocatedBuffer(AllocatedBuffer& other)
+	: buffer(other.buffer),
+	allocation(other.allocation),
+	info(other.info),
+	counter(other.counter),
+	allocator(other.allocator) {
+}
+gf::vk_img::AllocatedBuffer::AllocatedBuffer(AllocatedBuffer& other) noexcept
+	: buffer(other.buffer),
+	allocation(other.allocation),
+	info(other.info),
+	counter(other.counter),
+	allocator(other.allocator) {
+	other.buffer = nullptr;
+	other.allocation = nullptr;
+}
+gf::vk_img::AllocatedBuffer::~AllocatedBuffer() {
+	vmaDestroyBuffer(allocator->alloc_handle->allocator, buffer, allocation);
+}
 
 void gf::vk_img::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout) {
     VkImageMemoryBarrier2 image_barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2, .pNext = nullptr };

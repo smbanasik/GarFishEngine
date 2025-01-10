@@ -513,7 +513,6 @@ void gf::VkManager::init_default_data() {
         destroy_image(gray_image);
         destroy_image(black_image);
         destroy_image(error_checkerboard_image);
-        
         });
 }
 
@@ -555,7 +554,7 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
     memcpy(data, vertices.data(), vertex_buffer_size);
     memcpy((char*)data + vertex_buffer_size, indices.data(), index_buffer_size);
 
-    immediate_submit([&](VkCommandBuffer cmd) {
+    imm_frame.immediate_submit([&](VkCommandBuffer cmd) {
         VkBufferCopy vertex_copy{ 0 };
         vertex_copy.dstOffset = 0;
         vertex_copy.srcOffset = 0;
@@ -573,10 +572,6 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
     destroy_buffer(staging_buffer);
 
     return new_mesh;
-}
-
-void gf::VkManager::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function) {
-    imm_frame.immediate_submit(std::move(function));
 }
 
 void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {
@@ -619,7 +614,7 @@ gf::AllocatedImage gf::VkManager::create_image(void* data, VkExtent3D size, VkFo
 
     AllocatedImage new_image = create_image(size, format, usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, mipmapped);
     
-    immediate_submit([new_image, upload_buffer, &size](VkCommandBuffer cmd) {
+    imm_frame.immediate_submit([new_image, upload_buffer, &size](VkCommandBuffer cmd) {
         vk_img::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         VkBufferImageCopy copy_region = {};

@@ -136,7 +136,6 @@ private:
     void init_default_data();
     AllocatedBuffer create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage);
     void destroy_buffer(const AllocatedBuffer& buffer);
-    void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 };
 }
 #endif
