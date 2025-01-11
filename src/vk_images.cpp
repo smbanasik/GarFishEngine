@@ -3,6 +3,8 @@
 // Last Modified: 1/10/2025
 #include <vk_images.hpp>
 
+#include <optional>
+
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 

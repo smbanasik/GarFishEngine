@@ -132,8 +132,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
 
     vkCmdDraw(cmd, 3, 1, 0, 0);
 
-    for (const RenderObject& draw : main_draw_context.opaque_surfaces) {
-
+    auto draw = [&](const RenderObject& draw) {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->pipeline);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 0, 1, &global_descriptor, 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 1, 1, &draw.material->material_set, 0, nullptr);
@@ -143,6 +142,13 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
         push_constants.world_matrix = draw.transform;
         vkCmdPushConstants(cmd, draw.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
         vkCmdDrawIndexed(cmd, draw.index_count, 1, draw.first_index, 0, 0);
+        };
+
+    for (const RenderObject& r : main_draw_context.opaque_surfaces) {
+        draw(r);
+    }
+    for (const RenderObject& r : main_draw_context.transparent_surfaces) {
+        draw(r);
     }
     vkCmdEndRendering(cmd);
 }
@@ -150,6 +156,7 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
     camera.update();
 
     main_draw_context.opaque_surfaces.clear();
+    main_draw_context.transparent_surfaces.clear();
 
     loaded_scenes["structure"]->draw(glm::mat4{ 1.f }, main_draw_context);
 

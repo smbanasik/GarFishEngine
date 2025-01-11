@@ -31,6 +31,7 @@ struct MeshAsset {
 };
 struct DrawContext {
     std::vector<RenderObject> opaque_surfaces;
+    std::vector<RenderObject> transparent_surfaces;
 };
 
 struct IRenderable {

@@ -12,7 +12,12 @@
 #include <vk_types.hpp>
 
 #include <gf_util.hpp>
+namespace fastgltf {
+class Asset;
+class Image;
+}
 namespace gf {
+class VkManager;
 namespace vk_core {
 class VKCore;
 class Alloc;
