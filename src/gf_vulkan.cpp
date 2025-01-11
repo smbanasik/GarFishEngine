@@ -56,6 +56,15 @@ gf::VkManager::VkManager(gl::GLManager & gl_manager, gl::WInputContext & gl_cont
     init_imgui(gl_manager.get_window(&gl_context));
     init_default_data();
 
+    std::string structurePath = { "..\\..\\assets\\structure.glb" };
+    auto structureFile = vk_loader::load_gltf(this, structurePath);
+
+    assert(structureFile.has_value());
+
+    loaded_scenes["structure"] = *structureFile;
+
+    camera.position = glm::vec3(30.f, -00.f, -085.f);
+
     is_init = true;
 
 }
@@ -63,6 +72,7 @@ gf::VkManager::~VkManager() {
 
     vkDeviceWaitIdle(core.device);
 
+    loaded_scenes.clear();
     metal_rough_material.clear_resources(core.device);
 
     global_deletion_stack.flush();
@@ -140,14 +150,8 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
     camera.update();
 
     main_draw_context.opaque_surfaces.clear();
-    loaded_nodes["Suzanne"]->draw(glm::mat4{ 1.f }, main_draw_context);
 
-    for (int i = 0; i < 3; i++) {
-        glm::mat4 scale = glm::scale(glm::mat4{ 1.f }, glm::vec3{ 0.2 });
-        glm::mat4 translation = glm::translate(glm::mat4{ 1.f }, glm::vec3{ i, 1, 0 });
-
-        loaded_nodes["Cube"]->draw(translation * scale, main_draw_context);
-    }
+    loaded_scenes["structure"]->draw(glm::mat4{ 1.f }, main_draw_context);
 
     scene_data.view = camera.get_view_matrix();
     scene_data.proj = glm::perspective(glm::radians(70.f), static_cast<float>(width) / static_cast<float>(height), 10000.f, 0.1f);
@@ -480,24 +484,6 @@ void gf::VkManager::init_default_data() {
     material_resources.data_buffer_offset = 0;
 
     default_data = metal_rough_material.write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
-
-    test_meshes = vk_loader::load_gltf_meshes(this, "..\\..\\assets\\basicmesh.glb").value();
-
-
-
-    for (auto& m : test_meshes) {
-        std::shared_ptr<vk_render::MeshNode> new_node = std::make_shared<vk_render::MeshNode>();
-        new_node->mesh = m;
-    
-        new_node->local_transform = glm::mat4{ 1.f };
-        new_node->world_transform = glm::mat4{ 1.f };
-    
-        for (auto& s : new_node->mesh->surfaces) {
-            s.material = std::make_shared<vk_loader::GLTFMaterial>(default_data);
-        }
-    
-        loaded_nodes[m->name] = std::move(new_node);
-    }
 
     global_deletion_stack.push_function([material_constants, this]() {
         for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {

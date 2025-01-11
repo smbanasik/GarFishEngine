@@ -33,3 +33,4 @@ In no particular order:
 - Give RAII to buffers and images
     - This is hard to do right now! Things fall out of scope before they should sometimes, other times things aren't being copied correctly. For now we'll manage memory manually and give this another shot. Refer to this commit to find my results: 236c572
     - Come back to this later when we have a better understanding of things.
+    - Fork the repo, delete everything unnecessary, remove library dependencies, slim it all down. Then experiment.

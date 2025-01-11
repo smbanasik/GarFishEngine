@@ -96,9 +96,10 @@ public:
 
     vk_render::DrawContext main_draw_context;
     std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> loaded_nodes;
+    std::unordered_map<std::string, std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes;
     Camera camera;
 
-    std::vector<std::shared_ptr<gf::vk_loader::MeshAsset>> test_meshes;
+    std::vector<std::shared_ptr<gf::vk_render::MeshAsset>> test_meshes;
     std::vector<ComputeEffect> background_effects; // For fun!
     int current_background_effect{ 0 }; // For fun!
 

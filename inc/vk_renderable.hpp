@@ -8,20 +8,33 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 #include <glm/mat4x4.hpp>
 
 #include <vk_types.hpp>
-#include <vk_loader.hpp>
 
 namespace gf {
 namespace vk_render {
+struct GLTFMaterial {
+    MaterialInstance data;
+};
+struct GeoSurface {
+    uint32_t start_idx;
+    uint32_t count;
+    std::shared_ptr<GLTFMaterial> material;
+};
+struct MeshAsset {
+    std::string name;
+    std::vector<GeoSurface> surfaces;
+    GPUMeshBuffers mesh_buffers;
+};
 struct DrawContext {
     std::vector<RenderObject> opaque_surfaces;
 };
 
 struct IRenderable {
-    virtual void draw(const glm::mat4 top_matrix, DrawContext& ctx) = 0;
+    virtual void draw(const glm::mat4& top_matrix, DrawContext& ctx) = 0;
 };
 
 struct Node : public IRenderable {
@@ -31,12 +44,12 @@ struct Node : public IRenderable {
     glm::mat4 local_transform;
     glm::mat4 world_transform;
 
-    void refresh_transform(const glm::mat4 parent_matrix);
-    virtual void draw(const glm::mat4 top_matrix, DrawContext& ctx);
+    void refresh_transform(const glm::mat4& parent_matrix);
+    virtual void draw(const glm::mat4& top_matrix, DrawContext& ctx);
 };
 struct MeshNode : public Node {
-    std::shared_ptr<vk_loader::MeshAsset> mesh;
-    virtual void draw(const glm::mat4 top_matrix, DrawContext& ctx);
+    std::shared_ptr<MeshAsset> mesh;
+    virtual void draw(const glm::mat4& top_matrix, DrawContext& ctx);
 };
 
 }
