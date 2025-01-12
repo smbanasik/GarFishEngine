@@ -22,6 +22,7 @@ struct GLTFMaterial {
 struct GeoSurface {
     uint32_t start_idx;
     uint32_t count;
+    Bounds bounds;
     std::shared_ptr<GLTFMaterial> material;
 };
 struct MeshAsset {

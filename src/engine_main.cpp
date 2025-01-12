@@ -51,6 +51,7 @@ vk_context(gl_manager, gl_context) {
     gl_context.key.set_key_mapping(GLFW_KEY_S, Camera::glfw_camera_callback);
     gl_context.key.set_key_mapping(GLFW_KEY_A, Camera::glfw_camera_callback);
     gl_context.key.set_key_mapping(GLFW_KEY_D, Camera::glfw_camera_callback);
+    gl_context.key.set_key_mapping(GLFW_KEY_LEFT_ALT, Camera::mouse_swap);
 
     gl_context.mouse.disable_cursor();
     gl_context.mouse.enable_raw_mouse();
@@ -69,6 +70,8 @@ gf::Engine& gf::Engine::get() {
 void gf::Engine::run() {
 
     while (should_kill_game == false) {
+
+        auto start = std::chrono::system_clock::now();
 
         // Poll events
         glfwPollEvents();
@@ -98,6 +101,14 @@ void gf::Engine::run() {
             ImGui::InputFloat4("data3", (float*)&selected.data.data3);
             ImGui::InputFloat4("data4", (float*)&selected.data.data4);
         }
+        if (ImGui::Begin("Stats")) {
+            ImGui::Text("frametime %f ms", vk_context.stats.frametime);
+            ImGui::Text("draw time %f ms", vk_context.stats.mesh_draw_time);
+            ImGui::Text("update time %f ms", vk_context.stats.scene_update_time);
+            ImGui::Text("triangles %i", vk_context.stats.triangle_count);
+            ImGui::Text("draws %i", vk_context.stats.drawcall_count);
+            ImGui::End();
+        }
         ImGui::End();
 
 
@@ -107,6 +118,10 @@ void gf::Engine::run() {
 
 
         should_kill_game = gl_context.window.should_window_close();
+
+        auto end = std::chrono::system_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        vk_context.stats.frametime = elapsed.count() / 1000.f;
     }
 
 }

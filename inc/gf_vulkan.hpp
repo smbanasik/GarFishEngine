@@ -45,12 +45,14 @@ struct Camera {
     static glm::vec3 position;
     static float pitch;
     static float yaw;
+    static bool mouse_enabled;
 
     glm::mat4 get_view_matrix();
     glm::mat4 get_rotation_matrix();
 
-    static void glfw_camera_callback(gl::Key* key);
+    static void glfw_camera_callback(gl::WInputContext* context, gl::Key* key);
     static void glfw_camera_mouse(gl::WInputContext* context);
+    static void mouse_swap(gl::WInputContext* context, gl::Key* key);
 
     void update();
 };
@@ -67,6 +69,7 @@ public:
     vk_frames::ImmediateFrame imm_frame;
     vk_img::ImageBufferAllocator img_buff_allocator;
     vk_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
+    EngineStats stats;
     
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
@@ -127,7 +130,7 @@ private:
     VkManager& operator=(const VkManager& other) = delete;
     void init_swapchain(uint32_t width, uint32_t height);
     void init_descriptors();
-    void init_pipelines();
+    void init_pipelines();  
     void init_background_pipelines();
     void init_triangle_pipeline();
     void init_mesh_pipeline();

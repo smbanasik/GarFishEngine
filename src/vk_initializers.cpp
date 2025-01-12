@@ -178,3 +178,12 @@ VkRenderingAttachmentInfo gf::vk_init::depth_attachment_info(VkImageView view, V
     depth_attachment.clearValue.depthStencil.depth = 0.f;
     return depth_attachment;
 }
+VkImageSubresourceRange gf::vk_init::image_subresource_range(VkImageAspectFlags aspectMask) {
+    VkImageSubresourceRange subImage{};
+    subImage.aspectMask = aspectMask;
+    subImage.baseMipLevel = 0;
+    subImage.levelCount = VK_REMAINING_MIP_LEVELS;
+    subImage.baseArrayLayer = 0;
+    subImage.layerCount = VK_REMAINING_ARRAY_LAYERS;
+    return subImage;
+}

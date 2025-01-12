@@ -10,7 +10,7 @@
 
 #include <gl_manager.hpp>
 
-static constexpr bool DEBUG_USE_VALIDATION = true; // TODO: move this to options
+static constexpr bool DEBUG_USE_VALIDATION = false; // TODO: move this to options
 
 gf::vk_core::VKCore::VKCore(gl::GLManager* gl_manager, gl::WInputContext* gl_context) {
     vkb::InstanceBuilder builder;

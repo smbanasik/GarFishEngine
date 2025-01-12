@@ -214,6 +214,17 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
             else {
                 newSurface.material = materials[0];
             }
+            glm::vec3 minpos = vertices[initial_vtx].position;
+            glm::vec3 maxpos = vertices[initial_vtx].position;
+            for (int i = initial_vtx; i < vertices.size(); i++) {
+                minpos = glm::min(minpos, vertices[i].position);
+                maxpos = glm::max(maxpos, vertices[i].position);
+            }
+            // calculate origin and extents from the min/max, use extent lenght for radius
+            newSurface.bounds.origin = (maxpos + minpos) / 2.f;
+            newSurface.bounds.extents = (maxpos - minpos) / 2.f;
+            newSurface.bounds.sphereRadius = glm::length(newSurface.bounds.extents);
+
             newmesh->surfaces.push_back(newSurface);
         }
         newmesh->mesh_buffers = engine->upload_mesh(indices, vertices);

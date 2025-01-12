@@ -16,7 +16,7 @@ gf::gl::KeyContext::KeyContext(GLFWwindow* window)
     glfwSetCharCallback(window_handle, callback_char);
 }
 
-void gf::gl::KeyContext::set_key_mapping(int key, std::function<void(Key*)>&& function) {
+void gf::gl::KeyContext::set_key_mapping(int key, std::function<void(gl::WInputContext* context, Key*)>&& function) {
     key_map.insert(std::make_pair(key, function));
 }
 
@@ -24,7 +24,7 @@ void gf::gl::KeyContext::callback_key(GLFWwindow* window, int key, int scancode,
     gl::WInputContext* context = static_cast<gl::WInputContext*>(glfwGetWindowUserPointer(window));
     if (context->key.key_map.contains(key)) {
         Key new_key{ key, action, mods };
-        context->key.key_map[key](&new_key);
+        context->key.key_map[key](context, &new_key);
     }
     context->key.call_key();
 }

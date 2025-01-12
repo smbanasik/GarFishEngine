@@ -40,6 +40,45 @@
         }                                                               \
     } while (0)
 
+bool is_visible(const gf::RenderObject & obj, const glm::mat4 & viewproj) {
+    std::array<glm::vec3, 8> corners{
+        glm::vec3 { 1, 1, 1 },
+        glm::vec3 { 1, 1, -1 },
+        glm::vec3 { 1, -1, 1 },
+        glm::vec3 { 1, -1, -1 },
+        glm::vec3 { -1, 1, 1 },
+        glm::vec3 { -1, 1, -1 },
+        glm::vec3 { -1, -1, 1 },
+        glm::vec3 { -1, -1, -1 },
+    };
+
+    glm::mat4 matrix = viewproj * obj.transform;
+
+    glm::vec3 min = { 1.5, 1.5, 1.5 };
+    glm::vec3 max = { -1.5, -1.5, -1.5 };
+
+    for (int c = 0; c < 8; c++) {
+        // project each corner into clip space
+        glm::vec4 v = matrix * glm::vec4(obj.bounds.origin + (corners[c] * obj.bounds.extents), 1.f);
+
+        // perspective correction
+        v.x = v.x / v.w;
+        v.y = v.y / v.w;
+        v.z = v.z / v.w;
+
+        min = glm::min(glm::vec3{ v.x, v.y, v.z }, min);
+        max = glm::max(glm::vec3{ v.x, v.y, v.z }, max);
+    }
+
+    // check the clip space box is within the view
+    if (min.z > 1.f || max.z < 0.f || min.x > 1.f || max.x < -1.f || min.y > 1.f || max.y < -1.f) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
 gf::VkManager::VkManager(gl::GLManager & gl_manager, gl::WInputContext & gl_context)
@@ -95,6 +134,9 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
 }
 
 void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
+    stats.drawcall_count = 0;
+    stats.triangle_count = 0;
+    auto start = std::chrono::system_clock::now();
     
     AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
@@ -114,45 +156,66 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     vkCmdBeginRendering(cmd, &render_info);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline.pipeline);
-    VkViewport viewport = {};
-    viewport.x = 0;
-    viewport.y = 0;
-    viewport.width = drawn_size.width;
-    viewport.height = drawn_size.height;
-    viewport.minDepth = 0.f;
-    viewport.maxDepth = 1.f;
-    vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-    VkRect2D scissor = {};
-    scissor.offset.x = 0;
-    scissor.offset.y = 0;
-    scissor.extent.width = drawn_size.width;
-    scissor.extent.height = drawn_size.height;
-    vkCmdSetScissor(cmd, 0, 1, &scissor);
-
     vkCmdDraw(cmd, 3, 1, 0, 0);
 
-    auto draw = [&](const RenderObject& draw) {
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->pipeline);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 0, 1, &global_descriptor, 0, nullptr);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.material->pipeline->layout, 1, 1, &draw.material->material_set, 0, nullptr);
-        vkCmdBindIndexBuffer(cmd, draw.index_buffer, 0, VK_INDEX_TYPE_UINT32);
+    MaterialPipeline* last_pipeline = nullptr;
+    MaterialInstance* last_material = nullptr;
+    VkBuffer last_index_buffer = VK_NULL_HANDLE;
+    auto draw = [&](const RenderObject& rendered) {
+        if (rendered.material != last_material) {
+            last_material = rendered.material;
+            if (rendered.material->pipeline != last_pipeline) {
+                last_pipeline = rendered.material->pipeline;
+                vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->pipeline);
+                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 0, 1, &global_descriptor, 0, nullptr);
+
+                VkViewport viewport = {};
+                viewport.x = 0;
+                viewport.y = 0;
+                viewport.width = drawn_size.width;
+                viewport.height = drawn_size.height;
+                viewport.minDepth = 0.f;
+                viewport.maxDepth = 1.f;
+                vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+                VkRect2D scissor = {};
+                scissor.offset.x = 0;
+                scissor.offset.y = 0;
+                scissor.extent.width = drawn_size.width;
+                scissor.extent.height = drawn_size.height;
+                vkCmdSetScissor(cmd, 0, 1, &scissor);
+            }
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 1, 1, &rendered.material->material_set, 0, nullptr);
+        }
+        if (rendered.index_buffer != last_index_buffer) {
+            last_index_buffer == rendered.index_buffer;
+            vkCmdBindIndexBuffer(cmd, rendered.index_buffer, 0, VK_INDEX_TYPE_UINT32);
+        }
+        
         GPUDrawPushConstants push_constants;
-        push_constants.vertex_buffer = draw.vertex_buffer_address;
-        push_constants.world_matrix = draw.transform;
-        vkCmdPushConstants(cmd, draw.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
-        vkCmdDrawIndexed(cmd, draw.index_count, 1, draw.first_index, 0, 0);
+        push_constants.vertex_buffer = rendered.vertex_buffer_address;
+        push_constants.world_matrix = rendered.transform;
+        vkCmdPushConstants(cmd, rendered.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+        vkCmdDrawIndexed(cmd, rendered.index_count, 1, rendered.first_index, 0, 0);
+        stats.drawcall_count++;
+        stats.triangle_count += rendered.index_count / 3;
         };
 
     for (const RenderObject& r : main_draw_context.opaque_surfaces) {
-        draw(r);
+        if (is_visible(r, scene_data.viewproj))
+            draw(r);
     }
     for (const RenderObject& r : main_draw_context.transparent_surfaces) {
-        draw(r);
+        if (is_visible(r, scene_data.viewproj))
+            draw(r);
     }
     vkCmdEndRendering(cmd);
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    stats.mesh_draw_time = elapsed.count() / 1000.f;
 }
 void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
+    auto start = std::chrono::system_clock::now();
     camera.update();
 
     main_draw_context.opaque_surfaces.clear();
@@ -168,6 +231,9 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
     scene_data.ambient_color = glm::vec4(.1f);
     scene_data.sunlight_color = glm::vec4(1.f);
     scene_data.sunlight_direction = glm::vec4(0, 1, 0.5, 1.f);
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    stats.scene_update_time = elapsed.count() / 1000.f;
 }
 
 void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
@@ -563,6 +629,7 @@ float gf::Camera::pitch = 0.f;
 float gf::Camera::yaw = 0.f;
 glm::vec3 gf::Camera::position{};
 glm::vec3 gf::Camera::velocity{};
+bool gf::Camera::mouse_enabled = false;
 
 glm::mat4 gf::Camera::get_view_matrix() {
     glm::mat4 camera_translation = glm::translate(glm::mat4(1.f), position);
@@ -575,7 +642,7 @@ glm::mat4 gf::Camera::get_rotation_matrix() {
     return glm::toMat4(yaw_rotation) * glm::toMat4(pitch_rotation);
 }
 
-void gf::Camera::glfw_camera_callback(gl::Key* key) {
+void gf::Camera::glfw_camera_callback(gl::WInputContext* context, gl::Key* key) {
     
     if (key->action == GLFW_PRESS) {
         switch (key->key) {
@@ -612,6 +679,8 @@ void gf::Camera::glfw_camera_callback(gl::Key* key) {
 }
 
 void gf::Camera::glfw_camera_mouse(gl::WInputContext* context) {
+    if (mouse_enabled)
+        return;
     if (context->mouse.first_mouse) {
         gl::Double2D new_pos = context->mouse.get_mouse_coords();
         yaw = static_cast<float>(new_pos.x);
@@ -627,4 +696,11 @@ void gf::Camera::glfw_camera_mouse(gl::WInputContext* context) {
 void gf::Camera::update() {
     glm::mat4 camera_rotation = get_rotation_matrix();
     position += glm::vec3(camera_rotation * glm::vec4(velocity * 0.25f, 0.f));
+}
+
+void gf::Camera::mouse_swap(gl::WInputContext* context, gl::Key* key) {
+    if (key->action == GLFW_PRESS)
+        mouse_enabled = !mouse_enabled;
+    
+    (mouse_enabled) ? context->mouse.enable_cursor() : context->mouse.disable_cursor();
 }

@@ -88,13 +88,18 @@ struct MaterialInstance {
     VkDescriptorSet material_set;
     MaterialPass pass_type;
 };
+struct Bounds {
+    glm::vec3 origin;
+    float sphereRadius;
+    glm::vec3 extents;
+};
 struct RenderObject {
     uint32_t index_count;
     uint32_t first_index;
     VkBuffer index_buffer;
 
     MaterialInstance* material;
-
+    Bounds bounds;
     glm::mat4 transform;
     VkDeviceAddress vertex_buffer_address;
 };

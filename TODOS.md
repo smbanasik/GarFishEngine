@@ -26,10 +26,9 @@ In no particular order:
 - Review the load mesh function at a deeper level
 - Move image creation to its own area
 - Create files to handle the engine architecture (render obj, node, meshnode, etc)
-- Move structs GeoSurface and MeshAsset to a more sensible place
 - Sort the render context! Sort by pipeline to reduce bindings
 - Create or #include a logging system
-- Textures!
+- Look into sorting draws before rendering, need an efficient way
 - Give RAII to buffers and images
     - This is hard to do right now! Things fall out of scope before they should sometimes, other times things aren't being copied correctly. For now we'll manage memory manually and give this another shot. Refer to this commit to find my results: 236c572
     - Come back to this later when we have a better understanding of things.

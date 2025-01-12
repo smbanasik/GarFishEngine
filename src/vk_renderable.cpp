@@ -21,6 +21,7 @@ void gf::vk_render::MeshNode::draw(const glm::mat4& top_matrix, DrawContext& ctx
         render.index_buffer = mesh->mesh_buffers.index_buffer.buffer;
         render.material = &surface.material->data;
         render.transform = node_matrix;
+        render.bounds = surface.bounds;
         render.vertex_buffer_address = mesh->mesh_buffers.vertex_buffer_address;
         ctx.opaque_surfaces.push_back(render);
     }
