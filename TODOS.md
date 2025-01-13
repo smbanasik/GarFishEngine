@@ -9,9 +9,19 @@ This document serves as a reminder for things I would like to do once I get to t
 - Seperate or together?
 
 ## Next Steps
-- Start with the shaders
-- Create a material that uses the shaders
-- Create a system that can do images
+- Material Abstraction system
+    - Create a base material class for others to inherit from
+- Create a quick stb_image to vkimage function if not done
+- Create a TextureAtlas class which wraps an image with subdivisions and indices
+- Add a static_elems to the draw context (do not do bounds checking on these)
+- Change shaders to calculate viewproj outside of shader (and exclude static_elems from this)
+- Create a Sprite class
+    - Texture, verts
+- Create a TileMap class
+    - Owns a grid of sprites with subdivisions
+    - How do we handle multiple texture atlasses?
+- Text implementation
+    - Textbox: a group of spaced quads
 
 ## General
 - Get a textured 2d image on screen
