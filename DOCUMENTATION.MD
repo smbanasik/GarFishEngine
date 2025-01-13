@@ -83,3 +83,17 @@ only one submission is possible at a time.
     - Quick and small data that can be sent to a shader
 
 ## Engine Abstractions
+
+### Materials
+- GLTF Materials
+    - Material Pipelines (pipeline + layout)
+        - Shaders
+    - Material constants for shaders
+    - Descriptor set layout
+    - Material resources
+        - Images and buffers for material
+
+### Renderables
+
+- RenderObject
+    - A flattened structure containing everything vulkan needs to render something

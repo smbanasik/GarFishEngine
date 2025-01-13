@@ -8,11 +8,20 @@ This document serves as a reminder for things I would like to do once I get to t
 - Need two types of options: engine options & end user options
 - Seperate or together?
 
-### gf_util
-- Need to implement a unique_structure, which contains a structure and prevents copying. Only allows moving
-- Need to implement shared_structure, which contains a structure and allows copying. Has reference counting for resources
+## Next Steps
+- Start with the shaders
+- Create a material that uses the shaders
+- Create a system that can do images
 
 ## General
+- Get a textured 2d image on screen
+- Implement text rendering on the screen
+    - Render atlas is needed
+    - Should be able to reuse code from rogue eng
+- Implement some sort of sprite system
+    - Textures, shaders, etc.
+- UI elements
+    - Button manager & buttons
 In no particular order:
 - Actually check for support of things that we need
 - Create an aggregate for pipelines, shaders, and descriptors. RAII

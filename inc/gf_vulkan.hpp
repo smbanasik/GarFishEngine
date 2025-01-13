@@ -73,8 +73,6 @@ public:
     
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
-    MaterialPipeline triangle_pipeline;
-    MaterialPipeline mesh_pipeline;
 
     AllocatedImage drawn_image;
     AllocatedImage depth_image;
@@ -94,8 +92,10 @@ public:
     VkSampler default_sampler_linear;
     VkSampler default_sampler_nearest;
 
-    MaterialInstance default_data;
     vk_mat::GLTFMetallic_Roughness metal_rough_material;
+    MaterialInstance default_data;
+    vk_mat::MaterialImage two_d_image_material;
+    MaterialInstance image_mat_data;
 
     vk_render::DrawContext main_draw_context;
     std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> loaded_nodes;
@@ -132,8 +132,6 @@ private:
     void init_descriptors();
     void init_pipelines();  
     void init_background_pipelines();
-    void init_triangle_pipeline();
-    void init_mesh_pipeline();
     void init_imgui(GLFWwindow* window);
     void init_default_data();
 };

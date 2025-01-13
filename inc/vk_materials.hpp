@@ -44,6 +44,30 @@ struct GLTFMetallic_Roughness {
 
     MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator);
 };
+struct MaterialImage {
+    MaterialPipeline opaque_pipeline;
+    MaterialPipeline transparent_pipeline;
+
+    VkDescriptorSetLayout material_layout;
+
+    struct MaterialResources {
+        AllocatedImage color_image;
+        VkSampler color_sampler;
+    };
+
+    vk_desc::DescriptorWriter writer;
+
+    void build_pipelines(VkManager* engine);
+    void clear_resources(VkDevice device);
+
+    MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator);
+};
+/*
+struct MaterialImageTriColor {
+
+};
+*/
+
 }
 }
 #endif

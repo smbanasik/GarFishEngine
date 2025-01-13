@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#include <array>
 
 #include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
@@ -102,8 +103,8 @@ gf::VkManager::VkManager(gl::GLManager & gl_manager, gl::WInputContext & gl_cont
 
     loaded_scenes["structure"] = *structureFile;
 
-    camera.position = glm::vec3(30.f, -00.f, -085.f);
-
+    //camera.position = glm::vec3(30.f, -00.f, -085.f);
+    camera.position = glm::vec3(0.f, 0.f, 1.f);
     is_init = true;
 
 }
@@ -113,6 +114,7 @@ gf::VkManager::~VkManager() {
 
     loaded_scenes.clear();
     metal_rough_material.clear_resources(core.device);
+    two_d_image_material.clear_resources(core.device);
 
     global_deletion_stack.flush();
 }
@@ -154,9 +156,6 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     VkRenderingAttachmentInfo depth_attachment = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
     VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
     vkCmdBeginRendering(cmd, &render_info);
-
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline.pipeline);
-    vkCmdDraw(cmd, 3, 1, 0, 0);
 
     MaterialPipeline* last_pipeline = nullptr;
     MaterialInstance* last_material = nullptr;
@@ -222,6 +221,7 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
     main_draw_context.transparent_surfaces.clear();
 
     loaded_scenes["structure"]->draw(glm::mat4{ 1.f }, main_draw_context);
+    loaded_nodes["first_image"]->draw(glm::mat4{ 1.f }, main_draw_context);
 
     scene_data.view = camera.get_view_matrix();
     scene_data.proj = glm::perspective(glm::radians(70.f), static_cast<float>(width) / static_cast<float>(height), 10000.f, 0.1f);
@@ -317,9 +317,8 @@ void gf::VkManager::init_descriptors() {
 
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
-    init_triangle_pipeline();
-    init_mesh_pipeline();
     metal_rough_material.build_pipelines(this);
+    two_d_image_material.build_pipelines(this);
 }
 void gf::VkManager::init_background_pipelines() {
 
@@ -387,85 +386,6 @@ void gf::VkManager::init_background_pipelines() {
         vkDestroyPipelineLayout(core.device, gradient_pipeline_layout, nullptr);
         vkDestroyPipeline(core.device, gradient.pipeline, nullptr);
         vkDestroyPipeline(core.device, sky.pipeline, nullptr);
-        });
-}
-
-void gf::VkManager::init_triangle_pipeline() {
-    VkShaderModule triangle_frag_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", core.device, &triangle_frag_shader))
-        std::cout << "Error when building the triangle fragment shader module\n";
-
-    VkShaderModule triangle_vertex_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.vert.spv", core.device, &triangle_vertex_shader))
-        std::cout << "Error when building the triangle vertex shader module\n";
-
-    VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
-    vkCreatePipelineLayout(core.device, &pipeline_layout_info, nullptr, &triangle_pipeline.layout);
-
-    vk_pipe::PipelineBuilder pipe_builder;
-
-    pipe_builder.set_shaders(triangle_vertex_shader, triangle_frag_shader)
-        .set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-        .set_polygon_mode(VK_POLYGON_MODE_FILL)
-        .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
-        .set_multisampling_none()
-        .disable_blending()
-        .disable_depthtest()
-        .set_color_attachment_format(drawn_image.image_format)
-        .set_depth_format(depth_image.image_format);
-    pipe_builder.pipeline_layout = triangle_pipeline.layout;
-
-    triangle_pipeline.pipeline = pipe_builder.build_pipeline(core.device);
-
-    vkDestroyShaderModule(core.device, triangle_frag_shader, nullptr);
-    vkDestroyShaderModule(core.device, triangle_vertex_shader, nullptr);
-
-    global_deletion_stack.push_function([this]() {
-        vkDestroyPipelineLayout(core.device, triangle_pipeline.layout, nullptr);
-        vkDestroyPipeline(core.device, triangle_pipeline.pipeline, nullptr);
-        });
-}
-void gf::VkManager::init_mesh_pipeline() {
-    VkShaderModule triangle_frag_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri.frag.spv", core.device, &triangle_frag_shader))
-        std::cout << "Error when building the triangle fragment shader module\n";
-
-    VkShaderModule triangle_vertex_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/colored_tri_mesh.vert.spv", core.device, &triangle_vertex_shader))
-        std::cout << "Error when building the triangle vertex shader module\n";
-
-    VkPushConstantRange buffer_range{};
-    buffer_range.offset = 0;
-    buffer_range.size = sizeof(GPUDrawPushConstants);
-    buffer_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-    VkPipelineLayoutCreateInfo pipeline_layout_info = vk_init::pipeline_layout_info();
-    pipeline_layout_info.pPushConstantRanges = &buffer_range;
-    pipeline_layout_info.pushConstantRangeCount = 1;
-
-    vkCreatePipelineLayout(core.device, &pipeline_layout_info, nullptr, &mesh_pipeline.layout);
-
-    vk_pipe::PipelineBuilder pipe_builder;
-
-    pipe_builder.set_shaders(triangle_vertex_shader, triangle_frag_shader)
-        .set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-        .set_polygon_mode(VK_POLYGON_MODE_FILL)
-        .set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE)
-        .set_multisampling_none()
-        .enable_blending_alphablend()
-        .enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL)
-        .set_color_attachment_format(drawn_image.image_format)
-        .set_depth_format(depth_image.image_format);
-    pipe_builder.pipeline_layout = mesh_pipeline.layout;
-
-    mesh_pipeline.pipeline = pipe_builder.build_pipeline(core.device);
-
-    vkDestroyShaderModule(core.device, triangle_frag_shader, nullptr);
-    vkDestroyShaderModule(core.device, triangle_vertex_shader, nullptr);
-
-    global_deletion_stack.push_function([this]() {
-        vkDestroyPipelineLayout(core.device, mesh_pipeline.layout, nullptr);
-        vkDestroyPipeline(core.device, mesh_pipeline.pipeline, nullptr);
         });
 }
 
@@ -557,6 +477,36 @@ void gf::VkManager::init_default_data() {
     material_resources.data_buffer_offset = 0;
 
     default_data = metal_rough_material.write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
+
+    vk_mat::MaterialImage::MaterialResources image_resources;
+    image_resources.color_image = error_checkerboard_image;
+    image_resources.color_sampler = default_sampler_nearest;
+
+    image_mat_data = two_d_image_material.write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
+    {
+    std::array<gf::Vertex, 4> vertex_buff;
+    vertex_buff[0] = { glm::vec3(0.0f, 0.0f, 0.0f), 0, glm::vec3(1.0f, 1.0f, 1.0f), 0, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[1] = { glm::vec3(1.0f, 0.0f, 0.0f), 1, glm::vec3(1.0f, 1.0f, 1.0f), 0, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[2] = { glm::vec3(1.0f, 1.0f, 0.0f), 1, glm::vec3(1.0f, 1.0f, 1.0f), 1, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[3] = { glm::vec3(0.0f, 1.0f, 0.0f), 0, glm::vec3(1.0f, 1.0f, 1.0f), 1, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    std::array<uint32_t, 6> index_buff = { 0, 1, 2, 2, 3, 0 };
+
+    vk_render::GeoSurface surface;
+    surface.bounds = {};
+    surface.count = 6;
+    surface.start_idx = 0;
+    surface.material = std::make_shared<vk_render::GLTFMaterial>(image_mat_data);
+    std::shared_ptr<vk_render::MeshAsset> image_mesh = std::make_shared<vk_render::MeshAsset>();
+    image_mesh->mesh_buffers = upload_mesh(index_buff, vertex_buff);
+    image_mesh->name = "first_image";
+    image_mesh->surfaces.push_back(surface);
+    test_meshes.push_back(image_mesh);
+    std::shared_ptr<vk_render::MeshNode> image = std::make_shared<vk_render::MeshNode>();
+    image->mesh = image_mesh;
+    image->local_transform = glm::mat4{ 1.f };
+    image->world_transform = glm::mat4{ 1.f };
+    loaded_nodes[image_mesh->name] = std::move(image);
+    }
 
     global_deletion_stack.push_function([material_constants, this]() {
         for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {
