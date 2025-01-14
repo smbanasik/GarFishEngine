@@ -53,6 +53,7 @@ std::optional<std::shared_ptr<LoadedGLTF>> load_gltf(VkManager* engine, std::str
 VkFilter extract_filter(fastgltf::Filter filter);
 VkSamplerMipmapMode extract_mipmap_mode(fastgltf::Filter filter);
 std::optional<AllocatedImage> load_image(VkManager* engine, fastgltf::Asset& asset, fastgltf::Image& image);
+std::optional<AllocatedImage> load_image_from_path(VkManager* engine, const std::string& file_path);
 
 }
 }

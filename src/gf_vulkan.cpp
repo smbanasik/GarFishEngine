@@ -23,6 +23,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include <stb_image.h>
 
 #include <vk_initializers.hpp>
 #include <engine_types.hpp>
@@ -478,17 +479,27 @@ void gf::VkManager::init_default_data() {
 
     default_data = metal_rough_material.write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
 
+    test_texture.texture = vk_loader::load_image_from_path(this, "../../assets/chad_emote.png").value();
+    test_texture.subdivisions_x = 1;
+    test_texture.subdivisions_y = 1;
+
     vk_mat::MaterialImage::MaterialResources image_resources;
-    image_resources.color_image = error_checkerboard_image;
+    image_resources.color_image = test_texture.texture;
     image_resources.color_sampler = default_sampler_nearest;
 
     image_mat_data = two_d_image_material.write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
     {
     std::array<gf::Vertex, 4> vertex_buff;
-    vertex_buff[0] = { glm::vec3(0.0f, 0.0f, 0.0f), 0, glm::vec3(1.0f, 1.0f, 1.0f), 0, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[1] = { glm::vec3(1.0f, 0.0f, 0.0f), 1, glm::vec3(1.0f, 1.0f, 1.0f), 0, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[2] = { glm::vec3(1.0f, 1.0f, 0.0f), 1, glm::vec3(1.0f, 1.0f, 1.0f), 1, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[3] = { glm::vec3(0.0f, 1.0f, 0.0f), 0, glm::vec3(1.0f, 1.0f, 1.0f), 1, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    std::array<glm::vec2, 4> uv_coords = test_texture.get_texture_square({ 0,0 });
+
+    for (auto uv : uv_coords) {
+        std::cout << "Texture x: " << uv.x << " y: " << uv.y << "\n";
+    }
+
+    vertex_buff[0] = { glm::vec3(0.0f, 0.0f, 0.0f), uv_coords[0].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[0].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[1] = { glm::vec3(1.0f, 0.0f, 0.0f), uv_coords[1].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[1].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[2] = { glm::vec3(1.0f, 1.0f, 0.0f), uv_coords[2].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[2].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[3] = { glm::vec3(0.0f, 1.0f, 0.0f), uv_coords[3].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[3].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
     std::array<uint32_t, 6> index_buff = { 0, 1, 2, 2, 3, 0 };
 
     vk_render::GeoSurface surface;
@@ -522,6 +533,7 @@ void gf::VkManager::init_default_data() {
         img_buff_allocator.destroy_image(gray_image);
         img_buff_allocator.destroy_image(black_image);
         img_buff_allocator.destroy_image(error_checkerboard_image);
+        img_buff_allocator.destroy_image(test_texture.texture);
         });
 }
 gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices) {

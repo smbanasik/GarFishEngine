@@ -26,6 +26,7 @@
 #include <vk_renderable.hpp>
 #include <vk_frames.hpp>
 #include <vk_images.hpp>
+#include <gf_types.hpp>
 
 struct GLFWwindow;
 
@@ -96,6 +97,7 @@ public:
     MaterialInstance default_data;
     vk_mat::MaterialImage two_d_image_material;
     MaterialInstance image_mat_data;
+    TextureAtlas test_texture;
 
     vk_render::DrawContext main_draw_context;
     std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> loaded_nodes;

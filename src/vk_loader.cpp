@@ -419,3 +419,25 @@ std::optional<gf::AllocatedImage> gf::vk_loader::load_image(VkManager* engine, f
         return newImage;
     }
 }
+
+std::optional<gf::AllocatedImage> gf::vk_loader::load_image_from_path(VkManager* engine, const std::string& file_path) {
+    AllocatedImage new_image{};
+
+    int width, height, nr_channels;
+
+    unsigned char* data = stbi_load(file_path.c_str(), &width, &height, &nr_channels, 4);
+    if (data) {
+        VkExtent3D imagesize;
+        imagesize.width = width;
+        imagesize.height = height;
+        imagesize.depth = 1;
+
+        new_image = engine->img_buff_allocator.create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+
+        stbi_image_free(data);
+    }
+    if (new_image.image == VK_NULL_HANDLE)
+        return {};
+
+    return new_image;
+}
