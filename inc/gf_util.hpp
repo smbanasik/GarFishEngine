@@ -19,7 +19,6 @@ public:
     }
     ~RefCounter() {
         decrement_delete_counter();
-        counter = nullptr;
     }
     RefCounter(const RefCounter& other)
         : counter(other.counter) {
@@ -45,8 +44,8 @@ public:
         return *this;
     }
 
-    bool should_delete() {
-        if (counter == nullptr || *counter == 1)
+    bool can_delete_resources() {
+        if (counter != nullptr && *counter == 1) // If counter is null somehow, it means resources were moved.
             return true;
         return false;
     }

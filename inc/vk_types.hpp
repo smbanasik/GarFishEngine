@@ -17,6 +17,7 @@
 
 #include <vk_descriptors.hpp>
 #include <engine_types.hpp>
+#include <gf_util.hpp>
 
 namespace gf {
 // All data for a given frame bundled together
@@ -117,6 +118,5 @@ struct ComputeEffect {
     VkPipelineLayout layout;
     ComputePushConstants data;
 };
-
 }
 #endif

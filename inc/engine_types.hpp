@@ -58,10 +58,7 @@ struct EngineStats {
     float scene_update_time;
     float mesh_draw_time;
 };
-
-class Grid {
-    // TODO: a 1d, flattened array with a 2d interface
 };
 
-}
 #endif
+

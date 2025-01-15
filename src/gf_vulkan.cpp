@@ -201,15 +201,15 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
         stats.triangle_count += rendered.index_count / 3;
         };
 
+    for (const RenderObject& r : main_draw_context.static_surfaces) {
+        draw(r);
+    }
     for (const RenderObject& r : main_draw_context.opaque_surfaces) {
         if (is_visible(r, scene_data.viewproj))
             draw(r);
     }
     for (const RenderObject& r : main_draw_context.transparent_surfaces) {
         if (is_visible(r, scene_data.viewproj))
-            draw(r);
-    }
-    for (const RenderObject& r : main_draw_context.static_surfaces) {
             draw(r);
     }
 
@@ -325,6 +325,7 @@ void gf::VkManager::init_pipelines() {
     metal_rough_material.build_pipelines(this);
     two_d_image_material.build_pipelines(this);
 }
+
 void gf::VkManager::init_background_pipelines() {
 
     VkPipelineLayoutCreateInfo compute_layout{};

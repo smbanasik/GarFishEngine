@@ -7,6 +7,7 @@ ${HEADER_DIR}/gf_options.hpp
 ${HEADER_DIR}/gf_err.hpp
 ${HEADER_DIR}/gf_util.hpp
 ${HEADER_DIR}/gf_types.hpp
+${HEADER_DIR}/gf_resource_manager.hpp
 )
 
 set(SOURCES
@@ -17,6 +18,7 @@ gf_options.cpp
 gf_err.cpp
 gf_util.cpp
 gf_types.cpp
+gf_resource_manager.cpp
 )
 
 # Adding Groups

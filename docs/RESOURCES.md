@@ -14,3 +14,4 @@
 
 - [Doom Eternal Study](https://simoncoenen.com/blog/programming/graphics/DoomEternalStudy) - A look at the ways Doom Eternal utilizes the GPU
 
+- [Doom 2016 Study](https://www.adriancourreges.com/blog/2016/09/09/doom-2016-graphics-study/) - A look at how Doom 2016 renders
