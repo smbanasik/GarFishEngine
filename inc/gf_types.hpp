@@ -11,12 +11,31 @@
 
 #include <vk_types.hpp>
 namespace gf {
+
+typedef AllocatedImage Texture;
 struct TextureAtlas {
-    AllocatedImage texture;
+    Texture texture;
     uint32_t subdivisions_x;
     uint32_t subdivisions_y;
 
     std::array<glm::vec2, 4> get_texture_square(glm::ivec2 subdivision_coords);
+};
+
+struct Sprite {
+    glm::vec2 sprite_position;
+    glm::vec2 sprite_size;
+};
+struct TextureSprite : public Sprite {
+    Texture* texture;
+    glm::vec2 texture_size;
+};
+struct AtlasSprite : public Sprite {
+    TextureAtlas* atlas;
+    glm::vec2 atlas_coords;
+};
+
+struct TileMap {
+    // TODO: grid of sprites
 };
 
 }

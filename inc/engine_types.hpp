@@ -51,19 +51,6 @@ private:
     std::function<void()> deletion;
 };
 
-struct ComputePushConstants {
-    glm::vec4 data1;
-    glm::vec4 data2;
-    glm::vec4 data3;
-    glm::vec4 data4;
-};
-// For fun!
-struct ComputeEffect {
-    const char* name;
-    VkPipeline pipeline;
-    VkPipelineLayout layout;
-    ComputePushConstants data;
-};
 struct EngineStats {
     float frametime;
     int triangle_count;
@@ -71,5 +58,10 @@ struct EngineStats {
     float scene_update_time;
     float mesh_draw_time;
 };
+
+class Grid {
+    // TODO: a 1d, flattened array with a 2d interface
+};
+
 }
 #endif

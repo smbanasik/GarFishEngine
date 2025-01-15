@@ -10,7 +10,8 @@ This document serves as a reminder for things I would like to do once I get to t
 
 ## Next Steps
 - Change shaders to calculate viewproj outside of shader (and exclude static_elems from this)
-- Add a static_elems to the draw context (do not do bounds checking on these)
+    - When do shaders run and with what? Draw command?
+    - Many shaders? Or state in shaders?
 - Create a Sprite class
     - Texture, verts
 - Create a TileMap class

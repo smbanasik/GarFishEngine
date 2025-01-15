@@ -33,6 +33,7 @@ struct MeshAsset {
 struct DrawContext {
     std::vector<RenderObject> opaque_surfaces;
     std::vector<RenderObject> transparent_surfaces;
+    std::vector<RenderObject> static_surfaces; // Meant for UI elements, ideally not affected by render proj matrix. No culling.
 };
 
 struct IRenderable {

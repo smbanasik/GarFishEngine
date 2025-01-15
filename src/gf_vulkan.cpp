@@ -209,6 +209,10 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
         if (is_visible(r, scene_data.viewproj))
             draw(r);
     }
+    for (const RenderObject& r : main_draw_context.static_surfaces) {
+            draw(r);
+    }
+
     vkCmdEndRendering(cmd);
     auto end = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
