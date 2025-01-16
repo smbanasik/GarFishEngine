@@ -14,17 +14,16 @@
 
 #include <vulkan/vulkan.h>
 
-#include <vk_types.hpp>
-#include <vk_renderable.hpp>
-#include <vk_descriptors.hpp>
 #include <fastgltf/core.hpp>
 #include <fastgltf/glm_element_traits.hpp>
 #include <fastgltf/tools.hpp>
 
+#include <vk_types.hpp>
 #include <vk_renderable.hpp>
+#include <vk_descriptors.hpp>
+#include <vk_images.hpp>
 
 namespace gf {
-
 class VkManager;
 namespace vk_loader {
 
@@ -32,14 +31,14 @@ class LoadedGLTF : public vk_render::IRenderable {
 public:
     std::unordered_map<std::string, std::shared_ptr<vk_render::MeshAsset>> meshes;
     std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> nodes;
-    std::unordered_map<std::string, AllocatedImage> images;
+    std::unordered_map<std::string, vk_img::AllocatedImage> images;
     std::unordered_map<std::string, std::shared_ptr<vk_render::GLTFMaterial>> materials;
 
     std::vector<std::shared_ptr<vk_render::Node>> top_nodes;
     std::vector<VkSampler> samplers;
 
     vk_desc::DescriptorAllocatorGrowable descriptor_pool;
-    AllocatedBuffer material_data_buffer;
+    vk_img::AllocatedBuffer material_data_buffer;
     VkManager* creator;
     ~LoadedGLTF() { clear_all(); };
 
@@ -52,8 +51,8 @@ private:
 std::optional<std::shared_ptr<LoadedGLTF>> load_gltf(VkManager* engine, std::string_view file_path);
 VkFilter extract_filter(fastgltf::Filter filter);
 VkSamplerMipmapMode extract_mipmap_mode(fastgltf::Filter filter);
-std::optional<AllocatedImage> load_image(VkManager* engine, fastgltf::Asset& asset, fastgltf::Image& image);
-std::optional<AllocatedImage> load_image_from_path(VkManager* engine, const std::string& file_path);
+std::optional<vk_img::AllocatedImage> load_image(VkManager* engine, fastgltf::Asset& asset, fastgltf::Image& image);
+std::optional<vk_img::AllocatedImage> load_image_from_path(VkManager* engine, const std::string& file_path);
 
 }
 }

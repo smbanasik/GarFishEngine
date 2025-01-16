@@ -1,6 +1,6 @@
 // Spencer Banasik
 // Created: 12/18/2024
-// Last Modified: 1/7/2025
+// Last Modified: 1/15/2025
 // Description:
 // Data types meant for gf_vulkan
 #ifndef VK_TYPES_HPP
@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <stdint.h>
+#include <functional>
 
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
@@ -18,6 +19,7 @@
 #include <vk_descriptors.hpp>
 #include <engine_types.hpp>
 #include <gf_util.hpp>
+#include <vk_images.hpp>
 
 namespace gf {
 // All data for a given frame bundled together
@@ -31,20 +33,7 @@ struct Frame {
     DeletionStack deletion_stack;
     vk_desc::DescriptorAllocatorGrowable frame_descriptors;
 };
-// All data for an image bundled together
-struct AllocatedImage {
-    VkImage image;
-    VkImageView image_view;
-    VmaAllocation allocation;
-    VkExtent3D image_size;
-    VkFormat image_format;
-};
-// Data for a buffer and it's vma info
-struct AllocatedBuffer {
-    VkBuffer buffer;
-    VmaAllocation allocation;
-    VmaAllocationInfo info;
-};
+
 // Interleaved to improve performance with alignment (3 vec4s ig)
 struct Vertex {
     glm::vec3 position;
@@ -56,8 +45,8 @@ struct Vertex {
 
 // Resources for a full mesh
 struct GPUMeshBuffers {
-    AllocatedBuffer index_buffer;
-    AllocatedBuffer vertex_buffer;
+    vk_img::AllocatedBuffer vertex_buffer;
+    vk_img::AllocatedBuffer index_buffer;
     VkDeviceAddress vertex_buffer_address;
 };
 // Push constants for a mesh

@@ -44,7 +44,7 @@ public:
         return *this;
     }
 
-    bool can_delete_resources() {
+    bool can_delete_resources() const {
         if (counter != nullptr && *counter == 1) // If counter is null somehow, it means resources were moved.
             return true;
         return false;

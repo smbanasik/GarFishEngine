@@ -86,10 +86,10 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
     std::vector<std::shared_ptr<vk_render::Node>> nodes;
     std::vector<std::shared_ptr<vk_render::MeshAsset>> meshes;
     std::vector<std::shared_ptr<vk_render::GLTFMaterial>> materials;
-    std::vector<AllocatedImage> images;
+    std::vector<vk_img::AllocatedImage> images;
 
     for (fastgltf::Image& image : gltf.images) {
-        std::optional<AllocatedImage> img = load_image(engine, gltf, image);
+        std::optional<vk_img::AllocatedImage> img = load_image(engine, gltf, image);
 
         if (img.has_value()) {
             images.push_back(*img);
@@ -126,7 +126,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
             passType = MaterialPass::Transparent;
         }
 
-        vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources;
+        vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources(engine->img_buff_allocator);
         material_resources.color_image = engine->white_image;
         material_resources.color_sampler = engine->default_sampler_linear;
         material_resources.metal_rough_image = engine->white_image;
@@ -319,28 +319,16 @@ void gf::vk_loader::LoadedGLTF::clear_all() {
         VkDevice dv = creator->core.device;
 
         descriptor_pool.destroy_pools(dv);
-        creator->img_buff_allocator.destroy_buffer(material_data_buffer);
 
-        for (auto& [k, v] : meshes) {
+        meshes.clear();
+        images.clear();
 
-            creator->img_buff_allocator.destroy_buffer(v->mesh_buffers.index_buffer);
-            creator->img_buff_allocator.destroy_buffer(v->mesh_buffers.vertex_buffer);
-        }
-
-        for (auto& [k, v] : images) {
-
-            if (v.image == creator->error_checkerboard_image.image) {
-                //dont destroy the default images
-                continue;
-            }
-            creator->img_buff_allocator.destroy_image(v);
-        }
         for (auto& sampler : samplers) {
             vkDestroySampler(dv, sampler, nullptr);
         }
 }
-std::optional<gf::AllocatedImage> gf::vk_loader::load_image(VkManager* engine, fastgltf::Asset& asset, fastgltf::Image& image) {
-    AllocatedImage newImage{};
+std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(VkManager* engine, fastgltf::Asset& asset, fastgltf::Image& image) {
+    gf::vk_img::AllocatedImage newImage(engine->img_buff_allocator);
 
     int width, height, nrChannels;
 
@@ -413,16 +401,14 @@ std::optional<gf::AllocatedImage> gf::vk_loader::load_image(VkManager* engine, f
     // if any of the attempts to load the data failed, we havent written the image
     // so handle is null
     if (newImage.image == VK_NULL_HANDLE) {
-        return {};
+        return std::nullopt;
     }
     else {
         return newImage;
     }
 }
 
-std::optional<gf::AllocatedImage> gf::vk_loader::load_image_from_path(VkManager* engine, const std::string& file_path) {
-    AllocatedImage new_image{};
-
+std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image_from_path(VkManager* engine, const std::string& file_path) {
     int width, height, nr_channels;
 
     unsigned char* data = stbi_load(file_path.c_str(), &width, &height, &nr_channels, 4);
@@ -432,12 +418,11 @@ std::optional<gf::AllocatedImage> gf::vk_loader::load_image_from_path(VkManager*
         imagesize.height = height;
         imagesize.depth = 1;
 
-        new_image = engine->img_buff_allocator.create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+        vk_img::AllocatedImage new_image = engine->img_buff_allocator.create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
         stbi_image_free(data);
+        return new_image;
     }
-    if (new_image.image == VK_NULL_HANDLE)
-        return {};
 
-    return new_image;
+    return std::nullopt;
 }

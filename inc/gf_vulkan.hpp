@@ -75,8 +75,8 @@ public:
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
 
-    AllocatedImage drawn_image;
-    AllocatedImage depth_image;
+    vk_img::AllocatedImage drawn_image;
+    vk_img::AllocatedImage depth_image;
     VkExtent2D drawn_size;
     float render_scale = 1.f;
     
@@ -86,10 +86,10 @@ public:
     VkDescriptorSetLayout gpu_scene_data_descriptor_layout;
     VkDescriptorSetLayout single_image_descriptor_layout;
 
-    AllocatedImage white_image;
-    AllocatedImage black_image;
-    AllocatedImage gray_image;
-    AllocatedImage error_checkerboard_image;
+    vk_img::AllocatedImage white_image;
+    vk_img::AllocatedImage black_image;
+    vk_img::AllocatedImage gray_image;
+    vk_img::AllocatedImage error_checkerboard_image;
     VkSampler default_sampler_linear;
     VkSampler default_sampler_nearest;
 
@@ -97,6 +97,7 @@ public:
     MaterialInstance default_data;
     vk_mat::MaterialImage two_d_image_material;
     MaterialInstance image_mat_data;
+    Texture test_texture_texture;
     TextureAtlas test_texture;
 
     vk_render::DrawContext main_draw_context;

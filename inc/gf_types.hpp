@@ -12,9 +12,9 @@
 #include <vk_types.hpp>
 namespace gf {
 
-typedef AllocatedImage Texture;
+typedef vk_img::AllocatedImage Texture;
 struct TextureAtlas {
-    Texture texture;
+    Texture* texture;
     uint32_t subdivisions_x;
     uint32_t subdivisions_y;
 

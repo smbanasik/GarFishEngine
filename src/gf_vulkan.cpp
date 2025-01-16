@@ -83,10 +83,16 @@ bool is_visible(const gf::RenderObject & obj, const glm::mat4 & viewproj) {
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
-gf::VkManager::VkManager(gl::GLManager & gl_manager, gl::WInputContext & gl_context)
-    : core(&gl_manager, &gl_context), alloc(&core), 
+gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context)
+    : core(&gl_manager, &gl_context), alloc(&core),
     swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
-    frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame) {
+    frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
+
+    white_image(img_buff_allocator), gray_image(img_buff_allocator), black_image(img_buff_allocator),
+    error_checkerboard_image(img_buff_allocator), drawn_image(img_buff_allocator),
+    depth_image(img_buff_allocator), test_texture_texture(img_buff_allocator)
+
+    {
     
     assert(loaded_vk == nullptr);
     loaded_vk = this;
@@ -141,9 +147,9 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     stats.triangle_count = 0;
     auto start = std::chrono::system_clock::now();
     
-    AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    vk_img::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
-        img_buff_allocator.destroy_buffer(gpu_scene_data_buffer);
+        gpu_scene_data_buffer.counter.can_delete_resources();
         });
     GPUSceneData* scene_uniform_data = reinterpret_cast<GPUSceneData*>(gpu_scene_data_buffer.allocation->GetMappedData());
     *scene_uniform_data = scene_data;
@@ -242,9 +248,6 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
 }
 
 void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
-    
-    //create_swapchain(width, height);
-
     VkExtent3D image_size = { width, height, 1 };
     drawn_image.image_format = VK_FORMAT_R16G16B16A16_SFLOAT;
     drawn_image.image_size = image_size;
@@ -272,15 +275,6 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     vmaCreateImage(alloc.allocator, &depth_image_info, &image_alloc_info, &depth_image.image, &depth_image.allocation, nullptr);
     VkImageViewCreateInfo depth_view_info = vk_init::image_view_info(depth_image.image_format, depth_image.image, VK_IMAGE_ASPECT_DEPTH_BIT);
     vkCreateImageView(core.device, &depth_view_info, nullptr, &depth_image.image_view);
-    global_deletion_stack.push_function([this]() {
-        //destroy_swapchain();
-
-        vkDestroyImageView(this->core.device, this->drawn_image.image_view, nullptr);
-        vmaDestroyImage(this->alloc.allocator, this->drawn_image.image, this->drawn_image.allocation);
-        vkDestroyImageView(this->core.device, this->depth_image.image_view, nullptr);
-        vmaDestroyImage(this->alloc.allocator, this->depth_image.image, this->depth_image.allocation);
-        });
-
 }
 
 void gf::VkManager::init_descriptors() {
@@ -470,12 +464,12 @@ void gf::VkManager::init_default_data() {
     sampl.minFilter = VK_FILTER_LINEAR;
     vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_linear);
 
-    vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources;
+    vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources(img_buff_allocator);
     material_resources.color_image = white_image;
     material_resources.color_sampler = default_sampler_linear;
     material_resources.metal_rough_image = white_image;
     material_resources.metal_rough_sampler = default_sampler_linear;
-    AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    vk_img::AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     vk_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vk_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
     scene_uniform_data->color_factors = glm::vec4{ 1,1,1,1 };
     scene_uniform_data->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
@@ -484,22 +478,19 @@ void gf::VkManager::init_default_data() {
 
     default_data = metal_rough_material.write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
 
-    test_texture.texture = vk_loader::load_image_from_path(this, "../../assets/chad_emote.png").value();
+    test_texture_texture = vk_loader::load_image_from_path(this, "../../assets/chad_emote.png").value();
+    test_texture.texture = &test_texture_texture;
     test_texture.subdivisions_x = 1;
     test_texture.subdivisions_y = 1;
 
-    vk_mat::MaterialImage::MaterialResources image_resources;
-    image_resources.color_image = test_texture.texture;
+    vk_mat::MaterialImage::MaterialResources image_resources(img_buff_allocator);
+    image_resources.color_image = *test_texture.texture;
     image_resources.color_sampler = default_sampler_nearest;
 
     image_mat_data = two_d_image_material.write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
     {
     std::array<gf::Vertex, 4> vertex_buff;
     std::array<glm::vec2, 4> uv_coords = test_texture.get_texture_square({ 0,0 });
-
-    for (auto uv : uv_coords) {
-        std::cout << "Texture x: " << uv.x << " y: " << uv.y << "\n";
-    }
 
     vertex_buff[0] = { glm::vec3(0.0f, 0.0f, 0.0f), uv_coords[0].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[0].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
     vertex_buff[1] = { glm::vec3(1.0f, 0.0f, 0.0f), uv_coords[1].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[1].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
@@ -525,39 +516,26 @@ void gf::VkManager::init_default_data() {
     }
 
     global_deletion_stack.push_function([material_constants, this]() {
-        for (auto it = test_meshes.begin(); it != test_meshes.end(); it++) {
-            img_buff_allocator.destroy_buffer(it->get()->mesh_buffers.index_buffer);
-            img_buff_allocator.destroy_buffer(it->get()->mesh_buffers.vertex_buffer);
-        }
-        img_buff_allocator.destroy_buffer(material_constants);
-
         vkDestroySampler(core.device, default_sampler_nearest, nullptr);
         vkDestroySampler(core.device, default_sampler_linear, nullptr);
-
-        img_buff_allocator.destroy_image(white_image);
-        img_buff_allocator.destroy_image(gray_image);
-        img_buff_allocator.destroy_image(black_image);
-        img_buff_allocator.destroy_image(error_checkerboard_image);
-        img_buff_allocator.destroy_image(test_texture.texture);
         });
 }
 gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices) {
     const size_t index_buffer_size = indices.size() * sizeof(uint32_t);
     const size_t vertex_buffer_size = vertices.size() * sizeof(Vertex);
+    
     GPUMeshBuffers new_mesh;
     new_mesh.vertex_buffer = img_buff_allocator.create_buffer(vertex_buffer_size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
         | VK_BUFFER_USAGE_TRANSFER_DST_BIT
         | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
-
     new_mesh.index_buffer = img_buff_allocator.create_buffer(index_buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT
         | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
-
     VkBufferDeviceAddressInfo device_address_info{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, .buffer = new_mesh.vertex_buffer.buffer };
     new_mesh.vertex_buffer_address = vkGetBufferDeviceAddress(core.device, &device_address_info);
 
-    AllocatedBuffer staging_buffer = img_buff_allocator.create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+    vk_img::AllocatedBuffer staging_buffer = img_buff_allocator.create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
     void* data = staging_buffer.allocation->GetMappedData();
     memcpy(data, vertices.data(), vertex_buffer_size);
     memcpy((char*)data + vertex_buffer_size, indices.data(), index_buffer_size);
@@ -576,8 +554,6 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
         vkCmdCopyBuffer(cmd, staging_buffer.buffer, new_mesh.index_buffer.buffer, 1, &index_copy);
 
         });
-
-    img_buff_allocator.destroy_buffer(staging_buffer);
 
     return new_mesh;
 }

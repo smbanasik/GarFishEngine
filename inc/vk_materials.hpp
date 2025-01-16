@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 #include <vk_types.hpp>
+#include <vk_images.hpp>
 
 namespace gf{
 class VkManager;
@@ -29,12 +30,15 @@ struct GLTFMetallic_Roughness {
     };
 
     struct MaterialResources {
-        AllocatedImage color_image;
+        vk_img::AllocatedImage color_image;
         VkSampler color_sampler;
-        AllocatedImage metal_rough_image;
+        vk_img::AllocatedImage metal_rough_image;
         VkSampler metal_rough_sampler;
         VkBuffer data_buffer;
         uint32_t data_buffer_offset;
+
+        MaterialResources(vk_img::ImageBufferAllocator& allocator)
+            : color_image(allocator), metal_rough_image(allocator) {};
     };
 
     vk_desc::DescriptorWriter writer;
@@ -51,8 +55,11 @@ struct MaterialImage {
     VkDescriptorSetLayout material_layout;
 
     struct MaterialResources {
-        AllocatedImage color_image;
+        vk_img::AllocatedImage color_image;
         VkSampler color_sampler;
+
+        MaterialResources(vk_img::ImageBufferAllocator& allocator)
+            : color_image(allocator) {};
     };
 
     vk_desc::DescriptorWriter writer;

@@ -13,8 +13,8 @@
 #include <vk_core.hpp>
 #include <vk_frames.hpp>
 
-gf::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) {
-	AllocatedImage new_image;
+gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) const {
+	AllocatedImage new_image(*this);
 	new_image.image_format = format;
 	new_image.image_size = size;
 	VkImageCreateInfo img_info = vk_init::image_info(format, size, usage);
@@ -36,7 +36,7 @@ gf::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExtent3D siz
 
 	return new_image;
 }
-gf::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) {
+gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) const {
 	size_t data_size = size.depth * size.width * size.height * 4;
 	AllocatedBuffer upload_buffer = create_buffer(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	memcpy(upload_buffer.info.pMappedData, data, data_size);
@@ -67,10 +67,68 @@ gf::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* data, Vk
 		}
 	});
 
-	destroy_buffer(upload_buffer);
-
 	return new_image;
 }
+gf::vk_img::AllocatedBuffer gf::vk_img::ImageBufferAllocator::create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) const {
+	VkBufferCreateInfo buffer_info = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+	buffer_info.pNext = nullptr;
+	buffer_info.size = allocation_size;
+	buffer_info.usage = flags;
+
+	VmaAllocationCreateInfo vmaallocInfo = {};
+	vmaallocInfo.usage = memory_usage;
+	vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+	AllocatedBuffer new_buffer(*this);
+	vmaCreateBuffer(alloc_handle->allocator, &buffer_info, &vmaallocInfo, &new_buffer.buffer, &new_buffer.allocation, &new_buffer.info);
+
+	return new_buffer;
+}
+void gf::vk_img::ImageBufferAllocator::destroy_image(const AllocatedImage& image) const {
+	vkDestroyImageView(core_handle->device, image.image_view, nullptr);
+	vmaDestroyImage(alloc_handle->allocator, image.image, image.allocation);
+}
+void gf::vk_img::ImageBufferAllocator::destroy_buffer(const AllocatedBuffer& buffer) const {
+	vmaDestroyBuffer(alloc_handle->allocator, buffer.buffer, buffer.allocation);
+}
+
+gf::vk_img::AllocatedImage::AllocatedImage(const AllocatedImage& other)
+	: image(other.image),
+	image_view(other.image_view),
+	allocation(other.allocation),
+	image_size(other.image_size),
+	image_format(other.image_format),
+	counter(other.counter),
+	allocator(other.allocator) {
+}
+gf::vk_img::AllocatedImage::AllocatedImage(AllocatedImage&& other) noexcept
+	: image(std::move(other.image)),
+	image_view(std::move(other.image_view)),
+	allocation(std::move(other.allocation)),
+	image_size(std::move(other.image_size)),
+	image_format(std::move(other.image_format)),
+	counter(std::move(other.counter)),
+	allocator(std::move(other.allocator)) {
+	other.image = nullptr;
+	other.image_view = nullptr;
+	other.allocation = nullptr;
+}
+gf::vk_img::AllocatedBuffer::AllocatedBuffer(const AllocatedBuffer& other)
+	: buffer(other.buffer),
+	allocation(other.allocation),
+	info(other.info),
+	counter(other.counter),
+	allocator(other.allocator) {
+}
+gf::vk_img::AllocatedBuffer::AllocatedBuffer(AllocatedBuffer&& other) noexcept
+	: buffer(std::move(other.buffer)),
+	allocation(std::move(other.allocation)),
+	info(std::move(other.info)),
+	counter(std::move(other.counter)),
+	allocator(std::move(other.allocator)) {
+	other.buffer = nullptr;
+	other.allocation = nullptr;
+}
+
 void gf::vk_img::generate_mipmaps(VkCommandBuffer cmd, VkImage image, VkExtent2D imageSize) {
 	int mipLevels = int(std::floor(std::log2(std::max(imageSize.width, imageSize.height)))) + 1;
 	for (int mip = 0; mip < mipLevels; mip++) {
@@ -140,29 +198,6 @@ void gf::vk_img::generate_mipmaps(VkCommandBuffer cmd, VkImage image, VkExtent2D
 	// transition all mip levels into the final read_only layout
 	transition_image(cmd, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
-gf::AllocatedBuffer gf::vk_img::ImageBufferAllocator::create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) {
-	VkBufferCreateInfo buffer_info = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	buffer_info.pNext = nullptr;
-	buffer_info.size = allocation_size;
-	buffer_info.usage = flags;
-
-	VmaAllocationCreateInfo vmaallocInfo = {};
-	vmaallocInfo.usage = memory_usage;
-	vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-	AllocatedBuffer new_buffer;
-	vmaCreateBuffer(alloc_handle->allocator, &buffer_info, &vmaallocInfo, &new_buffer.buffer, &new_buffer.allocation, &new_buffer.info);
-
-	return new_buffer;
-}
-
-void gf::vk_img::ImageBufferAllocator::destroy_image(const AllocatedImage& image) {
-	vkDestroyImageView(core_handle->device, image.image_view, nullptr);
-	vmaDestroyImage(alloc_handle->allocator, image.image, image.allocation);
-}
-void gf::vk_img::ImageBufferAllocator::destroy_buffer(const AllocatedBuffer& buffer) {
-	vmaDestroyBuffer(alloc_handle->allocator, buffer.buffer, buffer.allocation);
-}
-
 void gf::vk_img::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout) {
 	VkImageMemoryBarrier2 image_barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2, .pNext = nullptr };
 

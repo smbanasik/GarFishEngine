@@ -9,7 +9,6 @@
 
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
-#include <vk_types.hpp>
 
 #include <gf_util.hpp>
 namespace fastgltf {
@@ -27,22 +26,136 @@ class ImmediateFrame;
 }
 namespace vk_img {
 class ImageBufferAllocator {
+    friend struct AllocatedImage;
+    friend struct AllocatedBuffer;
 public:
     ImageBufferAllocator(vk_core::VKCore* core_handle,
         vk_core::Alloc* alloc_handle, vk_frames::ImmediateFrame* imm_handle)
         : core_handle(core_handle), alloc_handle(alloc_handle), imm_handle(imm_handle) {};
 
-    AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-    AllocatedImage create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-    AllocatedBuffer create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage);
+    AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) const;
+    AllocatedImage create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) const;
+    AllocatedBuffer create_buffer(size_t allocation_size, VkBufferUsageFlags flags, VmaMemoryUsage memory_usage) const;
 
-    void destroy_image(const AllocatedImage& image);
-    void destroy_buffer(const AllocatedBuffer& buffer);
+    void destroy_image(const AllocatedImage& image) const;
+    void destroy_buffer(const AllocatedBuffer& buffer) const;
 
 private:
     vk_core::VKCore* core_handle;
     vk_core::Alloc* alloc_handle;
     vk_frames::ImmediateFrame* imm_handle;
+};
+
+// All data for an image bundled together
+struct AllocatedImage {
+    VkImage image;
+    VkImageView image_view;
+    VmaAllocation allocation;
+    VkExtent3D image_size;
+    VkFormat image_format;
+    util::RefCounter counter;
+
+    AllocatedImage()
+        : image(nullptr),
+        image_view(nullptr),
+        allocation(nullptr),
+        image_size(),
+        image_format(),
+        counter(),
+        allocator(nullptr) {}
+    AllocatedImage(const ImageBufferAllocator& allocator)
+        : image(nullptr),
+        image_view(nullptr),
+        allocation(nullptr),
+        image_size(),
+        image_format(),
+        counter(),
+        allocator(&allocator) {}
+    AllocatedImage(const AllocatedImage& other);
+    AllocatedImage(AllocatedImage&& other) noexcept;
+    AllocatedImage& operator=(const AllocatedImage& other) {
+        if (this == &other)
+            return *this;
+        image = other.image;
+        image_view = other.image_view;
+        allocation = other.allocation;
+        image_size = other.image_size;
+        image_format = other.image_format;
+        counter = other.counter;
+        allocator = other.allocator;
+        return *this;
+    }
+    AllocatedImage& operator=(AllocatedImage&& other) noexcept {
+        if (this == &other)
+            return *this;
+        image = std::move(other.image);
+        image_view = std::move(other.image_view);
+        allocation = std::move(other.allocation);
+        image_size = std::move(other.image_size);
+        image_format = std::move(other.image_format);
+        counter = std::move(other.counter);
+        allocator = std::move(other.allocator);
+        other.image = nullptr;
+        other.image_view = nullptr;
+        other.allocation = nullptr;
+        return *this;
+    }
+    ~AllocatedImage() {
+        if (counter.can_delete_resources())
+            allocator->destroy_image(*this);
+    }
+private:
+    const ImageBufferAllocator* allocator;
+};
+// Data for a buffer and it's vma info
+struct AllocatedBuffer {
+    VkBuffer buffer;
+    VmaAllocation allocation;
+    VmaAllocationInfo info;
+    util::RefCounter counter;
+
+    AllocatedBuffer()
+        : buffer(nullptr),
+        allocation(nullptr),
+        info(),
+        counter(),
+        allocator(nullptr) {}
+    AllocatedBuffer(const ImageBufferAllocator& allocator)
+        : buffer(nullptr),
+        allocation(nullptr),
+        info(),
+        counter(),
+        allocator(&allocator) {}
+    AllocatedBuffer(const AllocatedBuffer& other);
+    AllocatedBuffer(AllocatedBuffer&& other) noexcept;
+    AllocatedBuffer& operator=(const AllocatedBuffer& other) {
+        if (this == &other)
+            return *this;
+        buffer = other.buffer;
+        allocation = other.allocation;
+        info = other.info;
+        counter = other.counter;
+        allocator = other.allocator;
+        return *this;
+    }
+    AllocatedBuffer& operator=(AllocatedBuffer&& other) noexcept {
+        if (this == &other)
+            return *this;
+        buffer = std::move(other.buffer);
+        allocation = std::move(other.allocation);
+        info = std::move(other.info);
+        counter = std::move(other.counter);
+        allocator = std::move(other.allocator);
+        other.buffer = nullptr;
+        other.allocation = nullptr;
+        return *this;
+    }
+    ~AllocatedBuffer() {
+        if (counter.can_delete_resources())
+            allocator->destroy_buffer(*this);
+    }
+private:
+    const ImageBufferAllocator* allocator;
 };
 
 void transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout);
@@ -51,3 +164,4 @@ void generate_mipmaps(VkCommandBuffer cmd, VkImage image, VkExtent2D imageSize);
 }
 }
 #endif
+
