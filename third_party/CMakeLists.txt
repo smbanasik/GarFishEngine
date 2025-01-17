@@ -19,6 +19,11 @@ vkbootstrap/VkBootstrap.cpp)
 target_include_directories(vkbootstrap PUBLIC vkbootstrap)
 target_link_libraries(vkbootstrap PUBLIC Vulkan::Vulkan)
 
+add_library(ft_lib INTERFACE)
+target_include_directories(ft_lib INTERFACE ${CMAKE_CURRENT_LIST_DIR}/freetype-2.13.3/include)
+target_link_directories(ft_lib INTERFACE ${CMAKE_CURRENT_LIST_DIR}/freetype-2.13.3/objs)
+target_link_libraries(ft_lib INTERFACE freetype.lib)
+
 add_library(imgui STATIC)
 target_include_directories(imgui PUBLIC imgui)
 target_sources(imgui PRIVATE

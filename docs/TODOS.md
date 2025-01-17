@@ -9,23 +9,19 @@ This document serves as a reminder for things I would like to do once I get to t
 - Seperate or together?
 
 ## Next Steps
-- RAII for allocated images and buffers successful!
-    - Need to handle this properly!
-    - From now on, all image creation should be through the allocator or something else!
-    - 236c572 LETS GO
 - Change shaders to calculate viewproj outside of shader (and exclude static_elems from this)
     - When do shaders run and with what? Draw command?
     - Many shaders? Or state in shaders?
 - Need higher level abstractions...
     - A resource manager so it is easy to add textures, materials, buffers, etc.
     - A resource manager owns a set of materials/textures/buffers for drawing.
-- Create a TileMap class
-    - Owns a grid of sprites with subdivisions
-    - How do we handle multiple texture atlasses?
 - Text implementation
     - Textbox: a group of spaced quads
 - Material Abstraction system
     - Create a base material class for others to inherit from
+- Create a TileMap class
+    - Owns a grid of sprites with subdivisions
+    - How do we handle multiple texture atlasses?
 
 ## General
 - Get a textured 2d image on screen

@@ -25,6 +25,7 @@ Required:
 - GLM
 - fastgltf
 - STB Image
+- FreeType
 
 ### Vulkan
 - Head to the [Vulkan website](https://vulkan.lunarg.com/sdk/home) and download. We're using Vulkan 1.3.296.0, run the installer.
@@ -68,6 +69,15 @@ Required:
 - Grab the [fastgltf github](https://github.com/spnda/fastgltf) link.
 - Naviage to the `third_party` folder.
 - Open a command prompt and type `git clone LINK` where `LINK` is the link you grabbed.
+
+### FreeType
+- Grab the [freetype download](https://download.savannah.gnu.org/releases/freetype/) link.
+- Navigate to the `third_party` folder.
+- Download `freetype-2.13.3` and unzip it, place the unzipped folder in.
+- Run the `MSBuild.sln` file and build it
+- IMPORTANT
+    - After you build the program, the .dll must be put into the directory with the .exe.
+    - TODO: automate this.
 
 ### Assets
 The `assets` folder is not included in the repository. Engine code that relies on these is likely there 

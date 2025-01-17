@@ -89,14 +89,14 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
     std::vector<vk_img::AllocatedImage> images;
 
     for (fastgltf::Image& image : gltf.images) {
-        std::optional<vk_img::AllocatedImage> img = load_image(engine, gltf, image);
+        std::optional<vk_img::AllocatedImage> img = load_image(&engine->img_buff_allocator, gltf, image);
 
         if (img.has_value()) {
             images.push_back(*img);
             file.images[image.name.c_str()] = *img;
         }
         else {
-            images.push_back(engine->error_checkerboard_image);
+            images.push_back(*engine->engine_images.get_texture("error_checkerboard"));
             std::cout << "gltf failed to load texture " << image.name << std::endl;
         }
     }
@@ -127,9 +127,9 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         }
 
         vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources(engine->img_buff_allocator);
-        material_resources.color_image = engine->white_image;
+        material_resources.color_image = *engine->engine_images.get_texture("white");
         material_resources.color_sampler = engine->default_sampler_linear;
-        material_resources.metal_rough_image = engine->white_image;
+        material_resources.metal_rough_image = *engine->engine_images.get_texture("white");
         material_resources.metal_rough_sampler = engine->default_sampler_linear;
 
         material_resources.data_buffer = file.material_data_buffer.buffer;
@@ -327,8 +327,8 @@ void gf::vk_loader::LoadedGLTF::clear_all() {
             vkDestroySampler(dv, sampler, nullptr);
         }
 }
-std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(VkManager* engine, fastgltf::Asset& asset, fastgltf::Image& image) {
-    gf::vk_img::AllocatedImage newImage(engine->img_buff_allocator);
+std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(vk_img::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image) {
+    gf::vk_img::AllocatedImage newImage(*allocator);
 
     int width, height, nrChannels;
 
@@ -348,7 +348,7 @@ std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(VkManager* e
                     imagesize.height = height;
                     imagesize.depth = 1;
 
-                    newImage = engine->img_buff_allocator.create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT,false);
+                    newImage = allocator->create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT,false);
 
                     stbi_image_free(data);
                 }
@@ -362,7 +362,7 @@ std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(VkManager* e
                     imagesize.height = height;
                     imagesize.depth = 1;
 
-                    newImage = engine->img_buff_allocator.create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT,false);
+                    newImage = allocator->create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT,false);
 
                     stbi_image_free(data);
                 }
@@ -384,7 +384,7 @@ std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(VkManager* e
                         imagesize.height = height;
                         imagesize.depth = 1;
 
-                        newImage = engine->img_buff_allocator.create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM,
+                        newImage = allocator->create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM,
                             VK_IMAGE_USAGE_SAMPLED_BIT,false);
 
                         stbi_image_free(data);
@@ -408,7 +408,7 @@ std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(VkManager* e
     }
 }
 
-std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image_from_path(VkManager* engine, const std::string& file_path) {
+std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image_from_path(vk_img::ImageBufferAllocator* allocator, const std::string& file_path) {
     int width, height, nr_channels;
 
     unsigned char* data = stbi_load(file_path.c_str(), &width, &height, &nr_channels, 4);
@@ -418,7 +418,7 @@ std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image_from_path(Vk
         imagesize.height = height;
         imagesize.depth = 1;
 
-        vk_img::AllocatedImage new_image = engine->img_buff_allocator.create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+        vk_img::AllocatedImage new_image = allocator->create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
         stbi_image_free(data);
         return new_image;

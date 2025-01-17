@@ -13,6 +13,9 @@
 #include <vk_core.hpp>
 #include <vk_frames.hpp>
 
+#include <vulkan/vk_enum_string_helper.h>
+#include <iostream>
+
 gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) const {
 	AllocatedImage new_image(*this);
 	new_image.image_format = format;
@@ -37,7 +40,11 @@ gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(VkExte
 	return new_image;
 }
 gf::vk_img::AllocatedImage gf::vk_img::ImageBufferAllocator::create_image(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped) const {
-	size_t data_size = size.depth * size.width * size.height * 4;
+	int nr_channels = 4;
+	if (format == VK_FORMAT_R8_UNORM)
+		nr_channels = 1;
+	
+	size_t data_size = size.depth * size.width * size.height * nr_channels;
 	AllocatedBuffer upload_buffer = create_buffer(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 	memcpy(upload_buffer.info.pMappedData, data, data_size);
 

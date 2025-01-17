@@ -8,6 +8,7 @@ ${HEADER_DIR}/gf_err.hpp
 ${HEADER_DIR}/gf_util.hpp
 ${HEADER_DIR}/gf_types.hpp
 ${HEADER_DIR}/gf_resource_manager.hpp
+${HEADER_DIR}/gf_text.hpp
 )
 
 set(SOURCES
@@ -19,6 +20,7 @@ gf_err.cpp
 gf_util.cpp
 gf_types.cpp
 gf_resource_manager.cpp
+gf_text.cpp
 )
 
 # Adding Groups
@@ -60,4 +62,4 @@ CXX_STANDARD 20)
 
 target_include_directories(garfish PUBLIC "${PROJECT_SOURCE_DIR}/inc")
 
-target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap imgui glm stb_image fastgltf::fastgltf)
+target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap imgui glm stb_image fastgltf::fastgltf ft_lib)

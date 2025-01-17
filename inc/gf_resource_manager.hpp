@@ -19,9 +19,17 @@ class ImageBufferAllocator;
 class ImageManager {
 public:
 
-    ImageManager()
+    ImageManager(vk_img::ImageBufferAllocator& allocator)
         : textures(),
-        allocator() {}
+        allocator(&allocator) {}
+    ImageManager(ImageManager& other);
+    ImageManager& operator=(ImageManager& other) {
+        if (this == &other)
+            return *this;
+        textures = other.textures;
+        allocator = other.allocator;
+        return *this;
+    };
     ImageManager(ImageManager&& other) noexcept;
     ImageManager& operator=(ImageManager&& other) noexcept {
         if (this == &other)
@@ -32,16 +40,18 @@ public:
     }
     ~ImageManager();
 
-    Texture* add_texture_from_file(std::string texture_name, std::string file_path);
-    Texture* get_texture(std::string texture_name);
+    Texture* add_texture(const std::string& texture_name, const Texture& texture);
+    Texture* add_texture_from_data(const std::string& texture_name, void* data, VkExtent3D size);
+    Texture* add_texture_from_file(const std::string& texture_name, const std::string& file_path);
+    Texture* get_texture(const std::string& texture_name);
 
 private:
-    // Since we don't handle texture copying, we don't handle copying the managers
-    ImageManager(ImageManager& other) = delete;
-    ImageManager& operator=(ImageManager& other) = delete;
-
     vk_img::ImageBufferAllocator* allocator;
     std::unordered_map<std::string, Texture> textures;
+};
+class MaterialManager {
+public:
+private:
 };
 
 // TODO:

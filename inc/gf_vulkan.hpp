@@ -27,6 +27,8 @@
 #include <vk_frames.hpp>
 #include <vk_images.hpp>
 #include <gf_types.hpp>
+#include <gf_resource_manager.hpp>
+#include <gf_text.hpp>
 
 struct GLFWwindow;
 
@@ -86,10 +88,8 @@ public:
     VkDescriptorSetLayout gpu_scene_data_descriptor_layout;
     VkDescriptorSetLayout single_image_descriptor_layout;
 
-    vk_img::AllocatedImage white_image;
-    vk_img::AllocatedImage black_image;
-    vk_img::AllocatedImage gray_image;
-    vk_img::AllocatedImage error_checkerboard_image;
+    ImageManager engine_images;
+    text::TextManager text_manager;
     VkSampler default_sampler_linear;
     VkSampler default_sampler_nearest;
 
@@ -97,7 +97,6 @@ public:
     MaterialInstance default_data;
     vk_mat::MaterialImage two_d_image_material;
     MaterialInstance image_mat_data;
-    Texture test_texture_texture;
     TextureAtlas test_texture;
 
     vk_render::DrawContext main_draw_context;

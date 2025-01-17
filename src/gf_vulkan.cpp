@@ -87,10 +87,10 @@ gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_contex
     : core(&gl_manager, &gl_context), alloc(&core),
     swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
     frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
-
-    white_image(img_buff_allocator), gray_image(img_buff_allocator), black_image(img_buff_allocator),
-    error_checkerboard_image(img_buff_allocator), drawn_image(img_buff_allocator),
-    depth_image(img_buff_allocator), test_texture_texture(img_buff_allocator)
+    engine_images(img_buff_allocator), text_manager(&img_buff_allocator),
+    
+    drawn_image(img_buff_allocator),
+    depth_image(img_buff_allocator)
 
     {
     
@@ -442,11 +442,8 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
 void gf::VkManager::init_default_data() {
 
     uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
-    white_image = img_buff_allocator.create_image((void*)&white, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
     uint32_t gray = glm::packUnorm4x8(glm::vec4(0.66f, 0.66f, 0.66f, 1));
-    gray_image = img_buff_allocator.create_image((void*)&gray, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
     uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 1));
-    black_image = img_buff_allocator.create_image((void*)&black, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
     uint32_t magenta = glm::packUnorm4x8(glm::vec4(1, 0, 1, 1));
     std::array<uint32_t, 16 * 16> pixels;
     for (int x = 0; x < 16; x++) {
@@ -454,7 +451,11 @@ void gf::VkManager::init_default_data() {
             pixels[y * 16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
         }
     }
-    error_checkerboard_image = img_buff_allocator.create_image(pixels.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+    engine_images.add_texture_from_data("white", (void*)&white, VkExtent3D{ 1, 1, 1 });
+    engine_images.add_texture_from_data("gray", (void*)&gray, VkExtent3D{ 1, 1, 1 });
+    engine_images.add_texture_from_data("black", (void*)&black, VkExtent3D{ 1, 1, 1 });
+    engine_images.add_texture_from_data("magenta", (void*)&magenta, VkExtent3D{ 1, 1, 1 });
+    engine_images.add_texture_from_data("error_checkerboard", pixels.data(), VkExtent3D{1, 1, 1});
 
     VkSamplerCreateInfo sampl{ .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
     sampl.magFilter = VK_FILTER_NEAREST;
@@ -465,9 +466,9 @@ void gf::VkManager::init_default_data() {
     vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_linear);
 
     vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources(img_buff_allocator);
-    material_resources.color_image = white_image;
+    material_resources.color_image = *engine_images.get_texture("white");
     material_resources.color_sampler = default_sampler_linear;
-    material_resources.metal_rough_image = white_image;
+    material_resources.metal_rough_image = *engine_images.get_texture("white");
     material_resources.metal_rough_sampler = default_sampler_linear;
     vk_img::AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     vk_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vk_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
@@ -477,24 +478,26 @@ void gf::VkManager::init_default_data() {
     material_resources.data_buffer_offset = 0;
 
     default_data = metal_rough_material.write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
-
-    test_texture_texture = vk_loader::load_image_from_path(this, "../../assets/chad_emote.png").value();
-    test_texture.texture = &test_texture_texture;
+    engine_images.add_texture_from_file("tomato_guy", "../../assets/chad_emote.png");
+    test_texture.texture = engine_images.get_texture("tomato_guy");
     test_texture.subdivisions_x = 1;
     test_texture.subdivisions_y = 1;
 
+    text_manager.add_font_from_file("arial", "../../assets/arial.ttf");
+    const text::Font* font = text_manager.get_font("arial");
+
     vk_mat::MaterialImage::MaterialResources image_resources(img_buff_allocator);
-    image_resources.color_image = *test_texture.texture;
+    image_resources.color_image = font->font_image;
     image_resources.color_sampler = default_sampler_nearest;
 
     image_mat_data = two_d_image_material.write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
     {
     std::array<gf::Vertex, 4> vertex_buff;
-    std::array<glm::vec2, 4> uv_coords = test_texture.get_texture_square({ 0,0 });
+    std::array<glm::vec2, 4> uv_coords = font->font.get_texture_square({ 0,0 });
 
     vertex_buff[0] = { glm::vec3(0.0f, 0.0f, 0.0f), uv_coords[0].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[0].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[1] = { glm::vec3(1.0f, 0.0f, 0.0f), uv_coords[1].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[1].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[2] = { glm::vec3(1.0f, 1.0f, 0.0f), uv_coords[2].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[2].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[1] = { glm::vec3(8.0f, 0.0f, 0.0f), uv_coords[1].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[1].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
+    vertex_buff[2] = { glm::vec3(8.0f, 1.0f, 0.0f), uv_coords[2].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[2].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
     vertex_buff[3] = { glm::vec3(0.0f, 1.0f, 0.0f), uv_coords[3].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[3].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
     std::array<uint32_t, 6> index_buff = { 0, 1, 2, 2, 3, 0 };
 

@@ -18,7 +18,7 @@ struct TextureAtlas {
     uint32_t subdivisions_x;
     uint32_t subdivisions_y;
 
-    std::array<glm::vec2, 4> get_texture_square(glm::ivec2 subdivision_coords);
+    std::array<glm::vec2, 4> get_texture_square(glm::ivec2 subdivision_coords) const;
 };
 
 struct Sprite {

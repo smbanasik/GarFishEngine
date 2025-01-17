@@ -54,6 +54,7 @@ struct AllocatedImage {
     VkExtent3D image_size;
     VkFormat image_format;
     util::RefCounter counter;
+    const ImageBufferAllocator* allocator;
 
     AllocatedImage()
         : image(nullptr),
@@ -104,8 +105,6 @@ struct AllocatedImage {
         if (counter.can_delete_resources())
             allocator->destroy_image(*this);
     }
-private:
-    const ImageBufferAllocator* allocator;
 };
 // Data for a buffer and it's vma info
 struct AllocatedBuffer {
@@ -113,6 +112,7 @@ struct AllocatedBuffer {
     VmaAllocation allocation;
     VmaAllocationInfo info;
     util::RefCounter counter;
+    const ImageBufferAllocator* allocator;
 
     AllocatedBuffer()
         : buffer(nullptr),
@@ -154,8 +154,6 @@ struct AllocatedBuffer {
         if (counter.can_delete_resources())
             allocator->destroy_buffer(*this);
     }
-private:
-    const ImageBufferAllocator* allocator;
 };
 
 void transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout);

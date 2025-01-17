@@ -3,7 +3,7 @@
 // Last Modified: 1/14/2025
 #include <gf_types.hpp>
 
-std::array<glm::vec2, 4> gf::TextureAtlas::get_texture_square(glm::ivec2 subdivision_coords) {
+std::array<glm::vec2, 4> gf::TextureAtlas::get_texture_square(glm::ivec2 subdivision_coords) const {
     if (subdivision_coords.x >= subdivisions_x || subdivision_coords.y >= subdivisions_y)
         throw;
 
