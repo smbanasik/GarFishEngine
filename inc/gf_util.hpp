@@ -145,7 +145,7 @@ public:
         if (v_size >= v_capacity)
             reserve_rows(std::size_t(num_rows() * 1.5));
         for (std::size_t i = 0; i < v_row_size; i++) {
-            T new_elem;
+            T new_elem{};
             data_buffer[i + v_size] = new_elem;
         }
         v_size += v_row_size;
@@ -163,6 +163,7 @@ public:
             dst[i + dst_start] = (*this)[i + source_start];
     }
     T& get_elem(glm::ivec2 column_row) {
+        // TODO: throw index out of range
         return *(data_buffer + column_row.x + (column_row.y * v_row_size));
     }
     T& get_elem(std::size_t index) {

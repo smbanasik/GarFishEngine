@@ -15,6 +15,7 @@
 #include <vk_images.hpp>
 #include <gf_types.hpp>
 #include <gf_resource_manager.hpp>
+#include <vk_renderable.hpp>
 
 // TEMPORARY DOC:
 // TextManager - initializes the library, stores fonts and owns text boxes(?).
@@ -27,7 +28,7 @@
 namespace gf {
 namespace text {
 struct Character {
-    glm::vec2 char_position;
+    glm::vec2 texture_position;
     glm::ivec2 size;
     glm::ivec3 padding;
 };
@@ -38,10 +39,21 @@ struct Font {
 };
 class TextBox {
 public:
-    void draw();
+
+    void set_text_buffer(const std::string& text_buffer) {
+        this->text_buffer = text_buffer;
+        text_buffer_changed = true;
+    }
+    const std::string* get_text_buffer() const { return &text_buffer; };
+
+    // TODO: draw options here
+
+    void draw(const glm::mat4& top_matrix, vk_render::DrawContext& ctx);
 private:
+
+    void assemble_text_data(); // TODO: need to handle \n chars
     std::string text_buffer;
-    // TODO: some render object here which stores actual render info, and font info
+    vk_render::MeshAsset text_data;
     bool text_buffer_changed;
 private:
 };
@@ -56,18 +68,20 @@ public:
     void add_font_from_file(const std::string& font_name, const std::string& font_path, unsigned int pix_size = 48); // TODO: turn this into point instead of pixel
     const Font* get_font(const std::string& font_name) { return &fonts.at(font_name); };
 
-    TextBox* create_textbox();
-    TextBox* get_textbox(std::string name);
-
-    void draw_text();
+    TextBox* create_textbox(const std::string& name, const std::string& text_buffer = "");
+    TextBox* get_textbox(const std::string& name);
 
 private:
+
+    void create_image_materials();
+
     static TextManager* singleton;
 
     vk_img::ImageBufferAllocator* allocator;
 
     std::unordered_map<std::string, Font> fonts;
     std::unordered_map<std::string, TextBox> text_boxes;
+    // TODO: material for text
 };
 }
 }

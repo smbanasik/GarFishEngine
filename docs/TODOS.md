@@ -9,19 +9,16 @@ This document serves as a reminder for things I would like to do once I get to t
 - Seperate or together?
 
 ## Next Steps
-- Change shaders to calculate viewproj outside of shader (and exclude static_elems from this)
-    - When do shaders run and with what? Draw command?
-    - Many shaders? Or state in shaders?
-- Need higher level abstractions...
-    - A resource manager so it is easy to add textures, materials, buffers, etc.
-    - A resource manager owns a set of materials/textures/buffers for drawing.
-- Text implementation
-    - Textbox: a group of spaced quads
 - Material Abstraction system
     - Create a base material class for others to inherit from
+- Material manager that owns materials and makes it easy to produce material instances.
+- Text boxes just produce the data necessary to render, rendering is done by a text node or other.
 - Create a TileMap class
     - Owns a grid of sprites with subdivisions
     - How do we handle multiple texture atlasses?
+- Change shaders to calculate viewproj outside of shader (and exclude static_elems from this)
+    - When do shaders run and with what? Draw command?
+    - Many shaders? Or state in shaders?
 
 ## General
 - Get a textured 2d image on screen

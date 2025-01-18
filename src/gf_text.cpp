@@ -13,6 +13,16 @@
 static FT_Library ft_lib;
 gf::text::TextManager* gf::text::TextManager::singleton = nullptr;
 
+
+void gf::text::TextBox::draw(const glm::mat4& top_matrix, vk_render::DrawContext& ctx) {
+
+}
+
+void gf::text::TextBox::assemble_text_data() {
+    // TODO: given a text buffer,
+    // produce the vertices and indices needed to render that text buffer
+}
+
 bool helper_init_face(FT_Face& font, const std::string& font_path, unsigned int pix_size) {
     if (FT_New_Face(ft_lib, font_path.c_str(), 0, &font))
         return false;
@@ -40,12 +50,14 @@ gf::text::Font helper_convert_face_to_texture(FT_Face face, gf::vk_img::ImageBuf
 
     gf::util::Grid<unsigned char> data_buffer(total_width);
     data_buffer.reserve_rows(max_height);
+    for (int i = 0; i < max_height; i++)
+        data_buffer.add_empty_row();
 
     int current_width = 0;
     for (unsigned char c = 33; c < CHAR_AMOUNT; c++) {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
 
-        new_font.char_set[c].char_position = { (1.0 * current_width) / total_width, 0.0f };
+        new_font.char_set[c].texture_position = { (1.0 * current_width) / total_width, 0.0f };
         new_font.char_set[c].size = { face->glyph->bitmap.width, face->glyph->bitmap.rows };
         new_font.char_set[c].padding = { face->glyph->bitmap_left, face->glyph->bitmap_top, face->glyph->advance.x };
 
