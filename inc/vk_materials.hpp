@@ -16,6 +16,23 @@ namespace gf{
 class VkManager;
 
 namespace vk_mat {
+struct IMaterialBase {
+    MaterialPipeline opaque_pipeline;
+    MaterialPipeline transparent_pipeline;
+
+    VkDescriptorSetLayout material_layout;
+
+    struct MaterialConstants;
+    struct MaterialResources;
+
+    vk_desc::DescriptorWriter writer;
+
+    virtual void build_pipelines(VkManager* engine) = 0;
+    virtual void clear_resources(VkDevice device) = 0;
+
+    virtual MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) = 0;
+};
+
 struct GLTFMetallic_Roughness {
     MaterialPipeline opaque_pipeline;
     MaterialPipeline transparent_pipeline;
