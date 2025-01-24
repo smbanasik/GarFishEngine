@@ -16,6 +16,7 @@
 #include <gf_types.hpp>
 #include <gf_resource_manager.hpp>
 #include <vk_renderable.hpp>
+#include <vk_materials.hpp>
 
 // TEMPORARY DOC:
 // TextManager - initializes the library, stores fonts and owns text boxes(?).
@@ -40,18 +41,19 @@ struct Font {
 class TextBox {
 public:
 
+    // TODO: better options for modification. Appending or recording what's changed
+    // could save work
     void set_text_buffer(const std::string& text_buffer) {
         this->text_buffer = text_buffer;
         text_buffer_changed = true;
     }
     const std::string* get_text_buffer() const { return &text_buffer; };
 
-    // TODO: draw options here
+    // TODO: text assemble options go here
+    // TODO: need to handle \n chars
+    vk_render::MeshAsset* assemble_text_data();
 
-    void draw(const glm::mat4& top_matrix, vk_render::DrawContext& ctx);
 private:
-
-    void assemble_text_data(); // TODO: need to handle \n chars
     std::string text_buffer;
     vk_render::MeshAsset text_data;
     bool text_buffer_changed;
@@ -60,11 +62,9 @@ private:
 class TextManager {
 public:
 
-    TextManager(vk_img::ImageBufferAllocator* allocator);
+    TextManager(gf::VkManager* engine, vk_img::ImageBufferAllocator* allocator);
     ~TextManager();
-    // TODO: make singleton
 
-    //void add_font(const std::string& font_name, const Font& font);
     void add_font_from_file(const std::string& font_name, const std::string& font_path, unsigned int pix_size = 48); // TODO: turn this into point instead of pixel
     const Font* get_font(const std::string& font_name) { return &fonts.at(font_name); };
 
@@ -73,15 +73,15 @@ public:
 
 private:
 
-    void create_image_materials();
-
     static TextManager* singleton;
+    TextManager(const TextManager& other) = delete;
+    TextManager& operator=(const TextManager& other) = delete;
 
     vk_img::ImageBufferAllocator* allocator;
+    vk_mat::MaterialImage* text_material;
 
     std::unordered_map<std::string, Font> fonts;
     std::unordered_map<std::string, TextBox> text_boxes;
-    // TODO: material for text
 };
 }
 }

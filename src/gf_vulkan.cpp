@@ -87,7 +87,7 @@ gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_contex
     : core(&gl_manager, &gl_context), alloc(&core),
     swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
     frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
-    engine_images(img_buff_allocator), text_manager(&img_buff_allocator),
+    engine_images(img_buff_allocator), text_manager(this, &img_buff_allocator),
     
     drawn_image(img_buff_allocator),
     depth_image(img_buff_allocator)

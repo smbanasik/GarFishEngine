@@ -16,24 +16,21 @@ namespace gf{
 class VkManager;
 
 namespace vk_mat {
-struct IMaterialBase {
-    MaterialPipeline opaque_pipeline;
-    MaterialPipeline transparent_pipeline;
 
-    VkDescriptorSetLayout material_layout;
-
-    struct MaterialConstants;
-    struct MaterialResources;
-
-    vk_desc::DescriptorWriter writer;
+struct IMaterialResources {
+    virtual ~IMaterialResources() {};
+};
+struct IBaseMaterial {
+    virtual ~IBaseMaterial() {};
 
     virtual void build_pipelines(VkManager* engine) = 0;
     virtual void clear_resources(VkDevice device) = 0;
 
-    virtual MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) = 0;
+    virtual MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) = 0;
 };
 
-struct GLTFMetallic_Roughness {
+
+struct GLTFMetallic_Roughness : public IBaseMaterial {
     MaterialPipeline opaque_pipeline;
     MaterialPipeline transparent_pipeline;
 
@@ -46,7 +43,7 @@ struct GLTFMetallic_Roughness {
         glm::vec4 extra[14];
     };
 
-    struct MaterialResources {
+    struct MaterialResources : public IMaterialResources {
         vk_img::AllocatedImage color_image;
         VkSampler color_sampler;
         vk_img::AllocatedImage metal_rough_image;
@@ -54,37 +51,37 @@ struct GLTFMetallic_Roughness {
         VkBuffer data_buffer;
         uint32_t data_buffer_offset;
 
-        MaterialResources(vk_img::ImageBufferAllocator& allocator)
+        MaterialResources(const vk_img::ImageBufferAllocator& allocator)
             : color_image(allocator), metal_rough_image(allocator) {};
     };
 
     vk_desc::DescriptorWriter writer;
 
-    void build_pipelines(VkManager* engine);
-    void clear_resources(VkDevice device);
+    void build_pipelines(VkManager* engine) override;
+    void clear_resources(VkDevice device) override;
 
-    MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator);
+    MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 };
-struct MaterialImage {
+struct MaterialImage : public IBaseMaterial {
     MaterialPipeline opaque_pipeline;
     MaterialPipeline transparent_pipeline;
 
     VkDescriptorSetLayout material_layout;
 
-    struct MaterialResources {
+    struct MaterialResources : public IMaterialResources {
         vk_img::AllocatedImage color_image;
         VkSampler color_sampler;
 
-        MaterialResources(vk_img::ImageBufferAllocator& allocator)
+        MaterialResources(const vk_img::ImageBufferAllocator& allocator)
             : color_image(allocator) {};
     };
 
     vk_desc::DescriptorWriter writer;
 
-    void build_pipelines(VkManager* engine);
-    void clear_resources(VkDevice device);
+    void build_pipelines(VkManager* engine) override;
+    void clear_resources(VkDevice device) override;
 
-    MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator);
+    MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 };
 /*
 struct MaterialImageTriColor {

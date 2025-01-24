@@ -10,9 +10,12 @@
 #include <glm/vec2.hpp>
 
 #include <vk_types.hpp>
+#include <vk_materials.hpp>
 namespace gf {
 
 typedef vk_img::AllocatedImage Texture;
+typedef vk_mat::IBaseMaterial Material;
+
 struct TextureAtlas {
     Texture* texture;
     uint32_t subdivisions_x;

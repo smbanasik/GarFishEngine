@@ -13,16 +13,6 @@
 static FT_Library ft_lib;
 gf::text::TextManager* gf::text::TextManager::singleton = nullptr;
 
-
-void gf::text::TextBox::draw(const glm::mat4& top_matrix, vk_render::DrawContext& ctx) {
-
-}
-
-void gf::text::TextBox::assemble_text_data() {
-    // TODO: given a text buffer,
-    // produce the vertices and indices needed to render that text buffer
-}
-
 bool helper_init_face(FT_Face& font, const std::string& font_path, unsigned int pix_size) {
     if (FT_New_Face(ft_lib, font_path.c_str(), 0, &font))
         return false;
@@ -81,7 +71,7 @@ gf::text::Font helper_convert_face_to_texture(FT_Face face, gf::vk_img::ImageBuf
 }
 
 
-gf::text::TextManager::TextManager(vk_img::ImageBufferAllocator* allocator)
+gf::text::TextManager::TextManager(gf::VkManager* engine, vk_img::ImageBufferAllocator* allocator)
     : allocator(allocator) {
     assert(singleton == nullptr);
     singleton = this;

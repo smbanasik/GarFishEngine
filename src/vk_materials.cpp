@@ -78,7 +78,9 @@ void gf::vk_mat::GLTFMetallic_Roughness::clear_resources(VkDevice device) {
 }
 
 gf::MaterialInstance gf::vk_mat::GLTFMetallic_Roughness::write_material(VkDevice device, MaterialPass pass,
-    const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
+    const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
+
+    const MaterialResources* mat_resources = dynamic_cast<const MaterialResources*>(&resources);
 
     MaterialInstance mat_data;
     mat_data.pass_type = pass;
@@ -89,11 +91,11 @@ gf::MaterialInstance gf::vk_mat::GLTFMetallic_Roughness::write_material(VkDevice
 
     mat_data.material_set = descriptor_allocator.allocate(device, material_layout);
     writer.clear();
-    writer.write_buffer(0, resources.data_buffer, sizeof(MaterialConstants),
-        resources.data_buffer_offset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    writer.write_image(1, resources.color_image.image_view, resources.color_sampler,
+    writer.write_buffer(0, mat_resources->data_buffer, sizeof(MaterialConstants),
+        mat_resources->data_buffer_offset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    writer.write_image(1, mat_resources->color_image.image_view, mat_resources->color_sampler,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-    writer.write_image(2, resources.metal_rough_image.image_view, resources.metal_rough_sampler,
+    writer.write_image(2, mat_resources->metal_rough_image.image_view, mat_resources->metal_rough_sampler,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     writer.update_set(device, mat_data.material_set);
     return mat_data;
@@ -160,7 +162,10 @@ void gf::vk_mat::MaterialImage::clear_resources(VkDevice device) {
     vkDestroyPipeline(device, transparent_pipeline.pipeline, nullptr);
 }
 
-gf::MaterialInstance gf::vk_mat::MaterialImage::write_material(VkDevice device, MaterialPass pass, const MaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
+gf::MaterialInstance gf::vk_mat::MaterialImage::write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
+
+    const MaterialResources* mat_resources = dynamic_cast<const MaterialResources*>(&resources);
+
     MaterialInstance mat_data;
     mat_data.pass_type = pass;
     if (pass == MaterialPass::Transparent)
@@ -170,7 +175,7 @@ gf::MaterialInstance gf::vk_mat::MaterialImage::write_material(VkDevice device, 
 
     mat_data.material_set = descriptor_allocator.allocate(device, material_layout);
     writer.clear();
-    writer.write_image(0, resources.color_image.image_view, resources.color_sampler,
+    writer.write_image(0, mat_resources->color_image.image_view, mat_resources->color_sampler,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     writer.update_set(device, mat_data.material_set);
     return mat_data;

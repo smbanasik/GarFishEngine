@@ -8,10 +8,12 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 #include <gf_types.hpp>
 
 namespace gf {
+class VkManager;
 namespace vk_img {
 class ImageBufferAllocator;
 }
@@ -51,7 +53,14 @@ private:
 };
 class MaterialManager {
 public:
+
+    Material* add_material(const std::string& texture_name, const Material& material);
+    Material* get_material(const std::string& texture_name);
+
 private:
+    VkDevice* device;
+    VkManager* engine;
+    std::unordered_map<std::string, std::shared_ptr<Material>> materials;
 };
 
 // TODO:

@@ -8,9 +8,17 @@ This document serves as a reminder for things I would like to do once I get to t
 - Need two types of options: engine options & end user options
 - Seperate or together?
 
+## Material Abstraction System
+- Need a flexible system for implementing a variety of materials, so that a material manager may contain them
+- A material should:
+    - Store pipelines and different layouts (descriptors and pipelines)
+    - Store the writer to create descriptors that use this material
+    - Have an initialization and a clear method
+    - Produce a material instance, which contains descriptors and pipeline pointers
+    - Dictate the specific resources needed to produce that material instance
+- This does mean that for generic functions, they should ONLY use what is in the interface.
+
 ## Next Steps
-- Material Abstraction system
-    - Create a base material class for others to inherit from
 - Material manager that owns materials and makes it easy to produce material instances.
 - Text boxes just produce the data necessary to render, rendering is done by a text node or other.
 - Create a TileMap class
