@@ -6,20 +6,6 @@
 #include <vk_images.hpp>
 #include <vk_loader.hpp>
 
-gf::ImageManager::ImageManager(ImageManager& other)
-    : textures(std::move(other.textures)),
-    allocator(std::move(other.allocator)) {
-
-}
-gf::ImageManager::ImageManager(ImageManager&& other) noexcept
-    : textures(std::move(other.textures)),
-    allocator(std::move(other.allocator)) {
-}
-
-gf::ImageManager::~ImageManager() {
-    textures.clear();
-}
-
 gf::Texture* gf::ImageManager::add_texture(const std::string& texture_name, const gf::Texture& texture) {
     textures[texture_name] = texture;
     return &textures.at(texture_name);

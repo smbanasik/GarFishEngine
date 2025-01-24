@@ -24,23 +24,6 @@ public:
     ImageManager(vk_img::ImageBufferAllocator& allocator)
         : textures(),
         allocator(&allocator) {}
-    ImageManager(ImageManager& other);
-    ImageManager& operator=(ImageManager& other) {
-        if (this == &other)
-            return *this;
-        textures = other.textures;
-        allocator = other.allocator;
-        return *this;
-    };
-    ImageManager(ImageManager&& other) noexcept;
-    ImageManager& operator=(ImageManager&& other) noexcept {
-        if (this == &other)
-            return *this;
-        textures = std::move(other.textures);
-        allocator = std::move(other.allocator);
-        return *this;
-    }
-    ~ImageManager();
 
     Texture* add_texture(const std::string& texture_name, const Texture& texture);
     Texture* add_texture_from_data(const std::string& texture_name, void* data, VkExtent3D size);
@@ -53,6 +36,9 @@ private:
 };
 class MaterialManager {
 public:
+    MaterialManager(gf::VkManager* engine, VkDevice* device)
+        : device(device),
+        engine(engine) {};
 
     Material* add_material(const std::string& texture_name, const Material& material);
     Material* get_material(const std::string& texture_name);
