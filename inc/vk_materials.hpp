@@ -31,10 +31,28 @@ struct IBaseMaterial {
 
 
 struct GLTFMetallic_Roughness : public IBaseMaterial {
-    MaterialPipeline opaque_pipeline;
-    MaterialPipeline transparent_pipeline;
+public:
 
-    VkDescriptorSetLayout material_layout;
+    GLTFMetallic_Roughness(VkDevice* device);
+    GLTFMetallic_Roughness(gf::VkManager* engine);
+    GLTFMetallic_Roughness(GLTFMetallic_Roughness& other) = delete;
+    GLTFMetallic_Roughness(GLTFMetallic_Roughness&& other) noexcept;
+    GLTFMetallic_Roughness& operator=(GLTFMetallic_Roughness& other) = delete;
+    GLTFMetallic_Roughness& operator=(GLTFMetallic_Roughness&& other) noexcept {
+        if (this == &other)
+            return *this;
+        opaque_pipeline = std::move(other.opaque_pipeline);
+        transparent_pipeline = std::move(other.transparent_pipeline);
+        material_layout = std::move(other.material_layout);
+        writer = std::move(other.writer);
+        device = std::move(other.device);
+        other.device = nullptr;
+        return *this;
+    }
+    ~GLTFMetallic_Roughness();
+
+    void build_pipelines(VkManager* engine) override; // TODO: temporary until we get a firmer handle on descriptors
+    MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 
     struct MaterialConstants {
         glm::vec4 color_factors;
@@ -55,19 +73,39 @@ struct GLTFMetallic_Roughness : public IBaseMaterial {
             : color_image(allocator), metal_rough_image(allocator) {};
     };
 
-    vk_desc::DescriptorWriter writer;
-
-    void build_pipelines(VkManager* engine) override;
-    void clear_resources(VkDevice device) override;
-
-    MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
-};
-struct MaterialImage : public IBaseMaterial {
     MaterialPipeline opaque_pipeline;
     MaterialPipeline transparent_pipeline;
-
     VkDescriptorSetLayout material_layout;
+    vk_desc::DescriptorWriter writer;
 
+private:
+    void clear_resources(VkDevice device) override;
+    VkDevice* device;
+};
+struct MaterialImage : public IBaseMaterial {
+public:
+
+    MaterialImage(VkDevice* device);
+    MaterialImage(gf::VkManager* engine);
+    MaterialImage(MaterialImage& other) = delete;
+    MaterialImage(MaterialImage&& other) noexcept;
+    MaterialImage& operator=(MaterialImage& other) = delete;
+    MaterialImage& operator=(MaterialImage&& other) noexcept {
+        if (this == &other)
+            return *this;
+        opaque_pipeline = std::move(other.opaque_pipeline);
+        transparent_pipeline = std::move(other.transparent_pipeline);
+        material_layout = std::move(other.material_layout);
+        writer = std::move(other.writer);
+        device = std::move(other.device);
+        other.device = nullptr;
+        return *this;
+    }
+    ~MaterialImage();
+
+    void build_pipelines(VkManager* engine) override; // TODO: temporary until we get a firmer handle on descriptors
+    MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
+    
     struct MaterialResources : public IMaterialResources {
         vk_img::AllocatedImage color_image;
         VkSampler color_sampler;
@@ -76,12 +114,14 @@ struct MaterialImage : public IBaseMaterial {
             : color_image(allocator) {};
     };
 
+    MaterialPipeline opaque_pipeline;
+    MaterialPipeline transparent_pipeline;
+    VkDescriptorSetLayout material_layout;
     vk_desc::DescriptorWriter writer;
 
-    void build_pipelines(VkManager* engine) override;
+private:
     void clear_resources(VkDevice device) override;
-
-    MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
+    VkDevice* device;
 };
 /*
 struct MaterialImageTriColor {

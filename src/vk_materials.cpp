@@ -10,6 +10,60 @@
 #include <vk_descriptors.hpp>
 #include <vk_initializers.hpp>
 
+gf::vk_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness(VkDevice* device)
+    : opaque_pipeline(),
+    transparent_pipeline(),
+    material_layout(),
+    writer(),
+    device(device) {};
+gf::vk_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness(gf::VkManager* engine)
+    : opaque_pipeline(),
+    transparent_pipeline(),
+    material_layout(),
+    writer(), 
+    device(&engine->core.device) {
+    build_pipelines(engine);
+}
+gf::vk_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness(GLTFMetallic_Roughness&& other) noexcept
+    : opaque_pipeline(std::move(other.opaque_pipeline)),
+    transparent_pipeline(std::move(other.transparent_pipeline)),
+    material_layout(std::move(other.material_layout)),
+    writer(std::move(other.writer)),
+    device(std::move(other.device)) {
+    other.device = nullptr;
+}
+gf::vk_mat::GLTFMetallic_Roughness::~GLTFMetallic_Roughness() {
+    if (device != nullptr)
+        clear_resources(*device);
+}
+
+gf::vk_mat::MaterialImage::MaterialImage(VkDevice* device)
+    : opaque_pipeline(),
+    transparent_pipeline(),
+    material_layout(),
+    writer(),
+    device(device) {};
+gf::vk_mat::MaterialImage::MaterialImage(gf::VkManager* engine) 
+    : opaque_pipeline(),
+    transparent_pipeline(),
+    material_layout(),
+    writer(), 
+    device(&engine->core.device) {
+    build_pipelines(engine);
+}
+gf::vk_mat::MaterialImage::MaterialImage(MaterialImage&& other) noexcept
+    : opaque_pipeline(std::move(other.opaque_pipeline)),
+    transparent_pipeline(std::move(other.transparent_pipeline)),
+    material_layout(std::move(other.material_layout)),
+    writer(std::move(other.writer)),
+    device(std::move(other.device)) {
+    other.device = nullptr;
+}
+gf::vk_mat::MaterialImage::~MaterialImage() {
+    if (device != nullptr)
+        clear_resources(*device);
+}
+
 void gf::vk_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) {
     VkShaderModule mesh_vertex_shader;
     if (!vk_pipe::load_shader_module("../../shaders/mesh.vert.spv", engine->core.device, &mesh_vertex_shader))

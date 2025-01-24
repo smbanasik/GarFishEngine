@@ -88,9 +88,12 @@ gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_contex
     swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
     frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
     engine_images(img_buff_allocator), text_manager(this, &img_buff_allocator),
-    
+
     drawn_image(img_buff_allocator),
-    depth_image(img_buff_allocator)
+    depth_image(img_buff_allocator),
+
+    metal_rough_material(&core.device),
+    two_d_image_material(&core.device)
 
     {
     
@@ -120,8 +123,6 @@ gf::VkManager::~VkManager() {
     vkDeviceWaitIdle(core.device);
 
     loaded_scenes.clear();
-    metal_rough_material.clear_resources(core.device);
-    two_d_image_material.clear_resources(core.device);
 
     global_deletion_stack.flush();
 }

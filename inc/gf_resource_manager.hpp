@@ -46,7 +46,7 @@ public:
 private:
     VkDevice* device;
     VkManager* engine;
-    std::unordered_map<std::string, std::shared_ptr<Material>> materials;
+    std::unordered_map<std::string, std::unique_ptr<Material>> materials;
 };
 
 // TODO:
