@@ -93,7 +93,7 @@ gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_contex
     depth_image(img_buff_allocator),
 
     metal_rough_material(&core.device),
-    two_d_image_material(&core.device)
+    mat_manager(this, &core.device)
 
     {
     
@@ -318,7 +318,7 @@ void gf::VkManager::init_descriptors() {
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
     metal_rough_material.build_pipelines(this);
-    two_d_image_material.build_pipelines(this);
+    mat_manager.create_material<vk_mat::MaterialImage>("font_mat");
 }
 
 void gf::VkManager::init_background_pipelines() {
@@ -491,7 +491,7 @@ void gf::VkManager::init_default_data() {
     image_resources.color_image = font->font_image;
     image_resources.color_sampler = default_sampler_nearest;
 
-    image_mat_data = two_d_image_material.write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
+    image_mat_data = mat_manager.get_material("font_mat")->write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
     {
     std::array<gf::Vertex, 4> vertex_buff;
     std::array<glm::vec2, 4> uv_coords = font->font.get_texture_square({ 0,0 });

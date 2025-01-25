@@ -40,25 +40,22 @@ public:
         : device(device),
         engine(engine) {};
 
-    Material* add_material(const std::string& texture_name, const Material& material);
-    Material* get_material(const std::string& texture_name);
+    template<class T>
+    Material* create_material(const std::string& material_name) {
+        T material;
+        material.set_device(device);
+        material.build_pipelines(engine);
+        materials[material_name] = std::make_unique<T>(std::move(material));
+        return materials.at(material_name).get();
+    }
+    Material* add_material(const std::string& material_name, std::unique_ptr<Material> sacrafice);
+    Material* get_material(const std::string& material_name);
 
 private:
     VkDevice* device;
     VkManager* engine;
     std::unordered_map<std::string, std::unique_ptr<Material>> materials;
 };
-
-// TODO:
-// Right now there are materials and
-// images hard coded into the image.
-// An image manager should hold textures
-// and recieve an allocator. It should manage the 
-// allocation and destruction of these images
-
-// TODO:
-// A material manager does the same as the above
-// but for materials
 
 }
 #endif

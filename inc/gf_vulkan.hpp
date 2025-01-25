@@ -95,7 +95,7 @@ public:
 
     vk_mat::GLTFMetallic_Roughness metal_rough_material;
     MaterialInstance default_data;
-    vk_mat::MaterialImage two_d_image_material;
+    MaterialManager mat_manager;
     MaterialInstance image_mat_data;
     TextureAtlas test_texture;
 

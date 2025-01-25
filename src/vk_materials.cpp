@@ -10,6 +10,12 @@
 #include <vk_descriptors.hpp>
 #include <vk_initializers.hpp>
 
+gf::vk_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness()
+    : opaque_pipeline(),
+    transparent_pipeline(),
+    material_layout(),
+    writer(),
+    device() {};
 gf::vk_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness(VkDevice* device)
     : opaque_pipeline(),
     transparent_pipeline(),
@@ -36,7 +42,12 @@ gf::vk_mat::GLTFMetallic_Roughness::~GLTFMetallic_Roughness() {
     if (device != nullptr)
         clear_resources(*device);
 }
-
+gf::vk_mat::MaterialImage::MaterialImage()
+    : opaque_pipeline(),
+    transparent_pipeline(),
+    material_layout(),
+    writer(),
+    device() {};
 gf::vk_mat::MaterialImage::MaterialImage(VkDevice* device)
     : opaque_pipeline(),
     transparent_pipeline(),

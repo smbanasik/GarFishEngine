@@ -25,6 +25,7 @@ struct IBaseMaterial {
 
     virtual void build_pipelines(VkManager* engine) = 0;
     virtual void clear_resources(VkDevice device) = 0;
+    virtual void set_device(VkDevice* device) = 0;
 
     virtual MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) = 0;
 };
@@ -33,6 +34,7 @@ struct IBaseMaterial {
 struct GLTFMetallic_Roughness : public IBaseMaterial {
 public:
 
+    GLTFMetallic_Roughness();
     GLTFMetallic_Roughness(VkDevice* device);
     GLTFMetallic_Roughness(gf::VkManager* engine);
     GLTFMetallic_Roughness(GLTFMetallic_Roughness& other) = delete;
@@ -51,7 +53,8 @@ public:
     }
     ~GLTFMetallic_Roughness();
 
-    void build_pipelines(VkManager* engine) override; // TODO: temporary until we get a firmer handle on descriptors
+    void set_device(VkDevice* device) override { this->device = device; };
+    void build_pipelines(VkManager* engine) override;
     MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 
     struct MaterialConstants {
@@ -85,6 +88,7 @@ private:
 struct MaterialImage : public IBaseMaterial {
 public:
 
+    MaterialImage();
     MaterialImage(VkDevice* device);
     MaterialImage(gf::VkManager* engine);
     MaterialImage(MaterialImage& other) = delete;
@@ -103,7 +107,8 @@ public:
     }
     ~MaterialImage();
 
-    void build_pipelines(VkManager* engine) override; // TODO: temporary until we get a firmer handle on descriptors
+    void set_device(VkDevice* device) override { this->device = device; };
+    void build_pipelines(VkManager* engine) override;
     MaterialInstance write_material(VkDevice device, MaterialPass pass, const IMaterialResources& resources, vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
     
     struct MaterialResources : public IMaterialResources {
