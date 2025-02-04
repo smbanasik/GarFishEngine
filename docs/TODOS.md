@@ -8,19 +8,11 @@ This document serves as a reminder for things I would like to do once I get to t
 - Need two types of options: engine options & end user options
 - Seperate or together?
 
-## Material Abstraction System
-- Need a flexible system for implementing a variety of materials, so that a material manager may contain them
-- A material should:
-    - Store pipelines and different layouts (descriptors and pipelines)
-    - Store the writer to create descriptors that use this material
-    - Have an initialization and a clear method
-    - Produce a material instance, which contains descriptors and pipeline pointers
-    - Dictate the specific resources needed to produce that material instance
-- This does mean that for generic functions, they should ONLY use what is in the interface.
-
 ## Next Steps
-- Material manager that owns materials and makes it easy to produce material instances.
 - Text boxes just produce the data necessary to render, rendering is done by a text node or other.
+    - Next step is to assemble text data using Quad
+- Redo header files
+    - Need types in their own files, separate common include types vs implementation
 - Create a TileMap class
     - Owns a grid of sprites with subdivisions
     - How do we handle multiple texture atlasses?
