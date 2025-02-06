@@ -141,7 +141,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
             material_resources.color_image = images[img];
             material_resources.color_sampler = file.samplers[sampler];
         }
-        new_mat->data = engine->metal_rough_material.write_material(engine->core.device, passType, material_resources, file.descriptor_pool);
+        new_mat->data = engine->mat_manager.get_material("metal_mat")->write_material(engine->core.device, passType, material_resources, file.descriptor_pool);
 
         data_index++;
     }

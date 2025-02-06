@@ -93,7 +93,6 @@ public:
     VkSampler default_sampler_linear;
     VkSampler default_sampler_nearest;
 
-    vk_mat::GLTFMetallic_Roughness metal_rough_material;
     MaterialInstance default_data;
     MaterialManager mat_manager;
     MaterialInstance image_mat_data;

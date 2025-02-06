@@ -92,7 +92,6 @@ gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_contex
     drawn_image(img_buff_allocator),
     depth_image(img_buff_allocator),
 
-    metal_rough_material(&core.device),
     mat_manager(this, &core.device)
 
     {
@@ -317,7 +316,7 @@ void gf::VkManager::init_descriptors() {
 
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
-    metal_rough_material.build_pipelines(this);
+    mat_manager.create_material<vk_mat::GLTFMetallic_Roughness>("metal_mat");
     mat_manager.create_material<vk_mat::MaterialImage>("font_mat");
 }
 
@@ -478,7 +477,7 @@ void gf::VkManager::init_default_data() {
     material_resources.data_buffer = material_constants.buffer;
     material_resources.data_buffer_offset = 0;
 
-    default_data = metal_rough_material.write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
+    default_data = mat_manager.get_material("metal_mat")->write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
     engine_images.add_texture_from_file("tomato_guy", "../../assets/chad_emote.png");
     test_texture.texture = engine_images.get_texture("tomato_guy");
     test_texture.subdivisions_x = 1;

@@ -10,6 +10,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H 
 
+#include <gf_vulkan.hpp>
+
 static FT_Library ft_lib;
 gf::text::TextManager* gf::text::TextManager::singleton = nullptr;
 
@@ -63,16 +65,12 @@ gf::text::Font helper_convert_face_to_texture(FT_Face face, gf::vk_img::ImageBuf
 
     new_font.font_image = allocator->create_image((void*)data_buffer.data(), new_font.font_image.image_size, VK_FORMAT_R8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
-    new_font.font.texture = &new_font.font_image;
-    new_font.font.subdivisions_y = 1;
-    new_font.font.subdivisions_x = 1;
-
     return new_font;
 }
 
 
 gf::text::TextManager::TextManager(gf::VkManager* engine, vk_img::ImageBufferAllocator* allocator)
-    : allocator(allocator) {
+    : font_allocator(allocator) {
     assert(singleton == nullptr);
     singleton = this;
     
@@ -86,8 +84,71 @@ void gf::text::TextManager::add_font_from_file(const std::string& font_name, con
     if(!helper_init_face(face, font_path, pix_size))
         throw;
 
-    Font new_font = helper_convert_face_to_texture(face, allocator);
+    Font new_font = helper_convert_face_to_texture(face, font_allocator);
     fonts[font_name] = new_font;
 
     FT_Done_Face(face);
+}
+
+gf::text::TextBox* gf::text::TextManager::create_textbox(const std::string& name, const std::string& text_buffer) {
+    TextBox text = initialize_textbox(name, text_buffer);
+    text_boxes[name] = text;
+    return &text_boxes.at(name);
+}
+
+gf::text::TextBox gf::text::TextManager::initialize_textbox(const std::string& text_box_name, const std::string& text_buffer) {
+    TextBox text_box;
+
+    text_box.text_buffer_changed = false;
+    text_box.text_data.name = text_box_name;
+
+    vk_render::GeoSurface text_surface;
+    text_surface.start_idx = 0;
+
+    MaterialPass pass = MaterialPass::MainColor;
+
+    vk_mat::MaterialImage::MaterialResources font_resources(*font_allocator);
+    font_resources.color_sampler = creator->default_sampler_linear;
+    font_resources.color_image = this->fonts.at("arial").font_image;
+    text_surface.material->data = text_material->write_material(creator->core.device, pass, font_resources, *text_desc_allocator);
+
+    if (text_buffer != "") {
+        text_box.assemble_text_data();
+    }
+
+    text_box.text_data.surfaces.push_back(text_surface);
+
+    return text_box;
+}
+
+// TODO: need to handle \n chars
+gf::vk_render::MeshAsset* gf::text::TextBox::assemble_text_data() {
+    // TODO: need to do indices, surface bounds, surface count, and verts here
+
+    float x = 0, y = 0;
+    int idx = 0;
+    for (auto letter : text_buffer) {
+        
+        Character character_info = font->char_set[letter];
+
+        float width = character_info.size.x;
+        float height = character_info.size.y;
+
+        float xpos = x + character_info.padding.x;
+        float ypos = y - (height - character_info.padding.y);
+
+        float atlas_width = width / font->font_image.image_size.width;
+        float atlas_height = height / font->font_image.image_size.height;
+
+        vk_render::Quad char_quad = vk_render::Quad::generate_textured_quad(idx, {xpos, ypos, width, height}, { character_info.texture_position.x, character_info.texture_position.y, atlas_width, atlas_height });
+        // TODO: convert quad into transitional info
+
+        x += character_info.padding.z;
+        idx++;
+    }
+
+    // TODO: setup buffers here
+
+    
+
 }

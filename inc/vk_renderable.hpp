@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <vector>
+#include <array>
 #include <string>
 
 #include <glm/mat4x4.hpp>
@@ -35,6 +36,16 @@ struct DrawContext {
     std::vector<RenderObject> transparent_surfaces;
     std::vector<RenderObject> static_surfaces; // Meant for UI elements, ideally not affected by render proj matrix. No culling.
 };
+
+// Not happy with where this is, best place for now
+struct Quad {
+public:
+    std::array<Vertex, 4> verts;
+    std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
+
+    static Quad generate_textured_quad(uint32_t idx_offset, glm::vec4 vert_rect, glm::vec4 texture_rect);
+};
+
 
 struct IRenderable {
     virtual void draw(const glm::mat4& top_matrix, DrawContext& ctx) = 0;

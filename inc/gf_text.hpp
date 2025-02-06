@@ -35,10 +35,10 @@ struct Character {
 };
 struct Font {
     Texture font_image;
-    TextureAtlas font;
     std::array<Character, 128> char_set;
 };
 class TextBox {
+    friend class TextManager;
 public:
 
     // TODO: better options for modification. Appending or recording what's changed
@@ -50,12 +50,12 @@ public:
     const std::string* get_text_buffer() const { return &text_buffer; };
 
     // TODO: text assemble options go here
-    // TODO: need to handle \n chars
     vk_render::MeshAsset* assemble_text_data();
 
 private:
     std::string text_buffer;
     vk_render::MeshAsset text_data;
+    Font* font;
     bool text_buffer_changed;
 private:
 };
@@ -68,8 +68,8 @@ public:
     void add_font_from_file(const std::string& font_name, const std::string& font_path, unsigned int pix_size = 48); // TODO: turn this into point instead of pixel
     const Font* get_font(const std::string& font_name) { return &fonts.at(font_name); };
 
-    TextBox* create_textbox(const std::string& name, const std::string& text_buffer = "");
-    TextBox* get_textbox(const std::string& name);
+    TextBox* create_textbox(const std::string& text_box_name, const std::string& text_buffer = "");
+    TextBox* get_textbox(const std::string& text_box_name) { return &text_boxes.at(text_box_name); };
 
 private:
 
@@ -77,8 +77,12 @@ private:
     TextManager(const TextManager& other) = delete;
     TextManager& operator=(const TextManager& other) = delete;
 
-    vk_img::ImageBufferAllocator* allocator;
+    vk_img::ImageBufferAllocator* font_allocator;
+    vk_desc::DescriptorAllocatorGrowable* text_desc_allocator;
     vk_mat::MaterialImage* text_material;
+    VkManager* creator;
+
+    TextBox initialize_textbox(const std::string& text_box_name, const std::string& text_buffer);
 
     std::unordered_map<std::string, Font> fonts;
     std::unordered_map<std::string, TextBox> text_boxes;
