@@ -150,5 +150,5 @@ gf::vk_render::MeshAsset* gf::text::TextBox::assemble_text_data() {
     // TODO: setup buffers here
 
     
-
+    return &this->text_data;
 }

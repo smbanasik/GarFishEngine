@@ -57,7 +57,6 @@ private:
     vk_render::MeshAsset text_data;
     Font* font;
     bool text_buffer_changed;
-private:
 };
 class TextManager {
 public:

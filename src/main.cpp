@@ -11,7 +11,6 @@ int main(int argc, char* argv[]) {
     gf::Engine engine;
 
     engine.run();
-
     
     return 0;
 }

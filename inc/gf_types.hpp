@@ -17,7 +17,7 @@ typedef vk_img::AllocatedImage Texture;
 typedef vk_mat::IBaseMaterial Material;
 
 struct TextureAtlas {
-    Texture* texture;
+    const Texture* texture;
     uint32_t subdivisions_x;
     uint32_t subdivisions_y;
 
@@ -29,11 +29,11 @@ struct Sprite {
     glm::vec2 sprite_size;
 };
 struct TextureSprite : public Sprite {
-    Texture* texture;
+    const Texture* texture;
     glm::vec2 texture_size;
 };
 struct AtlasSprite : public Sprite {
-    TextureAtlas* atlas;
+    const TextureAtlas* atlas;
     glm::vec2 atlas_coords;
 };
 

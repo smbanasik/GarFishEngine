@@ -493,7 +493,11 @@ void gf::VkManager::init_default_data() {
     image_mat_data = mat_manager.get_material("font_mat")->write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
     {
     std::array<gf::Vertex, 4> vertex_buff;
-    std::array<glm::vec2, 4> uv_coords = font->font.get_texture_square({ 0,0 });
+    gf::TextureAtlas font_atlas;
+    font_atlas.texture = &font->font_image;
+    font_atlas.subdivisions_x = 1;
+    font_atlas.subdivisions_y = 1;
+    std::array<glm::vec2, 4> uv_coords = font_atlas.get_texture_square({ 0,0 });
 
     vertex_buff[0] = { glm::vec3(0.0f, 0.0f, 0.0f), uv_coords[0].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[0].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
     vertex_buff[1] = { glm::vec3(8.0f, 0.0f, 0.0f), uv_coords[1].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[1].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};

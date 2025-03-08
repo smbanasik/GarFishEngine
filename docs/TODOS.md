@@ -13,6 +13,12 @@ This document serves as a reminder for things I would like to do once I get to t
     - Next step is to assemble text data using Quad
 - Redo header files
     - Need types in their own files, separate common include types vs implementation
+    - Merge inc and src together into a single code folder (refer to doom 3 code)
+    - Structure files together based on purpose
+        - GL files go together
+        - Vulkan files go somewhat together
+        - Higher level files go together
+        - Type files for frequent included items
 - Create a TileMap class
     - Owns a grid of sprites with subdivisions
     - How do we handle multiple texture atlasses?
