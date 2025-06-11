@@ -2,7 +2,11 @@
 
 ## Description
 
-This engine serves as a general purpose base for future projects. Primarily powered by Vulkan and GLFW. Check the attributions for more info.
+This engine serves as a general purpose base for future projects, built from C++ and Vulkan. Work has been done to build a performant and less verbose API above
+Vulkan's current one. Groups of Vulkan's objects are composed together into logical abstractions with RAII resource management.
+
+**Note**: Before I make additional progress, I will be utilizing Doxygen to automate the process of documenting code, as well as
+adding graphs for a class hierarchy. Once this is finished, I intend on adjusting namespaces.
 
 ## Scope
 
@@ -12,7 +16,6 @@ The GarFish engine promises at least the following features:
 - An abstraction of graphical data such as models, materials, and so on
 - A system for storing elements on the screen.
 - General UI elements such as buttons, draggable screens, etc.
-- See more below.
 
 ## Setup
 
@@ -113,7 +116,7 @@ TODOS.md - A list of items I'd like to change in the code later.
 	- Shader system
 	- Higher level interface (scene system, choose what goes on screen)
 	- Multithreading
-- 2D Roguelike backport
+- 2D
     - Sprite system
 	- Basic lighting
 	- Tile system
@@ -125,7 +128,7 @@ TODOS.md - A list of items I'd like to change in the code later.
 	- ECS pattern
 	- Additional abstract patterns
 	- Advanced UI elements (draggable screens)
-- 3D Voxel game
+- 3D
     - Material system
 	- Physics system
 	- Real time gameplay system
@@ -133,5 +136,3 @@ TODOS.md - A list of items I'd like to change in the code later.
     - Level of detail and culling
 	- Skeletal animations?
 	- Multiplayer/network functionality
-- 2D Terraria Clone(?)
-- RTS/RPG Hybrid
