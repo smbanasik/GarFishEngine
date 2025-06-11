@@ -12,6 +12,9 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 
+# Don't include doxygen files, we have the config
+docs/generated/
+
 assets/
 third_party/*
 
