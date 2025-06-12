@@ -1,3 +1,12 @@
+/**
+* @file
+* @brief Main engine header file.
+* @author Spencer Banasik
+* @details This file...
+* new line of this file...
+*/
+
+
 // Spencer Banasik
 // Created: 12/14/2024
 // Last Modified: 12/15/2024
@@ -18,6 +27,14 @@
 
 namespace gf {
 
+/**
+* @brief The main engine class.
+* @author Spencer Banasik
+* @details This class...
+* extend the class description...
+* @pre Vulkan can successfully initialize.
+* @post Every resource will be freed.
+*/
 class Engine {
 public:
     Engine();
