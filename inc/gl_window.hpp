@@ -58,15 +58,55 @@ public:
         return *this;
     }
 
+    /**
+    * @brief Swap the window to fullscreen
+    * @author Spencer Banasik
+    */
     void make_fullscreen();
+    /**
+    * @brief Swap the window to borderless
+    * @author Spencer Banasik
+    */
     void make_borderless();
+    /**
+    * @brief Swap the window to windowed
+    * @author Spencer Banasik
+    */
     void make_windowed();
+    /**
+    * @brief Set the monitor of the screen
+    * @author Spencer Banasik
+    * @param [in] monitor The queried monitor to be used.
+    */
     void set_monitor(GLFWmonitor* monitor) { this->monitor = monitor; };
+    /**
+    * @brief Set the title of the window
+    * @author Spencer Banasik
+    * @param [in] title The new title of the window.
+    */
     void set_title(std::string title) { glfwSetWindowTitle(window, title.c_str()); };
+    /**
+    * @brief Set the callback function for when the window is resized
+    * @author Spencer Banasik
+    * @details GLFW allows for a callback function to be set when the user
+    * resizes the window. This function allows for a function to be included
+    * in the default WInput resize callback.
+    * @param [in] function A pointer to the function.
+    */
     void set_callback_window_resize(std::function<void(WInputContext* gl_context)>&& function) { callback_window_resize = std::move(function); };
 
+    /**
+    * @brief Determines whether the window is done being used.
+    * @author Spencer Banasik
+    * @returns Whether the window should be closed or not.
+    */
     bool should_window_close() { return glfwWindowShouldClose(window); };
     
+    /**
+    * @brief Get the dimensions of a window
+    * @author Spencer Banasik
+    * @returns The dimensions of the window
+    */
     gl::Extent2D get_window_dims() { return window_dims; };
 
 private:

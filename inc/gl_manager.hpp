@@ -58,6 +58,8 @@ private:
 * @brief GLFW initialization and context creation
 * @author Spencer Banasik
 * @details Entry point for WInput, creates windows and the surface for windows.
+* Once the window is created, a surface should be used with the VKCore type to provide 
+* a surface to the VulkanAPI.
 * @invariant WInputContext owns the glfw user pointer.
 * @invariant Only GLManager exists.
 */
@@ -67,13 +69,40 @@ public:
     ~GLManager();
     GLManager& get();
 
+    /**
+    * @brief Create a WInputContext
+    * @author Spencer Banasik
+    * @details Creates a WInputContext with given parameters. Results in a window, keyboard,
+    * and mouse context being created. Sets the window's glfw user pointer to the context.
+    * @param [in] type         Whether the window should be borderless, fullscreen, or windowed.
+    * @param [in] window_dims  The width and height of the window if it is windowed.
+    * @param [in] window_title The title of the window.
+    * @param [in] monitor      An optional parameter to select which monitor the window will be on.
+    * @returns An initialized WInputContext.
+    */
     WInputContext create_window(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
 
+    /**
+    * @brief Create a surface for Vulkan
+    * @author Spencer Banasik
+    * @details Uses the WInputContext's window to create a surface and provides it to the VKCore.
+    * @param [in, out] gl_context A pointer to a WInputContext.
+    * @param [in, out] vk_context A pointer to the VKCore.
+    * @returns An initialized WInputContext.
+    */
     void create_surface(WInputContext* gl_context, vk_core::VKCore* vk_context);
 
+    /**
+    * @brief Check if the GLManager has been initialized
+    * @author Spencer Banasik
+    */
     bool check_init() { return is_init; };
 
-    // Temporary function for imgui
+    /**
+    * @brief Temporary function for imgui
+    * @author Spencer Banasik
+    * @details Gets a window from the WInput context
+    */
     GLFWwindow* get_window(WInputContext* gl_context) { return gl_context->window.window; };
 
 private:
