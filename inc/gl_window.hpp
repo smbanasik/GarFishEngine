@@ -1,10 +1,12 @@
-// Spencer Banasik
-// Created: 1/1/2025
-// Last Modified: 1/5/2025
-// Description:
-// Interface for all things related to glfw windows
-// gf::gl::GLManager and gf::gl::WInputContext is a friend of this class
-// gf::gl::WInputContext owns the user pointer.
+/**
+* @file
+* @brief Window file for WInput module.
+* @author Spencer Banasik
+* @details This file is the window file for the WInput (Window Input) module.
+* Interface for everything related to glfw windows
+* @date Created: 1/1/2025
+* @date Last Modified: 6/14/2025
+*/
 #ifndef GL_WINDOW_HPP
 #define GL_WINDOW_HPP
 
@@ -21,6 +23,17 @@ namespace gf {
 namespace gl {
 class GLManager;
 class WInputContext;
+
+/**
+* @class WindowContext
+* @brief Interface for glfw windows.
+* @author Spencer Banasik
+* @details API for glfw window creation and manipulation.
+* @invariant WInputContext exists.
+* @invariant WInputContext owns the glfw user pointer.
+* @relates GLManager
+* @relates WInputContext
+*/
 class WindowContext {
 public:
     friend class gf::gl::GLManager;

@@ -28,6 +28,7 @@
 namespace gf {
 
 /**
+* @class Engine
 * @brief The main engine class.
 * @author Spencer Banasik
 * @details This class...

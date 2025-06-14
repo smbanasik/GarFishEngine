@@ -1,10 +1,14 @@
-// Spencer Banasik
-// Created: 1/1/2025
-// Last Modified: 1/5/2025
-// Description:
-// Owns glfw library
-// Serves to generate and modify contexts
-// As well as surfaces
+/**
+* @file
+* @brief Base file for WInput module.
+* @author Spencer Banasik
+* @details This file is the base WInput (Window and Input) module.
+* Owns the GLFW library and serves to generate and modify contexts
+* and surfaces.
+* @date Created: 1/1/2025
+* @date Last Modified: 6/14/2025
+*/
+
 #ifndef GL_MANAGER_HPP
 #define GL_MANAGER_HPP
 
@@ -21,6 +25,16 @@ namespace vk_core {
 class VKCore;
 }
 namespace gl {
+/**
+* @class WInputContext
+* @brief A class that bundles and initializes a group of contexts.
+* @author Spencer Banasik
+* @details This class holds publically accessible context classes with a 
+* private constructor that the GLManager uses. This is the main access 
+* point for the WInput API.
+* @invariant WInputContext owns the glfw user pointer.
+* @relates GLManager
+*/
 class WInputContext {
 public:
     friend gf::gl::GLManager;
@@ -39,7 +53,14 @@ private:
         : window(type, window_dims, window_title, monitor), mouse(window_dims, window.window),
         key(window.window) {};
 };
-
+/**
+* @class GLManager
+* @brief GLFW initialization and context creation
+* @author Spencer Banasik
+* @details Entry point for WInput, creates windows and the surface for windows.
+* @invariant WInputContext owns the glfw user pointer.
+* @invariant Only GLManager exists.
+*/
 class GLManager {
 public:
     GLManager();
