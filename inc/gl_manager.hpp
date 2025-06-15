@@ -43,12 +43,24 @@ public:
     KeyContext key;
     //JoyContext joystick;
 
+    /**
+    * @brief We don't allow for copy construction
+    */
     WInputContext(WInputContext& other) = delete;
 
+    /**
+    * @brief Move constructor
+    */
     WInputContext(WInputContext&& other) noexcept
         : window(std::move(other.window)), mouse(std::move(other.mouse)), key(std::move(other.key)) {};
 
 private:
+
+    /**
+    * @brief Private constructor for GLManager
+    * @author Spencer Banasik
+    * @private
+    */
     WInputContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr)
         : window(type, window_dims, window_title, monitor), mouse(window_dims, window.window),
         key(window.window) {};
@@ -61,13 +73,38 @@ private:
 * Once the window is created, a surface should be used with the VKCore type to provide 
 * a surface to the VulkanAPI.
 * @invariant WInputContext owns the glfw user pointer.
-* @invariant Only GLManager exists.
+* @invariant Only one can GLManager exist.
 */
 class GLManager {
 public:
+    /**
+    * @brief Constructor, can be called only once.
+    * @author Spencer Banasik
+    */
     GLManager();
+
+    /**
+    * @brief Destructor that terminates glfw
+    * @author Spencer Banasik
+    */
     ~GLManager();
-    GLManager& get();
+
+    /**
+    * @brief We don't allow for copy construction.
+    */
+    GLManager(const GLManager& other) = delete;
+
+    /**
+    * @brief We don't allow for copy assignment.
+    */
+    GLManager& operator=(const GLManager& other) = delete;
+
+    /**
+    * @brief Returns the singleton GLManager
+    * @author Spencer Banasik
+    * @static
+    */
+    static GLManager& get();
 
     /**
     * @brief Create a WInputContext
@@ -106,9 +143,10 @@ public:
     GLFWwindow* get_window(WInputContext* gl_context) { return gl_context->window.window; };
 
 private:
+    /**@brief Pointer to the singleton variable
+    * @static
+    */
     static GLManager* loaded_glfw;
-    GLManager(const GLManager& other) = delete;
-    GLManager& operator=(const GLManager& other) = delete;
 
     bool is_init = false;
 };

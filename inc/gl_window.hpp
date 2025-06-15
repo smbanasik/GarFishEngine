@@ -38,12 +38,47 @@ class WindowContext {
 public:
     friend class gf::gl::GLManager;
     friend class gf::gl::WInputContext;
+    /**
+    * @biref @b UNIMPLEMENTED Queries glfw for available monitors
+    * @author Spencer Banasik
+    * @static
+    */
     static std::vector<GLFWmonitor*> query_monitors(); // TODO: implement
+
     WindowContext(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
+    
+    /**
+    * @brief Clears window resource
+    * @author Spencer Banasik
+    */
     ~WindowContext();
+
+    /**
+    * @brief We don't allow copy construction.
+    */
     WindowContext(WindowContext& other) = delete;
+
+    /**
+    * @brief Move constructor
+    * @author Spencer Banasik
+    * @details Moves the data from another window context and destroys
+    * our current window if it exists.
+    * @param [in] other The WindowContext we're cannibalizing.
+    */
     WindowContext(WindowContext&& other) noexcept;
+
+    /**
+    * @brief We don't allow copy assignment.
+    */
     WindowContext operator=(WindowContext& other) = delete;
+
+    /**
+    * @brief Move assignment operator
+    * @author Spencer Banasik
+    * @details Moves the data from another window context and destroys
+    * our current window if it exists.
+    * @param [in] other The WindowContext we're cannibalizing.
+    */
     WindowContext& operator=(WindowContext&& other) noexcept {
         if (this == &other)
             return *this;
@@ -111,14 +146,57 @@ public:
 
 private:
 
+    /**
+    * @brief The default callback function for resizing
+    * @author Spencer Banasik
+    * @details Every window's resize callback will be this function. It uses the 
+    * window's user pointer to gain access to the context, then sets the context's
+    * window dimensions, and finally calls the user added callback for additional
+    * functionality.
+    * @private
+    */
     static void callback_size(GLFWwindow* window, int width, int height);
 
+    /**
+    * @brief Make appropriate library call according to WindowType
+    * @author Spencer Banasik
+    * @private
+    */
     GLFWwindow* create_window(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
+
+    /**
+    * @brief Make library call to create a windowed window
+    * @author Spencer Banasik
+    * @private
+    */
     GLFWwindow* helper_create_window_windowed(gl::Extent2D window_dims, std::string window_title);
+
+    /**
+    * @brief Make library call to create a fullscreen window
+    * @author Spencer Banasik
+    * @private
+    */
     GLFWwindow* helper_create_window_fullscren(gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
+
+    /**
+    * @brief Make library call to create a borderless window
+    * @author Spencer Banasik
+    * @private
+    */
     GLFWwindow* helper_create_window_borderless(gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor = nullptr);
 
+    /**
+    * @brief Set the window's user pointer
+    * @author Spencer Banasik
+    * @private
+    */
     void set_user_pointer(void* p_user) { glfwSetWindowUserPointer(window, p_user); };
+
+    /**
+    * @brief Call the callback_window_resize if it exists
+    * @author Spencer Banasik
+    * @private
+    */
     void call_resize();
 
     WindowType type;

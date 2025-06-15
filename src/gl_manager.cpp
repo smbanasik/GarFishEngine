@@ -23,12 +23,14 @@ gf::gl::GLManager::GLManager() {
         err.display();
         throw err;
     }
+
+    is_init = true;
 }
 gf::gl::GLManager::~GLManager() {
     glfwTerminate();
 }
 gf::gl::GLManager& gf::gl::GLManager::get() {
-    return *this;
+    return *loaded_glfw;
 }
 
 gf::gl::WInputContext gf::gl::GLManager::create_window(gl::WindowType type, gl::Extent2D window_dims, std::string window_title, GLFWmonitor* monitor) {

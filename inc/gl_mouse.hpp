@@ -1,9 +1,10 @@
-// Spencer Banasik
-// Created: 1/5/2025
-// Last Modified: 1/5/2025
-// Description:
-// Interface for all things related to glfw mice
-// gf::GLManager is a friend of this class
+/**
+* @file
+* @brief File that contains mouse WInput module.
+* @author Spencer Banasik
+* @date Created: 1/1/2025
+* @date Last Modified: 6/15/2025
+*/
 #ifndef GL_MOUSE_HPP
 #define GL_MOUSE_HPP
 
@@ -17,6 +18,15 @@ namespace gf {
 namespace gl {
 class GLManager;
 class WInputContext;
+/**
+* @class GLManager
+* @brief GLFW initialization and context creation
+* @author Spencer Banasik
+* @details WInput mouse API, calculates items like mouse coordinates, offset,
+* and velocity. Allows for callbacks to occur on mouse movement.
+* Used to modify elements of cursor.
+* @invariant Requires glfw library during usage.
+*/
 class MouseContext {
     friend class gf::gl::GLManager;
 public:
