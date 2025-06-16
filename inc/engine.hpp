@@ -2,16 +2,10 @@
 * @file
 * @brief Main engine header file.
 * @author Spencer Banasik
-* @details This file...
-* new line of this file...
+* @details This file holds the main engine class.
+* @date Created: 12/14/2024
+* @date Last Modified: 6/16/2025
 */
-
-
-// Spencer Banasik
-// Created: 12/14/2024
-// Last Modified: 12/15/2024
-// Description:
-// Structure for engine
 #ifndef GF_ENGINE_HPP
 #define GF_ENGINE_HPP
 

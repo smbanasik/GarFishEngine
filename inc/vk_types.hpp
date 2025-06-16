@@ -23,10 +23,25 @@
 
 namespace gf {
 // All data for a given frame bundled together
+
+/**
+ * @struct Frame
+ * @brief An abstraction containing all of the data to produce a frame in the swapchain.
+ * @author Spencer Banasik
+ */
 struct Frame {
+
+    /**
+     * @brief Syncrhonization variables
+     * @todo Research fence vs semaphore again
+     */
     VkFence render_fence{};
     VkSemaphore swapchain_semaphore{}, render_semaphore{};
 
+    /**
+     * @brief Commands
+     * @todo pool vs buffer and purpose
+     */
     VkCommandPool command_pool{};
     VkCommandBuffer command_buffer{};
 

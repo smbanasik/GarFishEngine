@@ -24,7 +24,8 @@ class VKCore;
 namespace vk_frames {
 
 /**
-* @brief Nubmer of frames used in the swapchain.
+* @brief Nubmer of frames used in rendering pipeline.
+* @todo Need to explain this better.
 */
 constexpr uint8_t FRAME_OVERLAP = 2;
 /**
@@ -66,16 +67,41 @@ public:
     void remake_swapchain(uint32_t width, uint32_t height);
     void destroy_swapchain();
 
+    /**
+    * @brief Swapchain handle.
+    */
     VkSwapchainKHR swapchain{};
+
+    /**
+    * @brief Enumerator describing the data format of the swapchain.
+    */
     VkFormat swapchain_format{};
+
+    /**
+    * @brief Dimensions of the swapchain.
+    */
     VkExtent2D swapchain_extent{};
+
+    /**
+    * @brief Handles to dimensional arrays of image data.
+    */
     std::vector<VkImage> swapchain_images;
+
+    /**
+     * @brief Handles to image metadata
+     * @details Since images are not directly accessible, the image view provides
+     * meta data such as how to access an image, which part to access, and so on.
+     */
     std::vector<VkImageView> swapchain_image_views;
 private:
     vk_core::VKCore* core_handle;
 };
-// A per frame RAII structure containing what's needed for a frame in the swapchain.
-// Can only be moved, not copied.
+
+/**
+* @class FrameData
+* @brief A simple RAII wrapper for the Frame abstraction.
+* @author Spencer Banasik
+*/
 class FrameData {
 public:
 
@@ -96,6 +122,9 @@ public:
     FrameData(FrameData& other) = delete;
     FrameData& operator=(FrameData& other) = delete;
 
+    /**
+     * @brief An array of frames that are used to feed the swapchain.
+     */
     std::array<Frame, FRAME_OVERLAP> active_frames;
 private:
     vk_core::VKCore* core_handle;
@@ -126,6 +155,8 @@ public:
 private:
     vk_core::VKCore* core_handle;
 };
+
+// TODO: This appears to be incomplete
 // A RAII implementation of a rendering pipeline
 class Renderer {
 public:

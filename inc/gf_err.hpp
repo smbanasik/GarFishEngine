@@ -8,7 +8,7 @@
 
 #include <functional>
 
-// Do not define this in .hpp files!
+// Do not define this in .hpp files (only .cpp)!
 #ifdef GF_VK_CHECK_TRUE
 #include <vulkan/vulkan.h>
 #include <vulkan/vk_enum_string_helper.h>
