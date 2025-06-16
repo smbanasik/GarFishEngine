@@ -1,8 +1,10 @@
-// Spencer Banasik
-// Created: 1/7/2024
-// Last Modified: 1/7/2025
-// Description:
-// The rendering setup for frames goes here
+/**
+* @file
+* @brief File that contains abstractions related to the SwapChain and frames.
+* @author Spencer Banasik
+* @date Created: 12/7/2024
+* @date Last Modified: 6/16/2025
+*/
 #ifndef VK_FRAMES_HPP
 #define VK_FRAMES_HPP
 
@@ -20,9 +22,19 @@ namespace vk_core {
 class VKCore;
 }
 namespace vk_frames {
+
+/**
+* @brief Nubmer of frames used in the swapchain.
+*/
 constexpr uint8_t FRAME_OVERLAP = 2;
-// A RAII structure of a swapchain with the ability to resize it as needed.
-// Can only be moved, not copied.
+/**
+* @class SwapChain
+* @brief A RAII abstraction of Vulkan's swapchain, along with the data needed to use it.
+* @author Spencer Banasik
+* @details The SwapChain is what is Vulkan uses to present images. Each image in the
+* swapchain_images contains the actual data that the GPU presents to the screen, and the
+* swapchain_image_views provide associated data with it.
+*/
 class SwapChain {
 public:
 
@@ -43,6 +55,14 @@ public:
     SwapChain(SwapChain& other) = delete;
     SwapChain& operator=(SwapChain& other) = delete;
     
+    /**
+    * @brief Remakes the swapchain according to the specified dimensions.
+    * @author Spencer Banasik
+    * @details The swapchain and all of its supplemental member variables are remade.
+    * This must be called whenever the window is resized.
+    * @param [in] width The width of the swapchain.
+    * @param [in] height The height of the swapchain.
+    */
     void remake_swapchain(uint32_t width, uint32_t height);
     void destroy_swapchain();
 

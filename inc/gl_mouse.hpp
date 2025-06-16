@@ -25,7 +25,7 @@ class WInputContext;
 * @details WInput mouse API, calculates items like mouse coordinates, offset,
 * and velocity. Allows for callbacks to occur on mouse movement.
 * Used to modify elements of cursor.
-* @invariant Requires glfw library during usage.
+* @pre The glfw library must be initialized.
 */
 class MouseContext {
     friend class gf::gl::GLManager;

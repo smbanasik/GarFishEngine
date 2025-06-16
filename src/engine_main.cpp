@@ -56,11 +56,10 @@ vk_context(gl_manager, gl_context) {
     gl_context.mouse.disable_cursor();
     gl_context.mouse.enable_raw_mouse();
     gl_context.mouse.set_callback_mouse_movement(Camera::glfw_camera_mouse);
-
-
 }
 
 gf::Engine::~Engine() {
+    // I love RAII.
 }
 
 gf::Engine& gf::Engine::get() {

@@ -1,9 +1,10 @@
-// Spencer Banasik
-// Created: 1/6/2025
-// Last Modified: 1/6/2025
-// Description:
-// Core structure of vulkan, owns the instance, logical device,
-// and surface
+/**
+* @file
+* @brief File that contains the VKCore class.
+* @author Spencer Banasik
+* @date Created: 1/6/2025
+* @date Last Modified: 6/16/2025
+*/
 #ifndef VK_CORE_HPP
 #define VK_CORE_HPP
 
@@ -18,9 +19,29 @@ class GLManager;
 class WInputContext;
 }
 namespace vk_core {
+/**
+* @class VKCore
+* @brief Logical abstraction of many core vulkan objects with RAII.
+* @author Spencer Banasik
+* @details Vulkan has a lot of boilerplate setup. This includes an instance, 
+* a physical device, a logical device, graphics queues, the families, and so on.
+* By nature of being a C library, these all have functions for setup and teardown.
+* This class wraps all of that into RAII.
+* @pre Requires some specific graphics card features to be available.
+* @todo Need to consider the speciifcs of this pre condition.
+*/
 class VKCore {
 public:
 
+    /**
+    * @brief Constructos a VKCore with a WInputContext and GLManager.
+    * @author Spencer Banasik
+    * @details Utilizes vkb to quickly assemble a Vulkan instance and debug messenger.
+    * Then uses the gl_manager and the context to provide a surface to the VKCore's instance.
+    * Once done, queries the graphics card and configures engine features.
+    * Then provides physical and logical devices (gpu and device, respectively).
+    * Finally, gets the graphics queue and graphics queue family.
+    */
     VKCore(gl::GLManager* gl_manager, gl::WInputContext* gl_context);
     ~VKCore();
     VKCore(VKCore&& other) noexcept;
@@ -51,9 +72,21 @@ public:
     VkQueue graphics_queue = nullptr;
     uint32_t graphics_queue_family = 0;
 };
+
+/**
+* @class Alloc
+* @brief Logical abstraction of vma allocator with RAII.
+* @author Spencer Banasik
+* @details Contains a vma allocator with the rule of 5.
+* Copying is not permitted, but has move operations available.
+*/
 class Alloc {
 public:
     
+    /**
+    * @brief Construct the allocator with information from VKCore.
+    * @author Spencer Banasik
+    */
     Alloc(VKCore* core) {
         VmaAllocatorCreateInfo allocator_info = {};
         allocator_info.physicalDevice = core->gpu;
