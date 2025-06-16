@@ -63,7 +63,7 @@ enum class WindowType {
 
 /**
 * @struct Key
-* @brief @b TODO!!!!
+* @brief Structure for keyboard input, containing the key itself, the action of the keyboard, and any modifiers (shift, ctrl, etc.).
 * @author Spencer Banasik
 */
 struct Key {

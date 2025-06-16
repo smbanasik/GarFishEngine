@@ -3,7 +3,7 @@
 * @brief File that contains mouse WInput module.
 * @author Spencer Banasik
 * @date Created: 1/1/2025
-* @date Last Modified: 6/15/2025
+* @date Last Modified: 6/16/2025
 */
 #ifndef GL_MOUSE_HPP
 #define GL_MOUSE_HPP
@@ -110,7 +110,7 @@ private:
     static void callback_movement(GLFWwindow* window, double xpos, double ypos);
 
     /**
-    * @brief Calls the user added callback.
+    * @brief Calls the user added mouse movement callback.
     * @author Spencer Banasik
     * @private
     */
