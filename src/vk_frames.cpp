@@ -10,6 +10,8 @@
 #include <vk_initializers.hpp>
 #include <vk_types.hpp>
 
+#include <iostream>
+
 gf::vk_frames::SwapChain::SwapChain(vk_core::VKCore* core, uint32_t width, uint32_t height)
     : core_handle(core) {
     remake_swapchain(width, height);

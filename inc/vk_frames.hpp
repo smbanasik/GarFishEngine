@@ -25,7 +25,8 @@ namespace vk_frames {
 
 /**
 * @brief Nubmer of frames used in rendering pipeline.
-* @todo Need to explain this better.
+* @details Setting this variable to two acts as a double-buffer for the 
+* commands, allowing us to draw while a command buffer is being executed.
 */
 constexpr uint8_t FRAME_OVERLAP = 2;
 /**
@@ -69,6 +70,10 @@ public:
 
     /**
     * @brief Swapchain handle.
+    * @details A structure with some images we can draw to and then display on screen.
+    * Unique to different platforms, hence the KHR suffix. Must be recreated if 
+    * a window is resized. It holds a list of images and image-views, accessabile with
+    * swapchain_images and swapchain_image_vies
     */
     VkSwapchainKHR swapchain{};
 

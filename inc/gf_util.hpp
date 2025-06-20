@@ -14,6 +14,12 @@
 
 namespace gf {
 namespace util {
+/**
+ * @brief A reference counter
+ * @author Spencer Banasik
+ * @details My implementation of a reference counter, which
+ * would be something similar to that in a shared pointer.
+ */
 class RefCounter {
 public:
 
@@ -48,6 +54,11 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Returns whether it is safe to delete associated resource.
+     * @author Spencer Banasik
+     * @returns A boolean on if there is only one reference or not.
+     */
     bool can_delete_resources() const {
         if (counter != nullptr && *counter == 1) // If counter is null somehow, it means resources were moved.
             return true;

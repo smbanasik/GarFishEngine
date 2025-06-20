@@ -25,6 +25,14 @@ namespace vk_frames {
 class ImmediateFrame;
 }
 namespace vk_img {
+/**
+* @class ImageBufferAllocator
+* @brief An allocator which creates AllocatedImage and AllocatedBuffer objects.
+* @author Spencer Banasik
+* @todo Implement details
+* @related AllocatedImage
+* @related AllocatedBuffer
+*/
 class ImageBufferAllocator {
     friend struct AllocatedImage;
     friend struct AllocatedBuffer;
@@ -46,7 +54,14 @@ private:
     vk_frames::ImmediateFrame* imm_handle;
 };
 
-// All data for an image bundled together
+/**
+ * @struct AllocatedImage
+ * @brief Contains all necessary data to allocate an image.
+ * @author Spencer Banasik
+ * @details A RAII wrapper of an image, it's view, it's allocation,
+ * and data with the image. AllocatedImages are reference counted,
+ * similar to shared pointers.
+ */
 struct AllocatedImage {
     VkImage image;
     VkImageView image_view;
@@ -106,7 +121,15 @@ struct AllocatedImage {
             allocator->destroy_image(*this);
     }
 };
-// Data for a buffer and it's vma info
+
+/**
+ * @struct AllocatedImage
+ * @brief Contains all necessary data to allocate a buffer.
+ * @author Spencer Banasik
+ * @details A RAII wrapper of a buffer, it's allocation,
+ * and additional info. AllocatedBuffers are reference counted,
+ * similar to shared pointers.
+ */
 struct AllocatedBuffer {
     VkBuffer buffer;
     VmaAllocation allocation;

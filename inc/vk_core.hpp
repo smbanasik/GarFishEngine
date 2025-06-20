@@ -64,12 +64,42 @@ public:
     VKCore(VKCore& other) = delete;
     VKCore& operator=(VKCore& other) = delete;
 
+    /**
+     * @brief Vulkan API context.
+     * @details Handles instance extensions, logging, validation layers, and so on.
+     * This is the substitute for global state, since Vulkan has none.
+     */
     VkInstance instance = nullptr;
+
+    /**
+     * @brief A representation of a physical GPU.
+     * @details With the VKInstance, we can query the system for GPUs.
+     * The GPU and it's physical capabilities are present here
+     */
     VkPhysicalDevice gpu = nullptr;
+
+    /**
+     * @brief The driver of the GPU.
+     * @details Logical representation of the GPU, specifically it's driver.
+     * Created with a list of extensions we're enabling, this is how we actually
+     * communicate with the GPU.
+     */
     VkDevice device = nullptr;
+
+    /**
+     * @brief Window surface that Vulkan renders to.
+     */
     VkSurfaceKHR surface = nullptr;
+
+    
     VkDebugUtilsMessengerEXT debug_messenger = nullptr;
+
+    /**
+     * @brief Entrypoint for execution commands on GPU.
+     */
     VkQueue graphics_queue = nullptr;
+    
+    
     uint32_t graphics_queue_family = 0;
 };
 
@@ -110,9 +140,8 @@ public:
     Alloc(Alloc& other) = delete;
     Alloc& operator=(Alloc& other) = delete;
     
+    // TODO: documentation for this
     VmaAllocator allocator = nullptr;
-
-
 };
 
 
