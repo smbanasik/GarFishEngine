@@ -27,23 +27,51 @@
 
 #include <vulkan/vulkan.h>
 
-// TODO: revamp this once we get into pipelines and full on shader usage
-
 namespace gf {
 namespace vk_desc {
-// Builder for descriptor layouts, which are a pack of bindings for a shader
+/**
+ * struct DescriptorLayoutBuilder
+ * @brief Builter for a description layout.
+ * @details Holds an array of bindings until it is built.
+ * Once built it produces a descriptor set layout.
+ */
 struct DescriptorLayoutBuilder {
     std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+    /**
+     * @brief Add a binding to the layout builder.
+     * @param location The binding number for the shader.
+     * @param type The data type of the descriptor.
+     */
     void add_binding(uint32_t location, VkDescriptorType type);
+
+    /**
+     * @brief Clear the bindings of the builder.
+     */
     void clear();
+
+    /**
+     * @brief Construct a VkDescriptorSetLayout with the parameters and bindings.
+     * @param device The device to create the descriptor set with.
+     * @param shader_stages Which shaders the layout will be used in.
+     * @param pNext Optional for addons
+     * @param flags Additional configuration for the descriptor set.
+     * @returns A usable VkDescriptorSetLayout
+     */
     VkDescriptorSetLayout build(VkDevice device, VkShaderStageFlags shader_stages, void* pNext = nullptr, VkDescriptorSetLayoutCreateFlags flags = 0);
 };
 
-// Abstraction of VkDescriptorPool so we can have multiple that are specialized for what we want to do
-// TODO: RAII this
-// TODO: also review function further
+/**
+ * @struct DescriptorAllocator
+ * @brief An abstraction of VkDescriptorPool to allocate descriptors.
+ * @todo This should feature RAII.
+ */
 struct DescriptorAllocator {
 
+    /**
+     * @struct PoolSizeRatio
+     * @brief Specifies a type and the ratio (out of 1.0) for that type.
+     */
     struct PoolSizeRatio {
         VkDescriptorType type;
         float ratio;
@@ -51,6 +79,12 @@ struct DescriptorAllocator {
 
     VkDescriptorPool pool;
 
+    /**
+     * @brief Initalize a VkDescriptorPool with 
+     * @param device Driver that the pool belongs to.
+     * @param maxSets The maximum number of descriptor sets.
+     * @param pool_ratios Ratios (that should add up to 1.0) for the types of descriptor sets.
+     */
     void init_pool(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> pool_ratios);
     void clear_descriptors(VkDevice device);
     void destroy_pool(VkDevice device);

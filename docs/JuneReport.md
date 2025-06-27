@@ -12,6 +12,7 @@ Below is a list of things that I'm unahppy with and should be addressed before I
 immediate frames should be moved to the renderer class.
   - We should consider the scope of the renderer class, what is it doing besides holding our frame data and swapchain?
 - The relationship between the ImageBufferAllocator and its allocations should be reworked, see the Later section
+  - We should let the allocator handle deallocation and allow for the allocator to clear them early.
 - namespacing (see doxygen)
 - Remove last modified and date created
 - Convert IBaseMaterial into RAII with a protected parameterized base class.
@@ -30,6 +31,9 @@ immediate frames should be moved to the renderer class.
   - The types in vk_renderable may need to be adjusted?
   - More clarity on engine_types, gf_types, vk_types, and gf_util
 - gf_err and gf_options should be put on hold and potentially removed for the time being.
+- There is an anti-pattern appearing where a class will have a VkDevice pointer as a private member variable since it's often needed for the destructor. This will result in many references all to the same address. Is there a way we can minimize this?
+  - One option is static members, since we'll *rarely* need more than one VkDevice or VkCore.
+  - Resource managers could be used to do this, but we run into a similar issue.
 
 ## Later
 

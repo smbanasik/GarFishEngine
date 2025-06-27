@@ -51,9 +51,11 @@ struct IBaseMaterial {
      * and build the descriptor layout here. These will go into the pipeline layout as apart of its descriptor
      * layouts. Once those are made, the pipelines can be built and the shaders may be destroyed.
      * 
-     * @note On VkPipeline
+     * @note On VkPipeline, these describe what configurations and shaders to run for a given object. These are fairly
+     * expensive to use so limiting the amount of pipelines we create is good!
      * 
-     * @note On VkShaderModule, these are processed shader files which are pre-compiled.
+     * @note On VkShaderModule, these are processed shader files which are pre-compiled, which provide the GPU with
+     * our shader programs.
      */
     virtual void build_pipelines(VkManager* engine) = 0;
 
