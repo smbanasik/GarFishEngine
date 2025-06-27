@@ -140,7 +140,12 @@ public:
     Alloc(Alloc& other) = delete;
     Alloc& operator=(Alloc& other) = delete;
     
-    // TODO: documentation for this
+    /**
+     * @brief Allocator from VMA
+     * @details VMA is an easy way to avoid creating our own method of
+     * allocating objects in vulkan, which can be very error prone.
+     * This is used to allocate vulakn objects such as images and buffers.
+     */
     VmaAllocator allocator = nullptr;
 };
 

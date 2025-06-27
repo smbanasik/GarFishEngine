@@ -1,8 +1,10 @@
-// Spencer Banasik
-// Created: 12/17/2024
-// Last Modified: 1/10/2025
-// Description:
-// Holds information for images and buffers
+/**
+* @file
+* @brief File that contains abstractions related to the Images and Buffers.
+* @author Spencer Banasik
+* @date Created: 12/17/2024
+* @date Last Modified: 6/16/2025
+*/
 #ifndef VK_IMAGES_HPP
 #define VK_IMAGES_HPP
 #include <utility>

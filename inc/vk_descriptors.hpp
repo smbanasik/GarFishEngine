@@ -1,8 +1,10 @@
-// Spencer Banasik
-// Created: 12/27/2024
-// Last Modified: 12/30/2024
-// Description:
-// Data types for handling descriptors
+/**
+* @file
+* @brief File that contains mouse WInput module.
+* @author Spencer Banasik
+* @todo This file has some structs that could use RAII.
+* @todo Move descriptor discussion here to other places
+*/
 #ifndef VK_DESCRIPTORS_HPP
 #define VK_DESCRIPTORS_HPP
 #include <vector>

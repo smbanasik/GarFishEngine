@@ -2,7 +2,7 @@
 * @file
 * @brief File that contains abstractions related to the SwapChain and frames.
 * @author Spencer Banasik
-* @date Created: 12/7/2024
+* @date Created: 12/17/2024
 * @date Last Modified: 6/16/2025
 */
 #ifndef VK_FRAMES_HPP
@@ -128,12 +128,13 @@ public:
     FrameData& operator=(FrameData& other) = delete;
 
     /**
-     * @brief An array of frames that are used to feed the swapchain.
+     * @brief Array of Frames, which hold draw and synchronization structures
      */
     std::array<Frame, FRAME_OVERLAP> active_frames;
 private:
     vk_core::VKCore* core_handle;
 };
+
 // A RAII structure containing what's needed for immediate submission to the GPU
 // Can only be moved, not copied.
 class ImmediateFrame {
