@@ -4,6 +4,19 @@
 * @author Spencer Banasik
 * @todo This file has some structs that could use RAII.
 * @todo Move descriptor discussion here to other places
+* @note ## On Descriptors
+* Descriptors are how Vulkan provides data to shaders. You can note in a shader's 
+* source code that they have set and binding layouts for input. On the C++ side, these are
+* our descriptor sets. A descriptor is a handle to a resource such as a buffer or an image, along
+* with some additional info such as it's size or type. 
+* 
+* A VkDescriptorSet is a group of these handles bound together for a shader. 
+* VkDescriptorSets are allocated via a VkDescriptorPool (similar to command buffers and command pools),
+* and are defined by a VkDescriptorLayout (think of the layout as a class, and the set as an object),
+* which specifies what the set will hold. Once the VkDescriptorSet is defined, it is bound to a 
+* pipeline using VkBindDescriptorSets.
+* 
+* The spec guarantees 4 sets, but each set slot has a cost, so less is better.
 */
 #ifndef VK_DESCRIPTORS_HPP
 #define VK_DESCRIPTORS_HPP
