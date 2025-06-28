@@ -10,15 +10,22 @@ Below is a list of things that I'm unahppy with and should be addressed before I
 **Addendum:** The core issues here come from a general file structure and scope of each file. Before we  address the issues below, let's solve this.  
 
 We need to:
-- Reconsider our file prefixes and groupings, potentially swapping to a folder structure instead of a flat one.
-- Reconsider the scope of some files and classes within the files.
-- Adjust the file types to match more closely what they cover.
+- [x] Reconsider our file prefixes and groupings, potentially swapping to a folder structure instead of a flat one.
+- [ ] Reconsider the scope of some files and classes within the files.
+- [ ] Adjust the file types to match more closely what they cover.
 
 **Addendum Solution:**
 - File names
   - Rename all gl\_\* files to WI for WindowInput and change the GLManager class to WIManager
   - Start using directories but keep it flat
     - Use file prefixes for namespacing, use folders to GLOB_RECURSE into groups
+    - Why keep flat? To keep #includes short and directory independent in the code.
+- File Scopes
+  - VulKan Low (resource managers, abstractions of vulkan concepts, etc.)
+  - VulKan High (materials, etc.)
+  - Window Input
+  - GarFish (universally used everywhere, base engine)
+  - GarFish User (types aimed at end user)
 
 ### The list itself
 

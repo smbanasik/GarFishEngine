@@ -3,7 +3,7 @@ set(DIR_GF ${CMAKE_CURRENT_SOURCE_DIR}/garfish)
 set(DIR_GFU ${CMAKE_CURRENT_SOURCE_DIR}/garfish_user)
 set(DIR_VKL ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_low)
 set(DIR_VKH ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_high)
-set(DIR_OTH ${CMAKE_CURRENT_SOURCE_DIR}/other)
+set(DIR_OTH ${CMAKE_CURRENT_SOURCE_DIR}/common)
 
 file(GLOB_RECURSE HEADER_WI
     "${DIR_WI}/*.hpp"
@@ -52,8 +52,8 @@ source_group("VulkanLow Headers" FILES ${HEADER_VKL})
 source_group("VulkanLow Sources" FILES ${SOURCE_VKL})
 source_group("VulkanHigh Headers" FILES ${HEADER_VKH})
 source_group("VulkanHigh Sources" FILES ${SOURCE_VKH})
-source_group("Other Headers" FILES ${HEADER_OTH})
-source_group("WInput Sources" FILES ${SOURCE_OTH})
+source_group("Common Headers" FILES ${HEADER_OTH})
+source_group("Common Sources" FILES ${SOURCE_OTH})
 
 set(SOURCES 
     ${SOURCE_WI}
