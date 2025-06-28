@@ -27,6 +27,10 @@ namespace gf {
 class VkManager;
 namespace vk_loader {
 
+/**
+ * @struct LoadedGLTF
+ * @brief A GLTF scene.
+ */
 class LoadedGLTF : public vk_render::IRenderable {
 public:
     std::unordered_map<std::string, std::shared_ptr<vk_render::MeshAsset>> meshes;
