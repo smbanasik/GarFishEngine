@@ -15,6 +15,7 @@ immediate frames should be moved to the renderer class.
   - We should let the allocator handle deallocation and allow for the allocator to clear them early.
 - namespacing (see doxygen)
 - Remove last modified and date created
+- params should have [in], [out], and [in,out]
 - Convert IBaseMaterial into RAII with a protected parameterized base class.
 - Move @details below @param and @returns
 - More file categories (lower vulkan & higher vulkan)
@@ -40,6 +41,8 @@ immediate frames should be moved to the renderer class.
 Text rendering should come after documentation.
 Shortly after text rendering, I should redo the camera implementation.
 After that, I'd like to take a look at making realistic skies with gradients.
+
+Additionally, creating different options for uniform buffers and storage buffers could be useful.
 
 ### WInput:
 The current use of friends and context pointers is a little annoying. I need to find a way to have a

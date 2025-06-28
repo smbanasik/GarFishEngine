@@ -86,12 +86,33 @@ struct DescriptorAllocator {
      * @param pool_ratios Ratios (that should add up to 1.0) for the types of descriptor sets.
      */
     void init_pool(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> pool_ratios);
+
+    /**
+     * @brief Clear the allocated descriptors sets.
+     * @param device Driver that the descriptor sets belong to.
+     */
     void clear_descriptors(VkDevice device);
+
+    /**
+     * @brief Destroys the pool.
+     * @param device Driver that the pool belongs to.
+     */
     void destroy_pool(VkDevice device);
 
+    /**
+     * @brief Given a layout and a device, produce a VkDescriptor Set.
+     * @param device The driver that the pool belongs to.
+     * @param layout The layout specifying the set.
+     * @return A descriptor set ready to recieve handles according to the layout.
+     */
     VkDescriptorSet allocate(VkDevice device, VkDescriptorSetLayout layout);
 };
 
+/**
+ * @struct DescriptorAllocatorGrowable
+ * @brief A growable allocator with multiple pools.
+ * @todo This should feature RAII.
+ */
 struct DescriptorAllocatorGrowable {
     struct PoolSizeRatio {
         VkDescriptorType type;
@@ -113,6 +134,14 @@ private:
     uint32_t sets_per_pool;
 };
 
+/**
+ * @struct DescriptorWriter
+ * @brief An interface to simplify the process of writing to descriptors.
+ * @todo Interface could use some work, this doesn't need to be all public.
+ * @todo ensure we document every function
+ * @details Use the write_image and write_buffer functions to add to the list of writes.
+ * Once completed, use update_set to update the descriptor set.
+ */
 struct DescriptorWriter {
     std::deque<VkDescriptorImageInfo> image_infos;
     std::deque<VkDescriptorBufferInfo> buffer_infos;

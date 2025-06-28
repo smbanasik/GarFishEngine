@@ -1,8 +1,8 @@
-// Spencer Banasik
-// Created: 12/28/2024
-// Last Modified: 12/30/2024
-// Description:
-// Code for vulkan pipelines
+/**
+* @file
+* @brief Contains the set of functions relevant for pipelines and shaders
+* @author Spencer Banasik
+*/
 #ifndef VK_PIPELINES_HPP
 #define VK_PIPELINES_HPP
 
@@ -13,8 +13,22 @@
 namespace gf {
 namespace vk_pipe {
 
+/**
+ * @brief Creates a VKShaderModule from a compiled shader.
+ * @param file_path [in] Path to shader module.
+ * @param device [in] Device shader is related to.
+ * @param shader_module [out] A reference to the shader module which will be modified.
+ * @returns Whether the operation was successful or not
+ */
 bool load_shader_module(const char* file_path, VkDevice device, VkShaderModule* shader_module);
 
+/**
+ * @class PipelineBuilder
+ * @brief Configures a VkPipeline with method functions.
+ * @details As opposed to compute pipelkines, graphics pipelines have many 
+ * options that need to be selected, wth multiple info objects needing to 
+ * be created and defined before the pipeline is ready.
+ */
 class PipelineBuilder {
 public:
     std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
@@ -32,8 +46,18 @@ public:
         clear();
     }
 
+    /**
+     * @brief Reset parameters to default state.
+     */
     void clear();
+
+    /**
+     * @brief Build the pipeline with the given parameters.
+     * @param [in] device Logical device to create the pipelines
+     * @returns A created VkPipeline.
+     */
     VkPipeline build_pipeline(VkDevice device);
+
     PipelineBuilder& set_shaders(VkShaderModule vertex, VkShaderModule frag);
     PipelineBuilder& set_input_topology(VkPrimitiveTopology topology);
     PipelineBuilder& set_polygon_mode(VkPolygonMode mode);
