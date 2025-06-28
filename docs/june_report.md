@@ -14,6 +14,12 @@ We need to:
 - Reconsider the scope of some files and classes within the files.
 - Adjust the file types to match more closely what they cover.
 
+**Addendum Solution:**
+- File names
+  - Rename all gl\_\* files to WI for WindowInput and change the GLManager class to WIManager
+  - Start using directories but keep it flat
+    - Use file prefixes for namespacing, use folders to GLOB_RECURSE into groups
+
 ### The list itself
 
 - vk_images should be renamed

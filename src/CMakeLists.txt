@@ -1,3 +1,69 @@
+set(DIR_WI ${PROJECT_SOURCE_DIR}/window_input)
+set(DIR_GF ${PROJECT_SOURCE_DIR}/garfish)
+set(DIR_GFU ${PROJECT_SOURCE_DIR}/garfish_user)
+set(DIR_VKL ${PROJECT_SOURCE_DIR}/vulkan_low)
+set(DIR_VKH ${PROJECT_SOURCE_DIR}/vulkan_high)
+set(DIR_OTH ${PROJECT_SOURCE_DIR}/other)
+
+file(GLOB_RECURSE HEADER_WI
+    "${DIR_WI}/*.hpp
+)
+file(GLOB_RECURSE SOURCE_WI
+    "${DIR_WI}/*.cpp
+)
+file(GLOB_RECURSE HEADER_GF
+    "${DIR_GF}/*.hpp
+)
+file(GLOB_RECURSE SOURCE_GF
+    "${DIR_GF}/*.cpp
+)
+file(GLOB_RECURSE HEADER_GFU
+    "${DIR_GFU}/*.hpp
+)
+file(GLOB_RECURSE SOURCE_GFU
+    "${DIR_GFU}/*.cpp
+)
+file(GLOB_RECURSE HEADER_VKL
+    "${DIR_VKL}/*.hpp
+)
+file(GLOB_RECURSE SOURCE_VKL
+    "${DIR_VKL}/*.cpp
+)
+file(GLOB_RECURSE HEADER_VKH
+    "${DIR_VKH}/*.hpp
+)
+file(GLOB_RECURSE SOURCE_VKH
+    "${DIR_VKH}/*.cpp
+)
+file(GLOB_RECURSE HEADER_OTH
+    "${DIR_OTH}/*.hpp
+)
+file(GLOB_RECURSE SOURCE_OTH
+    "${DIR_OTH}/*.cpp
+)
+source_group("WindowInput Headers" FILES ${HEADER_WI})
+source_group("WindowInput Sources" FILES ${SOURCE_WI})
+source_group("GarFish Headers" FILES ${HEADER_GF})
+source_group("GarFish Sources" FILES ${SOURCE_GF})
+source_group("GarFishUser Headers" FILES ${HEADER_GFU})
+source_group("GarFishUser Sources" FILES ${SOURCE_GFU})
+source_group("VulkanLow Headers" FILES ${HEADER_VKL})
+source_group("VulkanLow Sources" FILES ${SOURCE_VKL})
+source_group("VulkanHigh Headers" FILES ${HEADER_VKH})
+source_group("VulkanHigh Sources" FILES ${SOURCE_VKH})
+source_group("Other Headers" FILES ${HEADER_OTH})
+source_group("WInput Sources" FILES ${SOURCE_OTH})
+
+#target_include_directories(garfish PUBLIC 
+    "${DIR_WI}"
+    "${DIR_GF}"
+    "${DIR_GFU}"
+    "${DIR_VKL}"
+    "${DIR_VKH}"
+    "${DIR_OTH}"
+)
+
+
 set(HEADER_DIR ${PROJECT_SOURCE_DIR}/inc)
 set(HEADERS 
 ${HEADER_DIR}/engine.hpp
