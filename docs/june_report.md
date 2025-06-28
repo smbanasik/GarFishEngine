@@ -15,9 +15,9 @@ immediate frames should be moved to the renderer class.
   - We should let the allocator handle deallocation and allow for the allocator to clear them early.
 - namespacing (see doxygen)
 - Remove last modified and date created
-- params should have [in], [out], and [in,out]
+- params should have \[in], \[out], and \[in,out]
 - Convert IBaseMaterial into RAII with a protected parameterized base class.
-- Move @details below @param and @returns
+- Move \@details below \@param and \@returns
 - More file categories (lower vulkan & higher vulkan)
   - lower vulkan implies very low level vulkan, defining our graphics API
   - higher vulkan would imply higher level library functions, using our graphics API with vulkan.
