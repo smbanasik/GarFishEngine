@@ -74,6 +74,10 @@ gf::text::TextManager::TextManager(gf::VkManager* engine, vk_img::ImageBufferAll
     assert(singleton == nullptr);
     singleton = this;
     
+    text_material = nullptr;
+    text_desc_allocator = nullptr;
+    creator = nullptr;
+
     FT_Init_FreeType(&ft_lib);
 }
 gf::text::TextManager::~TextManager() {

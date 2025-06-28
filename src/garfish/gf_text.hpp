@@ -12,11 +12,11 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-#include <vk_images.hpp>
-#include <gf_types.hpp>
+#include <vkl_images.hpp>
+#include <gfu_types.hpp>
 #include <gf_resource_manager.hpp>
-#include <vk_renderable.hpp>
-#include <vk_materials.hpp>
+#include <vkh_renderable.hpp>
+#include <vkh_materials.hpp>
 
 // TEMPORARY DOC:
 // TextManager - initializes the library, stores fonts and owns text boxes(?).

@@ -10,7 +10,7 @@
 #include <string>
 #include <memory>
 
-#include <gf_types.hpp>
+#include <gfu_types.hpp>
 
 namespace gf {
 class VkManager;

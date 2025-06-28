@@ -16,25 +16,25 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
-#include <engine_types.hpp>
-#include <vk_types.hpp>
-#include <vk_core.hpp>
-#include <vk_descriptors.hpp>
-#include <vk_pipelines.hpp>
-#include <vk_loader.hpp>
-#include <vk_materials.hpp>
-#include <vk_renderable.hpp>
-#include <vk_frames.hpp>
-#include <vk_images.hpp>
-#include <gf_types.hpp>
+#include <com_engine_types.hpp>
+#include <vkl_types.hpp>
+#include <vkl_core.hpp>
+#include <vkl_descriptors.hpp>
+#include <vkl_pipelines.hpp>
+#include <vkh_loader.hpp>
+#include <vkh_materials.hpp>
+#include <vkh_renderable.hpp>
+#include <vkl_frames.hpp>
+#include <vkl_images.hpp>
+#include <gfu_types.hpp>
 #include <gf_resource_manager.hpp>
 #include <gf_text.hpp>
 
 struct GLFWwindow;
 
 namespace gf {
-namespace gl {
-class GLManager;
+namespace wi {
+class WIManager;
 class WInputContext;
 struct Key;
 }
@@ -58,9 +58,9 @@ struct Camera {
     glm::mat4 get_view_matrix();
     glm::mat4 get_rotation_matrix();
 
-    static void glfw_camera_callback(gl::WInputContext* context, gl::Key* key);
-    static void glfw_camera_mouse(gl::WInputContext* context);
-    static void mouse_swap(gl::WInputContext* context, gl::Key* key);
+    static void glfw_camera_callback(wi::WInputContext* context, wi::Key* key);
+    static void glfw_camera_mouse(wi::WInputContext* context);
+    static void mouse_swap(wi::WInputContext* context, wi::Key* key);
 
     void update();
 };
@@ -131,7 +131,7 @@ public:
      * @param [in] gl_context Provides the window to attach the surface to.
      * @todo Change the surface and context setup to not require the manager.
      */
-    VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context);
+    VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context);
     
     ~VkManager();
 

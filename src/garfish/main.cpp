@@ -4,7 +4,7 @@
 // Description:
 // This serves as the entry point to the engine
 
-#include <engine.hpp>
+#include <gf_engine.hpp>
 
 int main(int argc, char* argv[]) {
     

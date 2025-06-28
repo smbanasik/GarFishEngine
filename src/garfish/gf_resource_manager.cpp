@@ -3,8 +3,8 @@
 // Last Modified: 1/14/2025
 #include <gf_resource_manager.hpp>
 
-#include <vk_images.hpp>
-#include <vk_loader.hpp>
+#include <vkl_images.hpp>
+#include <vkh_loader.hpp>
 
 gf::Texture* gf::ImageManager::add_texture(const std::string& texture_name, const gf::Texture& texture) {
     textures[texture_name] = texture;

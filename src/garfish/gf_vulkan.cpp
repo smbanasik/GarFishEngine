@@ -25,12 +25,12 @@
 #include <glm/gtx/quaternion.hpp>
 #include <stb_image.h>
 
-#include <vk_initializers.hpp>
-#include <engine_types.hpp>
-#include <vk_types.hpp>
-#include <vk_descriptors.hpp>
-#include <vk_images.hpp>
-#include <gl_manager.hpp>
+#include <vkl_initializers.hpp>
+#include <com_engine_types.hpp>
+#include <vkl_types.hpp>
+#include <vkl_descriptors.hpp>
+#include <vkl_images.hpp>
+#include <wi_manager.hpp>
 // TEMPORARY
 #include <vulkan/vk_enum_string_helper.h>
 #define VK_CHECK(x)                                                     \
@@ -83,9 +83,9 @@ bool is_visible(const gf::RenderObject & obj, const glm::mat4 & viewproj) {
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 
-gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context)
-    : core(&gl_manager, &gl_context), alloc(&core),
-    swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
+gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context)
+    : core(&wi_manager, &wi_context), alloc(&core),
+    swapchain(&core, wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height),
     frame_data(&core), 
     imm_frame(&core), 
     img_buff_allocator(&core, &alloc, &imm_frame),
@@ -102,10 +102,10 @@ gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_contex
     assert(loaded_vk == nullptr);
     loaded_vk = this;
 
-    init_swapchain(gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height);
+    init_swapchain(wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height);
     init_descriptors();
     init_pipelines();
-    init_imgui(gl_manager.get_window(&gl_context));
+    init_imgui(wi_manager.get_window(&wi_context));
     init_default_data();
 
     std::string structurePath = { "..\\..\\assets\\structure.glb" };
@@ -599,7 +599,7 @@ glm::mat4 gf::Camera::get_rotation_matrix() {
     return glm::toMat4(yaw_rotation) * glm::toMat4(pitch_rotation);
 }
 
-void gf::Camera::glfw_camera_callback(gl::WInputContext* context, gl::Key* key) {
+void gf::Camera::glfw_camera_callback(wi::WInputContext* context, wi::Key* key) {
     
     if (key->action == GLFW_PRESS) {
         switch (key->key) {
@@ -635,16 +635,16 @@ void gf::Camera::glfw_camera_callback(gl::WInputContext* context, gl::Key* key) 
     }
 }
 
-void gf::Camera::glfw_camera_mouse(gl::WInputContext* context) {
+void gf::Camera::glfw_camera_mouse(wi::WInputContext* context) {
     if (mouse_enabled)
         return;
     if (context->mouse.first_mouse) {
-        gl::Double2D new_pos = context->mouse.get_mouse_coords();
+        wi::Double2D new_pos = context->mouse.get_mouse_coords();
         yaw = static_cast<float>(new_pos.x);
         pitch = static_cast<float>(new_pos.y);
         context->mouse.first_mouse = false;
     }
-    gl::Double2D offsets = context->mouse.get_mouse_offset();
+    wi::Double2D offsets = context->mouse.get_mouse_offset();
 
     yaw += static_cast<float>(offsets.x) * 0.00075;
     pitch -= static_cast<float>(offsets.y) * 0.00075;
@@ -655,7 +655,7 @@ void gf::Camera::update() {
     position += glm::vec3(camera_rotation * glm::vec4(velocity * 0.25f, 0.f));
 }
 
-void gf::Camera::mouse_swap(gl::WInputContext* context, gl::Key* key) {
+void gf::Camera::mouse_swap(wi::WInputContext* context, wi::Key* key) {
     if (key->action == GLFW_PRESS)
         mouse_enabled = !mouse_enabled;
     
