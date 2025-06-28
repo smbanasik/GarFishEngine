@@ -1,8 +1,8 @@
-// Spencer Banasik
-// Created: 12/15/2024
-// Last Modified: 12/18/2024
-// Description:
-// Contains various types and helper functions for the engine
+/**
+* @file
+* @brief Types used by the engine.
+* @author Spencer Banasik
+*/
 #ifndef GF_ENGINE_TYPES_HPP
 #define GF_ENGINE_TYPES_HPP
 
@@ -13,14 +13,31 @@
 #include <glm/vec4.hpp>
 
 namespace gf {
-
-// Stores deletion functions, prefer deleting arrays in loops as opposed to storing callbacks like this
-// method does. Primarily used for cleaning up global resources
+/**
+ * @class DeletionStack
+ * @brief Pushes a set of deletor functions that are called.
+ * @author Spencer Banasik
+ * @todo Have deletors push_back and reverse iterate through the stack.
+ * @details A deletion stack is more useful than a deletion queue, since
+ * objects initialized first often needs to be deleted last.
+ * 
+ * @note Prefer having managers deleting objects via looping through an array as
+ * opposed to storing callbacks like this.
+ */
 class DeletionStack {
 public:
+
+    /**
+     * @brief Push a deletor function onto the stack.
+     * @param [in] function The function to be pushed.
+     */
     void push_function(std::function<void()> && function) {
         deletors.push_front(function);
     }
+
+    /**
+     * @brief Call every function on the stack
+     */
     void flush() {
         for (auto it = deletors.begin(); it != deletors.end(); it++) {
             (*it)();

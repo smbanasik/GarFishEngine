@@ -3,8 +3,6 @@
 * @brief Main engine header file.
 * @author Spencer Banasik
 * @details This file holds the main engine class.
-* @date Created: 12/14/2024
-* @date Last Modified: 6/16/2025
 */
 #ifndef GF_ENGINE_HPP
 #define GF_ENGINE_HPP
@@ -25,22 +23,45 @@ namespace gf {
 * @class Engine
 * @brief The main engine class.
 * @author Spencer Banasik
-* @details This class...
-* extend the class description...
-* @pre Vulkan can successfully initialize.
-* @post Every resource will be freed.
 */
 class Engine {
 public:
     Engine();
     ~Engine();
-    // Main Loop
+    
+    /**
+     * @brief Main loop of engine.
+     */
     void run();
 
-    Engine& get();
+    /**
+     * @brief Get the singleton.
+     * @returns A reference to the singleton.
+     */
+    static Engine& get();
+
+    /**
+     * @brief Return the current frame in use.
+     * @returns The current frame.
+     */
     Frame& get_current_frame() { return vk_context.frame_data.active_frames[frame_number % FRAME_OVERLAP]; }
+
+    /**
+     * @brief Get frame number.
+     * @returns The frame number. 
+     */
     uint64_t get_frame() { return frame_number; }
+
+    /**
+     * @brief Get the glfw context with this engine.
+     * @returns The glfw context.
+     */
     gl::WInputContext* get_glfw_context() { return &gl_context; }
+
+    /**
+     * @brief Get the vulkan context with this engine.
+     * @returns The vk context.
+     */
     VkManager* get_vk_context() { return &vk_context; };
 
     bool should_render = true;
@@ -59,8 +80,18 @@ private:
     uint64_t frame_number = 0;
     bool should_kill_game = false;
 
-    // Draw loop
+    /**
+     * @brief An additional draw function.
+     * @todo Provide more details.
+     */
     void draw();
+
+    /**
+     * @brief A draw function for imgui
+     * @param [in, out] cmd The command buffer to recieve draw commands.
+     * @param [in] image_view
+     * @todo Provide more details
+     */
     void draw_imgui(VkCommandBuffer cmd, VkImageView image_view);
 
     static Engine* loaded_engine;

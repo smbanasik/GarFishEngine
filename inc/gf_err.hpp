@@ -1,8 +1,8 @@
-// Spencer Banasik
-// Created: 1/06/2025
-// Last Modified: 1/06/2025
-// Description:
-// Primary structure for errors
+/**
+* @file
+* @brief An attempt at an error system, largeley incomplete. Low priority.
+* @author Spencer Banasik
+*/
 #ifndef GF_ERR_HPP
 #define GF_ERR_HPP
 

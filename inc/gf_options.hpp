@@ -1,9 +1,8 @@
-// Spencer Banasik
-// Created: 1/1/2025
-// Last Modified: 1/1/2025
-// Description:
-// An aggregate structure for options that could be
-// loaded in from a file
+/**
+* @file
+* @brief Engine options that could eventually be loaded in from a file.
+* @author Spencer Banasik
+*/
 #ifndef GF_OPTIONS_HPP
 #define GF_OPTIONS_HPP
 

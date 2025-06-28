@@ -1,8 +1,8 @@
-// Spencer Banasik
-// Created: 1/8/2025
-// Last Modified: 1/10/2025
-// Description:
-// Utility structures for the engine
+/**
+* @file
+* @brief Engine's utility structures.
+* @author Spencer Banasik
+*/
 #ifndef GF_UTIL_HPP
 #define GF_UTIL_HPP
 
@@ -76,10 +76,19 @@ private:
 
     uint32_t* counter;
 };
-// Grid
-// Given N,M, and T, create a percieved grid of type T and size NxM,
-// but stored contiguously. Resizing the row width will truncate.
-// Adding a row with insufficient elements is undefined.
+
+/**
+ * @class Grid
+ * @brief A container that provides a 2d interface with a contiguous backend.
+ * @author Spencer Banasik
+ * @tparam T The type of object stored in the grid. 
+ * @todo This class is probably incomplete, the interface should probably be made cleaner as well.
+ * @todo Right now, adding a row with insufficient elements is undefined. This shouldn't be allowed.
+ * @todo We may just want to make this a static array instead of growable.
+ * @details 2 dimensional arrays/vectors are often an array of objects that are 
+ * not related to one another and offer no guarantee of contiguity. In this case,
+ * we should create a 1 dimensional array and act as though it's 2 dimensional.
+ */
 template<typename T>
 class Grid {
 public:
