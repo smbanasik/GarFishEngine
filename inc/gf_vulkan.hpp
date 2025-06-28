@@ -133,9 +133,6 @@ public:
      */
     VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context);
     
-    /**
-     * @brief Should do nothing!
-     */
     ~VkManager();
 
     /**

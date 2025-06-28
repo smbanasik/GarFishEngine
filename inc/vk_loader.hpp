@@ -43,7 +43,7 @@ public:
 
     vk_desc::DescriptorAllocatorGrowable descriptor_pool;
     vk_img::AllocatedBuffer material_data_buffer;
-    VkManager* creator;
+    VkManager* creator = nullptr;
     ~LoadedGLTF() { clear_all(); };
 
     virtual void draw(const glm::mat4& top_matrix, vk_render::DrawContext& ctx);
