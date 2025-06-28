@@ -86,8 +86,11 @@ gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 gf::VkManager::VkManager(gl::GLManager& gl_manager, gl::WInputContext& gl_context)
     : core(&gl_manager, &gl_context), alloc(&core),
     swapchain(&core, gl_context.window.get_window_dims().width, gl_context.window.get_window_dims().height),
-    frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
-    engine_images(img_buff_allocator), text_manager(this, &img_buff_allocator),
+    frame_data(&core), 
+    imm_frame(&core), 
+    img_buff_allocator(&core, &alloc, &imm_frame),
+    engine_images(img_buff_allocator), 
+    text_manager(this, &img_buff_allocator),
 
     drawn_image(img_buff_allocator),
     depth_image(img_buff_allocator),
@@ -147,6 +150,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     stats.triangle_count = 0;
     auto start = std::chrono::system_clock::now();
     
+    // Setup for drawing
     vk_img::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
         gpu_scene_data_buffer.counter.can_delete_resources();
@@ -167,6 +171,8 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
     MaterialPipeline* last_pipeline = nullptr;
     MaterialInstance* last_material = nullptr;
     VkBuffer last_index_buffer = VK_NULL_HANDLE;
+
+    // Creation of draw function.
     auto draw = [&](const RenderObject& rendered) {
         if (rendered.material != last_material) {
             last_material = rendered.material;
@@ -207,6 +213,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
         stats.triangle_count += rendered.index_count / 3;
         };
 
+    // Actual drawing
     for (const RenderObject& r : main_draw_context.static_surfaces) {
         draw(r);
     }
