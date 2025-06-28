@@ -7,9 +7,17 @@ I'd want to address before moving forward, and some that can be addressed later.
 
 Below is a list of things that I'm unahppy with and should be addressed before I move on to adding text to the engine.
 
+**Addendum:** The core issues here come from a general file structure and scope of each file. Before we  address the issues below, let's solve this.  
+
+We need to:
+- Reconsider our file prefixes and groupings, potentially swapping to a folder structure instead of a flat one.
+- Reconsider the scope of some files and classes within the files.
+- Adjust the file types to match more closely what they cover.
+
+### The list itself
+
 - vk_images should be renamed
-- The renderer class in vk_frames should be completed and the reliance on VKCore for the swapchain, frame data, and 
-immediate frames should be moved to the renderer class.
+- The renderer class in vk_frames should be completed and the reliance on VKCore for the swapchain, frame data, and immediate frames should be moved to the renderer class.
   - We should consider the scope of the renderer class, what is it doing besides holding our frame data and swapchain?
 - The relationship between the ImageBufferAllocator and its allocations should be reworked, see the Later section
   - We should let the allocator handle deallocation and allow for the allocator to clear them early.
@@ -43,6 +51,7 @@ Shortly after text rendering, I should redo the camera implementation.
 After that, I'd like to take a look at making realistic skies with gradients.
 
 Additionally, creating different options for uniform buffers and storage buffers could be useful.
+Same goes for graphics and compute pipelines.
 
 ### WInput:
 The current use of friends and context pointers is a little annoying. I need to find a way to have a
