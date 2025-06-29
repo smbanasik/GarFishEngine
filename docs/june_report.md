@@ -12,23 +12,13 @@ Below is a list of things that I'm unahppy with and should be addressed before I
 We need to:
 - [x] Reconsider our file prefixes and groupings, potentially swapping to a folder structure instead of a flat one.
 - [ ] Reconsider the scope of some files and classes within the files.
-- [ ] Adjust the file types to match more closely what they cover.
+- [ ] Adjust the type files to match more closely what they cover.
 
 **Addendum Solution:**
-- File names
-  - Rename all gl\_\* files to WI for WindowInput and change the GLManager class to WIManager
-  - Start using directories but keep it flat
-    - Use file prefixes for namespacing, use folders to GLOB_RECURSE into groups
-    - Why keep flat? To keep #includes short and directory independent in the code.
-- File Scopes
-  - VulKan Low (resource managers, abstractions of vulkan concepts, etc.)
-  - VulKan High (materials, etc.)
-  - Window Input
-  - GarFish (universally used everywhere, base engine)
-  - GarFish User (types aimed at end user)
 
 ### The list itself
 
+- Remove global GF namespace since it does little.
 - vk_images should be renamed
 - The renderer class in vk_frames should be completed and the reliance on VKCore for the swapchain, frame data, and immediate frames should be moved to the renderer class.
   - We should consider the scope of the renderer class, what is it doing besides holding our frame data and swapchain?

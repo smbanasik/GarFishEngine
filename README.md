@@ -30,6 +30,9 @@ Required:
 - STB Image
 - FreeType
 
+Optional for Doxygen:
+- Graphviz
+
 ### Vulkan
 - Head to the [Vulkan website](https://vulkan.lunarg.com/sdk/home) and download. We're using Vulkan 1.3.296.0, run the installer.
 - Only the defaults are needed.
@@ -81,6 +84,11 @@ Required:
 - IMPORTANT
     - After you build the program, the .dll must be put into the directory with the .exe.
     - TODO: automate this.
+
+### Graphviz
+- Head to the [graphviz download](https://www.graphviz.org/download/) link.
+- Ensure the dot tool is in the path.
+- Doxygen will now generate useful diagrams. Learn more [here](https://www.doxygen.nl/manual/diagrams.html).
 
 ### Assets
 The `assets` folder is not included in the repository. Engine code that relies on these is likely there 
