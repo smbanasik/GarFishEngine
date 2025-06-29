@@ -15,10 +15,29 @@ We need to:
 - [ ] Adjust the type files to match more closely what they cover.
 
 **Addendum Solution:**
+- [ ] Remove gf namespace from most things
+- [ ] `com_engine_types` into it's own classes
+- [ ] `com_util` into it's own classes
+- [ ] Remove all `#includes` of `gf_err` for now
+- [ ] Split `gf_resource_manager` into it's own classes, remove reliance on GFU types
+- [ ] Avoid touching `gf_text` and `gf_vulkan` for now (these will be taken care of later)
+- [ ] Take textureatlas and create ImageAtlas, move to own vkh class
+- [ ] Split rename `vkh_loader` into `vkh_gltf`
+- [ ] Move `load_image_from_path` from `vkh_gltf` to another area
+- [ ] Split `vkh_materials` into interface and child classes
+- [ ] Move the DrawContext to wherever RenderObject is defined.
+- [ ] Move the bundles into RenderableTypes
+- [ ] Create some sort of render primatives file and put Quad into it
+- [ ] Split VkCore and Alloc into their own files
+- [ ] Split `vkl_descriptors`
+- [ ] Split `vkl_frames`
+- [ ] Split `vkl_images`
+- [ ] `vkl_initializers` is fine since declarations are free to `#include`
+- [ ] `vkl_pipelines` is fine
+- [ ] Split `vkl_types` into render types, compute types, and the rest can remain in `vkl_types`
 
 ### The list itself
 
-- Remove global GF namespace since it does little.
 - vk_images should be renamed
 - The renderer class in vk_frames should be completed and the reliance on VKCore for the swapchain, frame data, and immediate frames should be moved to the renderer class.
   - We should consider the scope of the renderer class, what is it doing besides holding our frame data and swapchain?

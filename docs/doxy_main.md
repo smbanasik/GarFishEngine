@@ -114,9 +114,18 @@ is ready.
 - [Doom Eternal Study](https://simoncoenen.com/blog/programming/graphics/DoomEternalStudy) - A look at the ways Doom Eternal utilizes the GPU
 - [Doom 2016 Study](https://www.adriancourreges.com/blog/2016/09/09/doom-2016-graphics-study/) - A look at how Doom 2016 handles rendering
 
-## Terms
+## Terminology
 
 Below is a list of terms that I may use in the documentation.  
 
-Bundle - A struct or class with the primary purpose of keeping related data together in one class,  
-optionally with an interface.  
+Bundle - A struct with the primary purpose of keeping related data together in one class. Does not have behavior associated with it. Always uses struct keyword.
+RAII Wrapper - A class with the primary purpose of providing Resource Acquisition Is Initiallization and the rule of 3/5/0 to a set of handles.
+
+
+## File Structure and Scope
+
+- Related functions/classes go into the same header file
+  - Really, bundles should be the only things appearing in a types file, *if* the bundles are all in the same scope.
+- Larger data structures go into their own header file (like std)
+- Prefer smaller header files, keep things related.
+- Every .cpp should have an associated .hpp
