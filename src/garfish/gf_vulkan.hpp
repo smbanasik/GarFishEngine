@@ -25,7 +25,9 @@
 #include <vkl_pipelines.hpp>
 #include <vkh_gltf.hpp>
 #include <t_imageatlas.hpp>
-#include <vkl_frames.hpp>
+#include <vkl_swapchain.hpp>
+#include <vkl_framedata.hpp>
+#include <vkl_imm_frame.hpp>
 #include <vkl_images.hpp>
 #include <gfu_types.hpp>
 #include <gf_resource_manager.hpp>
@@ -164,7 +166,7 @@ public:
      * @param [in, out] cmd Command buffer we push draw commands to.
      * @param [in, out] frame Descriptors and deletion info concerning the frame.
      */
-    void draw_geometry(VkCommandBuffer cmd, Frame* frame);
+    void draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame);
 
     /**
      * @brief Given some indices and vertices, create a GPUMeshBuffer.

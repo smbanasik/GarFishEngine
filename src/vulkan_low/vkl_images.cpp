@@ -13,7 +13,7 @@
 #include <vkl_types.hpp>
 #include <vkl_core.hpp>
 #include <vkl_alloc.hpp>
-#include <vkl_frames.hpp>
+#include <vkl_imm_frame.hpp>
 
 #include <vulkan/vk_enum_string_helper.h>
 #include <iostream>

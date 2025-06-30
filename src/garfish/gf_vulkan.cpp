@@ -148,7 +148,7 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
     vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
 }
 
-void gf::VkManager::draw_geometry(VkCommandBuffer cmd, Frame* frame) {
+void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame) {
     stats.drawcall_count = 0;
     stats.triangle_count = 0;
     auto start = std::chrono::system_clock::now();

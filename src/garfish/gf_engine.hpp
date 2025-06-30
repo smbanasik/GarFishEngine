@@ -43,7 +43,7 @@ public:
      * @brief Return the current frame in use.
      * @returns The current frame.
      */
-    Frame& get_current_frame() { return vk_context.frame_data.active_frames[frame_number % FRAME_OVERLAP]; }
+    vkl_frames::Frame& get_current_frame() { return vk_context.frame_data.active_frames[frame_number % FRAME_OVERLAP]; }
 
     /**
      * @brief Get frame number.

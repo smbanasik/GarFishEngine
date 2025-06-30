@@ -29,8 +29,9 @@ We need to:
 - [x] Create some sort of render primatives file and put Quad into it
 - [x] Split VkCore and Alloc into their own files
 - [x] Split `vkl_descriptors`
-- [ ] Split `vkl_frames`
+- [x] Split `vkl_frames`
 - [ ] Split `vkl_images`
+- [ ] Redo file types
 - [ ] `vkl_initializers` is fine since declarations are free to `#include`
 - [ ] `vkl_pipelines` is fine
 - [ ] Split `vkl_types` into render types, compute types, and the rest can remain in `vkl_types`
