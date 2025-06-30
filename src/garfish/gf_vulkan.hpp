@@ -21,7 +21,7 @@
 #include <vkl_types.hpp>
 #include <vkl_core.hpp>
 #include <vkl_alloc.hpp>
-#include <vkl_descriptors.hpp>
+#include <t_desc_allocgrow.hpp>
 #include <vkl_pipelines.hpp>
 #include <vkh_gltf.hpp>
 #include <t_imageatlas.hpp>
@@ -82,7 +82,7 @@ public:
     vkl_frames::FrameData frame_data;
     vkl_frames::ImmediateFrame imm_frame;
     vk_img::ImageBufferAllocator img_buff_allocator;
-    vk_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
+    vkl_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     gf::EngineStats stats;
     
     VkPipeline gradient_pipeline;

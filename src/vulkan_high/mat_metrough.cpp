@@ -4,6 +4,7 @@
 
 #include <gf_vulkan.hpp>
 #include <vkl_initializers.hpp>
+#include <t_desc_layoutbuilder.hpp>
 
 vkh_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness()
     : opaque_pipeline(),
@@ -51,7 +52,7 @@ void vkh_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) {
     matrix_range.size = sizeof(gf::GPUDrawPushConstants);
     matrix_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-    gf::vk_desc::DescriptorLayoutBuilder layout_builder;
+    vkl_desc::DescriptorLayoutBuilder layout_builder;
     layout_builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     layout_builder.add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     layout_builder.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
@@ -106,7 +107,7 @@ void vkh_mat::GLTFMetallic_Roughness::clear_resources(VkDevice device) {
 }
 
 gf::MaterialInstance vkh_mat::GLTFMetallic_Roughness::write_material(VkDevice device, gf::MaterialPass pass,
-    const IMaterialResources& resources, gf::vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
+    const IMaterialResources& resources, vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
 
     const MaterialResources* mat_resources = dynamic_cast<const MaterialResources*>(&resources);
 

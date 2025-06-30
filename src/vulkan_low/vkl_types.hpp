@@ -16,7 +16,7 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
-#include <vkl_descriptors.hpp>
+#include <t_desc_allocgrow.hpp>
 #include <t_delstack.hpp>
 #include <vkl_images.hpp>
 
@@ -78,7 +78,7 @@ struct Frame {
      * @brief An allocator for descriptors
      * @todo implement documentation
      */
-    vk_desc::DescriptorAllocatorGrowable frame_descriptors;
+    vkl_desc::DescriptorAllocatorGrowable frame_descriptors;
 };
 
 /**

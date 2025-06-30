@@ -10,6 +10,7 @@
 
 #include <vkl_types.hpp>
 #include <vkl_images.hpp>
+#include <t_desc_allocgrow.hpp>
 
 namespace gf {
 class VkManager;
@@ -88,7 +89,7 @@ struct IBaseMaterial {
      */
     virtual gf::MaterialInstance write_material(VkDevice device, gf::MaterialPass pass,
         const IMaterialResources& resources,
-        gf::vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) = 0;
+        vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) = 0;
 };
 
 }

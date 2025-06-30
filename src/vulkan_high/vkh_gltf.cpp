@@ -63,7 +63,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         return {};
     }
 
-    std::vector<vk_desc::DescriptorAllocatorGrowable::PoolSizeRatio> sizes = { { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 3 },
+    std::vector<vkl_desc::DescriptorAllocatorGrowable::PoolSizeRatio> sizes = { { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 3 },
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 } };
 

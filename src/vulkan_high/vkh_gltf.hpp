@@ -22,7 +22,7 @@
 #include <t_node.hpp>
 #include <t_meshnode.hpp>
 #include <vkh_render_types.hpp>
-#include <vkl_descriptors.hpp>
+#include <t_desc_allocgrow.hpp>
 #include <vkl_images.hpp>
 
 namespace gf {
@@ -43,7 +43,7 @@ public:
     std::vector<std::shared_ptr<vkh_render::Node>> top_nodes;
     std::vector<VkSampler> samplers;
 
-    vk_desc::DescriptorAllocatorGrowable descriptor_pool;
+    vkl_desc::DescriptorAllocatorGrowable descriptor_pool;
     vk_img::AllocatedBuffer material_data_buffer;
     VkManager* creator = nullptr;
     ~LoadedGLTF() { clear_all(); };

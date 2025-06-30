@@ -12,7 +12,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <vkl_descriptors.hpp>
 #include <vkl_types.hpp>
 
 namespace vkl_core{

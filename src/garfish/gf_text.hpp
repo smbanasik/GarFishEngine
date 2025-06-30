@@ -16,6 +16,7 @@
 #include <gfu_types.hpp>
 #include <gf_resource_manager.hpp>
 #include <vkh_render_types.hpp>
+#include <t_desc_allocgrow.hpp>
 #include <mat_img.hpp>
 
 // TEMPORARY DOC:
@@ -77,7 +78,7 @@ private:
     TextManager& operator=(const TextManager& other) = delete;
 
     vk_img::ImageBufferAllocator* font_allocator;
-    vk_desc::DescriptorAllocatorGrowable* text_desc_allocator;
+    vkl_desc::DescriptorAllocatorGrowable* text_desc_allocator;
     vkh_mat::MaterialImage* text_material;
     VkManager* creator;
 

@@ -71,14 +71,14 @@ vkl_frames::FrameData::FrameData(vkl_core::VKCore* core)
         VkCommandBufferAllocateInfo alloc_info = gf::vk_init::command_allocate_info((*it).command_pool);
         vkAllocateCommandBuffers(core_handle->device, &alloc_info, &(*it).command_buffer);
 
-        std::vector<gf::vk_desc::DescriptorAllocatorGrowable::PoolSizeRatio> frame_pool_sizes = {
+        std::vector<vkl_desc::DescriptorAllocatorGrowable::PoolSizeRatio> frame_pool_sizes = {
             { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
             { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 },
             { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 }
         };
 
-        it->frame_descriptors = gf::vk_desc::DescriptorAllocatorGrowable{};
+        it->frame_descriptors = vkl_desc::DescriptorAllocatorGrowable{};
         it->frame_descriptors.init(core_handle->device, 1000, frame_pool_sizes);
     }
 }

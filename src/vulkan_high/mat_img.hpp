@@ -8,6 +8,7 @@
 #define MAT_IMG_HPP
 
 #include <vkh_imaterial.hpp>
+#include <t_desc_writer.hpp>
 
 namespace vkh_mat {
 struct MaterialImage : public IBaseMaterial {
@@ -35,7 +36,7 @@ public:
     void set_device(VkDevice* device) override { this->device = device; };
     void build_pipelines(gf::VkManager* engine) override;
     gf::MaterialInstance write_material(VkDevice device, gf::MaterialPass pass, const IMaterialResources& resources,
-        gf::vk_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
+        vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 
     struct MaterialResources : public IMaterialResources {
         vk_img::AllocatedImage color_image;
@@ -50,7 +51,7 @@ public:
     gf::MaterialPipeline opaque_pipeline;
     gf::MaterialPipeline transparent_pipeline;
     VkDescriptorSetLayout material_layout;
-    gf::vk_desc::DescriptorWriter writer;
+    vkl_desc::DescriptorWriter writer;
 
 private:
     void clear_resources(VkDevice device) override;

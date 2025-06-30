@@ -28,7 +28,7 @@ We need to:
 - [x] Move the bundles into RenderableTypes
 - [x] Create some sort of render primatives file and put Quad into it
 - [x] Split VkCore and Alloc into their own files
-- [ ] Split `vkl_descriptors`
+- [x] Split `vkl_descriptors`
 - [ ] Split `vkl_frames`
 - [ ] Split `vkl_images`
 - [ ] `vkl_initializers` is fine since declarations are free to `#include`
