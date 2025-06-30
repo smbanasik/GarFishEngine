@@ -1,9 +1,6 @@
-// Spencer Banasik
-// Created: 1/14/2025
-// Last Modified: 1/14/2025
-#include <gfu_types.hpp>
+#include <vkh_imgatlas.hpp>
 
-std::array<glm::vec2, 4> gf::TextureAtlas::get_texture_square(glm::ivec2 subdivision_coords) const {
+std::array<glm::vec2, 4> vkh::ImageAtlas::get_texture_square(glm::ivec2 subdivision_coords) const {
     if (subdivision_coords.x >= subdivisions_x || subdivision_coords.y >= subdivisions_y)
         throw;
 

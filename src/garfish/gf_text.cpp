@@ -23,7 +23,7 @@ bool helper_init_face(FT_Face& font, const std::string& font_path, unsigned int 
     return true;
 }
 
-gf::text::Font helper_convert_face_to_texture(FT_Face face, gf::vk_img::ImageBufferAllocator* allocator) {
+gf::text::Font helper_convert_face_to_texture(FT_Face face, vk_img::ImageBufferAllocator* allocator) {
     const int CHAR_AMOUNT = 128;
     gf::text::Font new_font;
 

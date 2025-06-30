@@ -499,7 +499,7 @@ void gf::VkManager::init_default_data() {
     image_mat_data = mat_manager.get_material("font_mat")->write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
     {
     std::array<gf::Vertex, 4> vertex_buff;
-    gf::TextureAtlas font_atlas;
+    vkh::ImageAtlas font_atlas;
     font_atlas.texture = &font->font_image;
     font_atlas.subdivisions_x = 1;
     font_atlas.subdivisions_y = 1;

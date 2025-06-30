@@ -12,11 +12,11 @@
 
 #include <gfu_types.hpp>
 
-namespace gf {
-class VkManager;
 namespace vk_img {
 class ImageBufferAllocator;
 }
+namespace gf {
+class VkManager;
 
 class ImageManager {
 public:

@@ -19,11 +19,10 @@ We need to:
 - [x] `com_engine_types` into it's own classes
 - [x] `com_util` into it's own classes
 - [x] Remove all `#includes` of `gf_err` for now
-- [ ] Split `gf_resource_manager` into it's own classes, remove reliance on GFU types
-- [ ] Avoid touching `gf_text` and `gf_vulkan` for now (these will be taken care of later)
-- [ ] Take textureatlas and create ImageAtlas, move to own vkh class
-- [ ] Split rename `vkh_loader` into `vkh_gltf`
-- [ ] Move `load_image_from_path` from `vkh_gltf` to another area
+- [x] Avoid touching `gf_text` and `gf_vulkan` for now (these will be taken care of later)
+- [x] Take textureatlas and create ImageAtlas, move to own vkh class
+- [x] Split rename `vkh_loader` into `vkh_gltf`
+- [x] Move `load_image_from_path` from `vkh_gltf` to another area
 - [ ] Split `vkh_materials` into interface and child classes
 - [ ] Move the DrawContext to wherever RenderObject is defined.
 - [ ] Move the bundles into RenderableTypes
@@ -35,6 +34,7 @@ We need to:
 - [ ] `vkl_initializers` is fine since declarations are free to `#include`
 - [ ] `vkl_pipelines` is fine
 - [ ] Split `vkl_types` into render types, compute types, and the rest can remain in `vkl_types`
+- [ ] Split `gf_resource_manager` into it's own classes, remove reliance on GFU types
 
 ### The list itself
 

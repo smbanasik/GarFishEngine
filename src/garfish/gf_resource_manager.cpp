@@ -4,7 +4,6 @@
 #include <gf_resource_manager.hpp>
 
 #include <vkl_images.hpp>
-#include <vkh_loader.hpp>
 
 gf::Texture* gf::ImageManager::add_texture(const std::string& texture_name, const gf::Texture& texture) {
     textures[texture_name] = texture;
@@ -15,7 +14,7 @@ gf::Texture* gf::ImageManager::add_texture_from_data(const std::string& texture_
     return &textures.at(texture_name);
 }
 gf::Texture* gf::ImageManager::add_texture_from_file(const std::string& texture_name, const std::string& file_path) {
-    textures[texture_name] = vk_loader::load_image_from_path(allocator, file_path).value();
+    textures[texture_name] = vk_img::load_image_from_path(allocator, file_path).value();
     return &textures.at(texture_name);
 }
 gf::Texture* gf::ImageManager::get_texture(const std::string& texture_name) {

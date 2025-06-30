@@ -22,9 +22,10 @@
 #include <vkl_core.hpp>
 #include <vkl_descriptors.hpp>
 #include <vkl_pipelines.hpp>
-#include <vkh_loader.hpp>
+#include <vkh_gltf.hpp>
 #include <vkh_materials.hpp>
 #include <vkh_renderable.hpp>
+#include <vkh_imgatlas.hpp>
 #include <vkl_frames.hpp>
 #include <vkl_images.hpp>
 #include <gfu_types.hpp>
@@ -111,7 +112,7 @@ public:
     MaterialInstance default_data;
     MaterialManager mat_manager;
     MaterialInstance image_mat_data;
-    TextureAtlas test_texture;
+    vkh::ImageAtlas test_texture;
 
     vk_render::DrawContext main_draw_context;
     std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> loaded_nodes;

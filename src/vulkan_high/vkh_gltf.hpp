@@ -1,10 +1,9 @@
-// Spencer Banasik
-// Created: 12/29/2024
-// Last Modified: 12/29/2024
-// Description:
-// Handles file loading
-#ifndef VKL_LOADER_HPP
-#define VKL_LOADER_HPP
+/**
+ * @file
+ * @brief Related to loading gltf.
+ */
+#ifndef VKL_GLTF_HPP
+#define VKL_GLTF_HPP
 
 #include <filesystem>
 #include <string>
@@ -56,7 +55,6 @@ std::optional<std::shared_ptr<LoadedGLTF>> load_gltf(VkManager* engine, std::str
 VkFilter extract_filter(fastgltf::Filter filter);
 VkSamplerMipmapMode extract_mipmap_mode(fastgltf::Filter filter);
 std::optional<vk_img::AllocatedImage> load_image(vk_img::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image);
-std::optional<vk_img::AllocatedImage> load_image_from_path(vk_img::ImageBufferAllocator* allocator, const std::string& file_path);
 
 }
 }

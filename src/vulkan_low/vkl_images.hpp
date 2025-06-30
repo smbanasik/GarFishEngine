@@ -6,6 +6,8 @@
 #ifndef VKL_IMAGES_HPP
 #define VKL_IMAGES_HPP
 #include <utility>
+#include <optional>
+#include <string>
 
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
@@ -17,12 +19,14 @@ struct Image;
 }
 namespace gf {
 class VkManager;
+
 namespace vk_core {
 class VKCore;
 class Alloc;
 }
 namespace vk_frames {
 class ImmediateFrame;
+}
 }
 namespace vk_img {
 /**
@@ -37,8 +41,8 @@ class ImageBufferAllocator {
     friend struct AllocatedImage;
     friend struct AllocatedBuffer;
 public:
-    ImageBufferAllocator(vk_core::VKCore* core_handle,
-        vk_core::Alloc* alloc_handle, vk_frames::ImmediateFrame* imm_handle)
+    ImageBufferAllocator(gf::vk_core::VKCore* core_handle,
+        gf::vk_core::Alloc* alloc_handle, gf::vk_frames::ImmediateFrame* imm_handle)
         : core_handle(core_handle), alloc_handle(alloc_handle), imm_handle(imm_handle) {};
 
     AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) const;
@@ -49,9 +53,9 @@ public:
     void destroy_buffer(const AllocatedBuffer& buffer) const;
 
 private:
-    vk_core::VKCore* core_handle;
-    vk_core::Alloc* alloc_handle;
-    vk_frames::ImmediateFrame* imm_handle;
+    gf::vk_core::VKCore* core_handle;
+    gf::vk_core::Alloc* alloc_handle;
+    gf::vk_frames::ImmediateFrame* imm_handle;
 };
 
 /**
@@ -182,7 +186,8 @@ struct AllocatedBuffer {
 void transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout current_layout, VkImageLayout new_layout);
 void copy_image_to_image(VkCommandBuffer cmd, VkImage src, VkImage dst, VkExtent2D src_size, VkExtent2D dst_size);
 void generate_mipmaps(VkCommandBuffer cmd, VkImage image, VkExtent2D imageSize);
-}
+
+std::optional<vk_img::AllocatedImage> load_image_from_path(vk_img::ImageBufferAllocator* allocator, const std::string& file_path);
 }
 #endif
 

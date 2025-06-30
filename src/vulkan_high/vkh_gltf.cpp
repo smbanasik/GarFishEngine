@@ -1,7 +1,7 @@
 // Spencer Banasik
 // Created: 12/29/2024
 // Last Modified: 12/29/2024
-#include <vkh_loader.hpp>
+#include <vkh_gltf.hpp>
 
 #include <iostream>
 #include <unordered_map>
@@ -327,8 +327,8 @@ void gf::vk_loader::LoadedGLTF::clear_all() {
             vkDestroySampler(dv, sampler, nullptr);
         }
 }
-std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(vk_img::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image) {
-    gf::vk_img::AllocatedImage newImage(*allocator);
+std::optional<vk_img::AllocatedImage> gf::vk_loader::load_image(vk_img::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image) {
+    vk_img::AllocatedImage newImage(*allocator);
 
     int width, height, nrChannels;
 
@@ -406,23 +406,4 @@ std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image(vk_img::Imag
     else {
         return newImage;
     }
-}
-
-std::optional<gf::vk_img::AllocatedImage> gf::vk_loader::load_image_from_path(vk_img::ImageBufferAllocator* allocator, const std::string& file_path) {
-    int width, height, nr_channels;
-
-    unsigned char* data = stbi_load(file_path.c_str(), &width, &height, &nr_channels, 4);
-    if (data) {
-        VkExtent3D imagesize;
-        imagesize.width = width;
-        imagesize.height = height;
-        imagesize.depth = 1;
-
-        vk_img::AllocatedImage new_image = allocator->create_image(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
-
-        stbi_image_free(data);
-        return new_image;
-    }
-
-    return std::nullopt;
 }
