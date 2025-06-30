@@ -13,7 +13,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <com_engine_types.hpp>
 #include <vkl_descriptors.hpp>
 #include <vkl_types.hpp>
 

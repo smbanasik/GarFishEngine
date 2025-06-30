@@ -9,8 +9,6 @@
 #include<GLFW/glfw3.h>
 
 #include <vkl_core.hpp>
-#define GF_VK_CHECK_TRUE
-#include <gf_err.hpp>
 
 gf::wi::WIManager* gf::wi::WIManager::loaded_glfw = nullptr;
 
@@ -19,9 +17,7 @@ gf::wi::WIManager::WIManager() {
     loaded_glfw = this;
     
     if (!glfwInit()) {
-        err::gl::GLFWInitErr err;
-        err.display();
-        throw err;
+        throw;
     }
 
     is_init = true;
@@ -40,5 +36,5 @@ gf::wi::WInputContext gf::wi::WIManager::create_window(wi::WindowType type, wi::
 }
 
 void gf::wi::WIManager::create_surface(WInputContext* gl_context, vk_core::VKCore* vk_context) {
-    VK_CHECK(glfwCreateWindowSurface(vk_context->instance, gl_context->window.window, NULL, &vk_context->surface));
+    glfwCreateWindowSurface(vk_context->instance, gl_context->window.window, NULL, &vk_context->surface);
 }

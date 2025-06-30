@@ -17,8 +17,7 @@
 #include <glm/mat4x4.hpp>
 
 #include <vkl_descriptors.hpp>
-#include <com_engine_types.hpp>
-#include <com_util.hpp>
+#include <com_delstack.hpp>
 #include <vkl_images.hpp>
 
 namespace gf {
@@ -73,7 +72,7 @@ struct Frame {
      * manual deletion functions. Unless/until these get RAII, this is used to handle their
      * lifetimes and resource cleanup.
      */
-    DeletionStack deletion_stack;
+    com::DeletionStack deletion_stack;
 
     /**
      * @brief An allocator for descriptors

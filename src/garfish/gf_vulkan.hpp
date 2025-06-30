@@ -16,7 +16,8 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
-#include <com_engine_types.hpp>
+#include <gf_stats.hpp>
+#include <com_delstack.hpp>
 #include <vkl_types.hpp>
 #include <vkl_core.hpp>
 #include <vkl_descriptors.hpp>
@@ -82,7 +83,7 @@ public:
     vk_frames::ImmediateFrame imm_frame;
     vk_img::ImageBufferAllocator img_buff_allocator;
     vk_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
-    EngineStats stats;
+    gf::EngineStats stats;
     
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
@@ -183,7 +184,7 @@ public:
 
 private:
     static VkManager* loaded_vk;
-    DeletionStack global_deletion_stack;
+    com::DeletionStack global_deletion_stack;
 
     VkManager(const VkManager& other) = delete;
     VkManager& operator=(const VkManager& other) = delete;

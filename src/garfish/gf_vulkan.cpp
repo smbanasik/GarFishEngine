@@ -26,7 +26,6 @@
 #include <stb_image.h>
 
 #include <vkl_initializers.hpp>
-#include <com_engine_types.hpp>
 #include <vkl_types.hpp>
 #include <vkl_descriptors.hpp>
 #include <vkl_images.hpp>

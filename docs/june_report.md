@@ -16,9 +16,9 @@ We need to:
 
 **Addendum Solution:**
 - [ ] Remove gf namespace from most things
-- [ ] `com_engine_types` into it's own classes
-- [ ] `com_util` into it's own classes
-- [ ] Remove all `#includes` of `gf_err` for now
+- [x] `com_engine_types` into it's own classes
+- [x] `com_util` into it's own classes
+- [x] Remove all `#includes` of `gf_err` for now
 - [ ] Split `gf_resource_manager` into it's own classes, remove reliance on GFU types
 - [ ] Avoid touching `gf_text` and `gf_vulkan` for now (these will be taken care of later)
 - [ ] Take textureatlas and create ImageAtlas, move to own vkh class

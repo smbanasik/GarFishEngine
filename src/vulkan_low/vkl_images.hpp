@@ -10,7 +10,7 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
-#include <com_util.hpp>
+#include <com_refcount.hpp>
 namespace fastgltf {
 class Asset;
 struct Image;
@@ -68,7 +68,7 @@ struct AllocatedImage {
     VmaAllocation allocation;
     VkExtent3D image_size;
     VkFormat image_format;
-    util::RefCounter counter;
+    com::RefCounter counter;
     const ImageBufferAllocator* allocator;
 
     AllocatedImage()
@@ -134,7 +134,7 @@ struct AllocatedBuffer {
     VkBuffer buffer;
     VmaAllocation allocation;
     VmaAllocationInfo info;
-    util::RefCounter counter;
+    com::RefCounter counter;
     const ImageBufferAllocator* allocator;
 
     AllocatedBuffer()

@@ -1,91 +1,23 @@
 /**
 * @file
-* @brief Engine's utility structures.
 * @author Spencer Banasik
+* @relates Grid
 */
-#ifndef GF_UTIL_HPP
-#define GF_UTIL_HPP
+#ifndef COM_GRID_HPP
+#define COM_GRID_HPP
 
 #include <stdint.h>
-#include <cassert>
-#include <stdexcept>
 
-#include <glm/vec2.hpp>
-
-namespace gf {
-namespace util {
-/**
- * @brief A reference counter
- * @author Spencer Banasik
- * @details My implementation of a reference counter, which
- * would be something similar to that in a shared pointer.
- */
-class RefCounter {
-public:
-
-    RefCounter()
-        : counter(new uint32_t) {
-        *counter = 1;
-    }
-    ~RefCounter() {
-        decrement_delete_counter();
-    }
-    RefCounter(const RefCounter& other)
-        : counter(other.counter) {
-        (*counter)++;
-    }
-    RefCounter& operator=(const RefCounter& other) {
-        if (this == &other)
-            return *this;
-
-        decrement_delete_counter();
-        counter = other.counter;
-        (*counter)++;
-        return *this;
-    }
-    RefCounter(RefCounter&& other) noexcept
-        : counter(other.counter) {
-        other.counter = nullptr;
-    }
-    RefCounter& operator=(RefCounter&& other) noexcept {
-        decrement_delete_counter();
-        counter = other.counter;
-        other.counter = nullptr;
-        return *this;
-    }
-
-    /**
-     * @brief Returns whether it is safe to delete associated resource.
-     * @author Spencer Banasik
-     * @returns A boolean on if there is only one reference or not.
-     */
-    bool can_delete_resources() const {
-        if (counter != nullptr && *counter == 1) // If counter is null somehow, it means resources were moved.
-            return true;
-        return false;
-    }
-
-private:
-    void decrement_delete_counter() {
-        if (counter == nullptr)
-            return;
-        (*counter)--;
-        if (*counter == 0)
-            delete counter;
-    }
-
-    uint32_t* counter;
-};
-
+namespace com {
 /**
  * @class Grid
  * @brief A container that provides a 2d interface with a contiguous backend.
  * @author Spencer Banasik
- * @tparam T The type of object stored in the grid. 
+ * @tparam T The type of object stored in the grid.
  * @todo This class is probably incomplete, the interface should probably be made cleaner as well.
  * @todo Right now, adding a row with insufficient elements is undefined. This shouldn't be allowed.
  * @todo We may just want to make this a static array instead of growable.
- * @details 2 dimensional arrays/vectors are often an array of objects that are 
+ * @details 2 dimensional arrays/vectors are often an array of objects that are
  * not related to one another and offer no guarantee of contiguity. In this case,
  * we should create a 1 dimensional array and act as though it's 2 dimensional.
  */
@@ -212,8 +144,5 @@ private:
     std::size_t v_capacity;
     T* data_buffer;
 };
-
-
-}
 }
 #endif

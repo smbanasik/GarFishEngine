@@ -1,18 +1,16 @@
 /**
 * @file
-* @brief Types used by the engine.
 * @author Spencer Banasik
+* @relates DeletionStack
 */
-#ifndef GF_ENGINE_TYPES_HPP
-#define GF_ENGINE_TYPES_HPP
 
-#include <vector>
+#ifndef COM_DELSTACK_HPP
+#define COM_DELSTACK_HPP
+
 #include <deque>
 #include <functional>
 
-#include <glm/vec4.hpp>
-
-namespace gf {
+namespace com {
 /**
  * @class DeletionStack
  * @brief Pushes a set of deletor functions that are called.
@@ -20,7 +18,7 @@ namespace gf {
  * @todo Have deletors push_back and reverse iterate through the stack.
  * @details A deletion stack is more useful than a deletion queue, since
  * objects initialized first often needs to be deleted last.
- * 
+ *
  * @note Prefer having managers deleting objects via looping through an array as
  * opposed to storing callbacks like this.
  */
@@ -31,7 +29,7 @@ public:
      * @brief Push a deletor function onto the stack.
      * @param [in] function The function to be pushed.
      */
-    void push_function(std::function<void()> && function) {
+    void push_function(std::function<void()>&& function) {
         deletors.push_front(function);
     }
 
@@ -48,34 +46,5 @@ public:
 private:
     std::deque<std::function<void()>> deletors;
 };
-
-template<class T>
-class DeletionAggregate {
-public:
-
-    DeletionAggregate(std::function<void()> func, uint32_t elems = 0) : deletion(func) {
-        aggregate.reserve(elems);
-    };
-    void push_elem(T elem) {
-        aggregate.push_back(elem);
-    }
-    void flush() {
-        deletion();
-    }
-
-private:
-    std::vector<T> aggregate;
-    std::function<void()> deletion;
-};
-
-struct EngineStats {
-    float frametime;
-    int triangle_count;
-    int drawcall_count;
-    float scene_update_time;
-    float mesh_draw_time;
-};
-};
-
+}
 #endif
-

@@ -15,7 +15,6 @@
 
 #include <wi_manager.hpp>
 #include <gf_vulkan.hpp>
-#include <com_engine_types.hpp>
 
 namespace gf {
 

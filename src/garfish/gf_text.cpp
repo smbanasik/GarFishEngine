@@ -11,6 +11,7 @@
 #include FT_FREETYPE_H 
 
 #include <gf_vulkan.hpp>
+#include <com_grid.hpp>
 
 static FT_Library ft_lib;
 gf::text::TextManager* gf::text::TextManager::singleton = nullptr;
@@ -39,8 +40,8 @@ gf::text::Font helper_convert_face_to_texture(FT_Face face, gf::vk_img::ImageBuf
     new_font.font_image.image_size.width = total_width;
     new_font.font_image.image_size.height = max_height;
     new_font.font_image.image_size.depth = 1;
-
-    gf::util::Grid<unsigned char> data_buffer(total_width);
+               
+    com::Grid<unsigned char> data_buffer(total_width);
     data_buffer.reserve_rows(max_height);
     for (int i = 0; i < max_height; i++)
         data_buffer.add_empty_row();
