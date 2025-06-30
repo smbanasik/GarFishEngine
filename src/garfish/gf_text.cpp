@@ -13,6 +13,7 @@
 #include <gf_vulkan.hpp>
 #include <t_grid.hpp>
 #include <vkh_render_primatives.hpp>
+#include <vkl_imgbuf_alloc.hpp>
 
 static FT_Library ft_lib;
 gf::text::TextManager* gf::text::TextManager::singleton = nullptr;
@@ -24,7 +25,7 @@ bool helper_init_face(FT_Face& font, const std::string& font_path, unsigned int 
     return true;
 }
 
-gf::text::Font helper_convert_face_to_texture(FT_Face face, vk_img::ImageBufferAllocator* allocator) {
+gf::text::Font helper_convert_face_to_texture(FT_Face face, vkl_res::ImageBufferAllocator* allocator) {
     const int CHAR_AMOUNT = 128;
     gf::text::Font new_font;
 
@@ -71,7 +72,7 @@ gf::text::Font helper_convert_face_to_texture(FT_Face face, vk_img::ImageBufferA
 }
 
 
-gf::text::TextManager::TextManager(gf::VkManager* engine, vk_img::ImageBufferAllocator* allocator)
+gf::text::TextManager::TextManager(gf::VkManager* engine, vkl_res::ImageBufferAllocator* allocator)
     : font_allocator(allocator) {
     assert(singleton == nullptr);
     singleton = this;

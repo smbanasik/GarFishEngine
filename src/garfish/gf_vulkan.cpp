@@ -34,6 +34,10 @@
 #include <wi_manager.hpp>
 #include <mat_metrough.hpp>
 #include <mat_img.hpp>
+#include <t_alloc_buf.hpp>
+#include <t_alloc_img.hpp>
+#include <vkl_imgbuf_alloc.hpp>
+
 // TEMPORARY
 #include <vulkan/vk_enum_string_helper.h>
 #define VK_CHECK(x)                                                     \
@@ -154,7 +158,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
     auto start = std::chrono::system_clock::now();
     
     // Setup for drawing
-    vk_img::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    vkl_res::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
         gpu_scene_data_buffer.counter.can_delete_resources();
         });
@@ -203,7 +207,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 1, 1, &rendered.material->material_set, 0, nullptr);
         }
         if (rendered.index_buffer != last_index_buffer) {
-            last_index_buffer == rendered.index_buffer;
+            last_index_buffer = rendered.index_buffer;
             vkCmdBindIndexBuffer(cmd, rendered.index_buffer, 0, VK_INDEX_TYPE_UINT32);
         }
         
@@ -480,7 +484,7 @@ void gf::VkManager::init_default_data() {
     material_resources.color_sampler = default_sampler_linear;
     material_resources.metal_rough_image = *engine_images.get_texture("white");
     material_resources.metal_rough_sampler = default_sampler_linear;
-    vk_img::AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vkh_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    vkl_res::AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vkh_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     vkh_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vkh_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
     scene_uniform_data->color_factors = glm::vec4{ 1,1,1,1 };
     scene_uniform_data->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
@@ -552,7 +556,7 @@ gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::
     VkBufferDeviceAddressInfo device_address_info{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, .buffer = new_mesh.vertex_buffer.buffer };
     new_mesh.vertex_buffer_address = vkGetBufferDeviceAddress(core.device, &device_address_info);
 
-    vk_img::AllocatedBuffer staging_buffer = img_buff_allocator.create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+    vkl_res::AllocatedBuffer staging_buffer = img_buff_allocator.create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
     void* data = staging_buffer.allocation->GetMappedData();
     memcpy(data, vertices.data(), vertex_buffer_size);
     memcpy((char*)data + vertex_buffer_size, indices.data(), index_buffer_size);

@@ -22,6 +22,7 @@
 #include <gf_vulkan.hpp>
 #include <vkl_initializers.hpp>
 #include <vkl_types.hpp>
+#include <vkl_imgbuf_alloc.hpp>
 #include <mat_metrough.hpp>
 
 std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gltf(VkManager* engine, std::string_view file_path) {
@@ -87,10 +88,10 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
     std::vector<std::shared_ptr<vkh_render::Node>> nodes;
     std::vector<std::shared_ptr<vkh_render::MeshAsset>> meshes;
     std::vector<std::shared_ptr<vkh_render::GLTFMaterial>> materials;
-    std::vector<vk_img::AllocatedImage> images;
+    std::vector<vkl_res::AllocatedImage> images;
 
     for (fastgltf::Image& image : gltf.images) {
-        std::optional<vk_img::AllocatedImage> img = load_image(&engine->img_buff_allocator, gltf, image);
+        std::optional<vkl_res::AllocatedImage> img = load_image(&engine->img_buff_allocator, gltf, image);
 
         if (img.has_value()) {
             images.push_back(*img);
@@ -328,8 +329,8 @@ void gf::vk_loader::LoadedGLTF::clear_all() {
             vkDestroySampler(dv, sampler, nullptr);
         }
 }
-std::optional<vk_img::AllocatedImage> gf::vk_loader::load_image(vk_img::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image) {
-    vk_img::AllocatedImage newImage(*allocator);
+std::optional<vkl_res::AllocatedImage> gf::vk_loader::load_image(vkl_res::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image) {
+    vkl_res::AllocatedImage newImage(*allocator);
 
     int width, height, nrChannels;
 

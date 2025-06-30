@@ -31,11 +31,11 @@ We need to:
 - [x] Split `vkl_descriptors`
 - [x] Split `vkl_frames`
 - [ ] Split `vkl_images`
-- [ ] Redo file types
-- [ ] `vkl_initializers` is fine since declarations are free to `#include`
-- [ ] `vkl_pipelines` is fine
+- [x] `vkl_initializers` is fine since declarations are free to `#include`
+- [x] `vkl_pipelines` is fine
 - [ ] Split `vkl_types` into render types, compute types, and the rest can remain in `vkl_types`
 - [ ] Split `gf_resource_manager` into it's own classes, remove reliance on GFU types
+- [ ] Rename Allocator to VMAAllocatorWrapper
 
 ### The list itself
 

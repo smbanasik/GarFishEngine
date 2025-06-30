@@ -14,7 +14,7 @@
 #include <t_imageatlas.hpp>
 namespace gf {
 
-typedef vk_img::AllocatedImage Texture;
+typedef vkl_res::AllocatedImage Texture;
 typedef vkh_mat::IBaseMaterial Material;
 
 /**

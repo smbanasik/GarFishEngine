@@ -32,6 +32,7 @@
 #include <gfu_types.hpp>
 #include <gf_resource_manager.hpp>
 #include <gf_text.hpp>
+#include <vkl_imgbuf_alloc.hpp>
 
 struct GLFWwindow;
 
@@ -83,7 +84,7 @@ public:
     vkl_frames::SwapChain swapchain;
     vkl_frames::FrameData frame_data;
     vkl_frames::ImmediateFrame imm_frame;
-    vk_img::ImageBufferAllocator img_buff_allocator;
+    vkl_res::ImageBufferAllocator img_buff_allocator;
     vkl_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     gf::EngineStats stats;
     
@@ -94,8 +95,8 @@ public:
      * @brief Image we draw to
      * @todo rename to draw_image
      */
-    vk_img::AllocatedImage drawn_image;
-    vk_img::AllocatedImage depth_image;
+    vkl_res::AllocatedImage drawn_image;
+    vkl_res::AllocatedImage depth_image;
     VkExtent2D drawn_size;
     float render_scale = 1.f;
     

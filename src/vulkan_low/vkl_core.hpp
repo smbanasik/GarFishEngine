@@ -18,7 +18,7 @@ class WIManager;
 class WInputContext;
 }
 }
-namespace vkl_core{
+namespace vkl_core {
 /**
 * @class VKCore
 * @brief Logical abstraction of many core vulkan objects with RAII.

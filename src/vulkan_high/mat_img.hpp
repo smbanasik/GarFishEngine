@@ -39,10 +39,10 @@ public:
         vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 
     struct MaterialResources : public IMaterialResources {
-        vk_img::AllocatedImage color_image;
+        vkl_res::AllocatedImage color_image;
         VkSampler color_sampler;
 
-        MaterialResources(const vk_img::ImageBufferAllocator& allocator)
+        MaterialResources(const vkl_res::ImageBufferAllocator& allocator)
             : color_image(allocator) {
             color_sampler = nullptr;
         };

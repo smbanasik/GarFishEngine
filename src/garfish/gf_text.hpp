@@ -62,7 +62,7 @@ private:
 class TextManager {
 public:
 
-    TextManager(gf::VkManager* engine, vk_img::ImageBufferAllocator* allocator);
+    TextManager(gf::VkManager* engine, vkl_res::ImageBufferAllocator* allocator);
     ~TextManager();
 
     void add_font_from_file(const std::string& font_name, const std::string& font_path, unsigned int pix_size = 48); // TODO: turn this into point instead of pixel
@@ -77,7 +77,7 @@ private:
     TextManager(const TextManager& other) = delete;
     TextManager& operator=(const TextManager& other) = delete;
 
-    vk_img::ImageBufferAllocator* font_allocator;
+    vkl_res::ImageBufferAllocator* font_allocator;
     vkl_desc::DescriptorAllocatorGrowable* text_desc_allocator;
     vkh_mat::MaterialImage* text_material;
     VkManager* creator;

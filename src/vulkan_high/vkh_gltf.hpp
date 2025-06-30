@@ -37,14 +37,14 @@ class LoadedGLTF : public vkh_render::IRenderable {
 public:
     std::unordered_map<std::string, std::shared_ptr<vkh_render::MeshAsset>> meshes;
     std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> nodes;
-    std::unordered_map<std::string, vk_img::AllocatedImage> images;
+    std::unordered_map<std::string, vkl_res::AllocatedImage> images;
     std::unordered_map<std::string, std::shared_ptr<vkh_render::GLTFMaterial>> materials;
 
     std::vector<std::shared_ptr<vkh_render::Node>> top_nodes;
     std::vector<VkSampler> samplers;
 
     vkl_desc::DescriptorAllocatorGrowable descriptor_pool;
-    vk_img::AllocatedBuffer material_data_buffer;
+    vkl_res::AllocatedBuffer material_data_buffer;
     VkManager* creator = nullptr;
     ~LoadedGLTF() { clear_all(); };
 
@@ -57,7 +57,7 @@ private:
 std::optional<std::shared_ptr<LoadedGLTF>> load_gltf(VkManager* engine, std::string_view file_path);
 VkFilter extract_filter(fastgltf::Filter filter);
 VkSamplerMipmapMode extract_mipmap_mode(fastgltf::Filter filter);
-std::optional<vk_img::AllocatedImage> load_image(vk_img::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image);
+std::optional<vkl_res::AllocatedImage> load_image(vkl_res::ImageBufferAllocator* allocator, fastgltf::Asset& asset, fastgltf::Image& image);
 
 }
 }

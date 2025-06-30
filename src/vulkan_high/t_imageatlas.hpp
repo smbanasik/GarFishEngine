@@ -11,7 +11,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <vkl_images.hpp>
+#include <t_alloc_img.hpp>
 
 namespace vkh {
 /**
@@ -24,7 +24,7 @@ namespace vkh {
  * asset.
  */
 struct ImageAtlas {
-    const vk_img::AllocatedImage* texture;
+    const vkl_res::AllocatedImage* texture;
     uint32_t subdivisions_x;
     uint32_t subdivisions_y;
 

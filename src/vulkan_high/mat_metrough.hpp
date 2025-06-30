@@ -46,14 +46,14 @@ public:
     };
 
     struct MaterialResources : public IMaterialResources {
-        vk_img::AllocatedImage color_image;
+        vkl_res::AllocatedImage color_image;
         VkSampler color_sampler;
-        vk_img::AllocatedImage metal_rough_image;
+        vkl_res::AllocatedImage metal_rough_image;
         VkSampler metal_rough_sampler;
         VkBuffer data_buffer;
         uint32_t data_buffer_offset;
 
-        MaterialResources(const vk_img::ImageBufferAllocator& allocator)
+        MaterialResources(const vkl_res::ImageBufferAllocator& allocator)
             : color_image(allocator), metal_rough_image(allocator) {
             color_sampler = nullptr;
             metal_rough_sampler = nullptr;

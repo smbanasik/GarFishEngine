@@ -19,6 +19,7 @@
 #include <t_desc_allocgrow.hpp>
 #include <t_delstack.hpp>
 #include <vkl_images.hpp>
+#include <t_alloc_buf.hpp>
 
 namespace gf {
 
@@ -45,8 +46,8 @@ struct Vertex {
  * order the data.
  */
 struct GPUMeshBuffers {
-    vk_img::AllocatedBuffer vertex_buffer;
-    vk_img::AllocatedBuffer index_buffer;
+    vkl_res::AllocatedBuffer vertex_buffer;
+    vkl_res::AllocatedBuffer index_buffer;
     VkDeviceAddress vertex_buffer_address;
 };
 /**

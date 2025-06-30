@@ -12,7 +12,7 @@
 
 #include <gfu_types.hpp>
 
-namespace vk_img {
+namespace vkl_res {
 class ImageBufferAllocator;
 }
 namespace gf {
@@ -21,7 +21,7 @@ class VkManager;
 class ImageManager {
 public:
 
-    ImageManager(vk_img::ImageBufferAllocator& allocator)
+    ImageManager(vkl_res::ImageBufferAllocator& allocator)
         : textures(),
         allocator(&allocator) {}
 
@@ -31,7 +31,7 @@ public:
     Texture* get_texture(const std::string& texture_name);
 
 private:
-    vk_img::ImageBufferAllocator* allocator;
+    vkl_res::ImageBufferAllocator* allocator;
     std::unordered_map<std::string, Texture> textures;
 };
 
