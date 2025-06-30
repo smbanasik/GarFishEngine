@@ -12,7 +12,7 @@
 
 static constexpr bool DEBUG_USE_VALIDATION = true; // TODO: move this to options
 
-gf::vk_core::VKCore::VKCore(wi::WIManager* wi_manager, wi::WInputContext* wi_context) {
+vkl_core::VKCore::VKCore(gf::wi::WIManager* wi_manager, gf::wi::WInputContext* wi_context) {
     vkb::InstanceBuilder builder;
 
     auto inst = builder.set_app_name("GarFishEngine")
@@ -54,7 +54,7 @@ gf::vk_core::VKCore::VKCore(wi::WIManager* wi_manager, wi::WInputContext* wi_con
     graphics_queue_family = vkb_device.get_queue_index(vkb::QueueType::graphics).value();
 
 }
-gf::vk_core::VKCore::~VKCore() {
+vkl_core::VKCore::~VKCore() {
 
     vkDeviceWaitIdle(device);
     if (instance != nullptr) {
@@ -64,7 +64,7 @@ gf::vk_core::VKCore::~VKCore() {
         vkDestroyInstance(instance, nullptr);
     }
 }
-gf::vk_core::VKCore::VKCore(VKCore&& other) noexcept 
+vkl_core::VKCore::VKCore(VKCore&& other) noexcept 
     : instance(std::move(other.instance)),
     gpu (std::move(other.gpu)),
     device (std::move(other.device)),

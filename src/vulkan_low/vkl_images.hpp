@@ -17,16 +17,18 @@ namespace fastgltf {
 class Asset;
 struct Image;
 }
-namespace gf {
-class VkManager;
 
-namespace vk_core {
+namespace vkl_core {
 class VKCore;
-class Alloc;
+class Allocator;
 }
-namespace vk_frames {
+
+namespace vkl_frames {
 class ImmediateFrame;
 }
+
+namespace gf {
+class VkManager;
 }
 namespace vk_img {
 /**
@@ -41,8 +43,8 @@ class ImageBufferAllocator {
     friend struct AllocatedImage;
     friend struct AllocatedBuffer;
 public:
-    ImageBufferAllocator(gf::vk_core::VKCore* core_handle,
-        gf::vk_core::Alloc* alloc_handle, gf::vk_frames::ImmediateFrame* imm_handle)
+    ImageBufferAllocator(vkl_core::VKCore* core_handle,
+        vkl_core::Allocator* alloc_handle, vkl_frames::ImmediateFrame* imm_handle)
         : core_handle(core_handle), alloc_handle(alloc_handle), imm_handle(imm_handle) {};
 
     AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) const;
@@ -53,9 +55,9 @@ public:
     void destroy_buffer(const AllocatedBuffer& buffer) const;
 
 private:
-    gf::vk_core::VKCore* core_handle;
-    gf::vk_core::Alloc* alloc_handle;
-    gf::vk_frames::ImmediateFrame* imm_handle;
+    vkl_core::VKCore* core_handle;
+    vkl_core::Allocator* alloc_handle;
+    vkl_frames::ImmediateFrame* imm_handle;
 };
 
 /**

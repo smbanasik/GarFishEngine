@@ -11,14 +11,14 @@
 #include <utility>
 
 #include <vulkan/vulkan.h>
-#include <vk_mem_alloc.h>
 
 namespace gf {
 namespace wi {
 class WIManager;
 class WInputContext;
 }
-namespace vk_core {
+}
+namespace vkl_core{
 /**
 * @class VKCore
 * @brief Logical abstraction of many core vulkan objects with RAII.
@@ -42,7 +42,7 @@ public:
     * Then provides physical and logical devices (gpu and device, respectively).
     * Finally, gets the graphics queue and graphics queue family.
     */
-    VKCore(wi::WIManager* wi_manager, wi::WInputContext* wi_context);
+    VKCore(gf::wi::WIManager* wi_manager, gf::wi::WInputContext* wi_context);
     ~VKCore();
     VKCore(VKCore&& other) noexcept;
     VKCore& operator=(VKCore&& other) noexcept {
@@ -103,53 +103,5 @@ public:
     uint32_t graphics_queue_family = 0;
 };
 
-/**
-* @class Alloc
-* @brief Logical abstraction of vma allocator with RAII.
-* @author Spencer Banasik
-* @details Contains a vma allocator with the rule of 5.
-* Copying is not permitted, but has move operations available.
-*/
-class Alloc {
-public:
-    
-    /**
-    * @brief Construct the allocator with information from VKCore.
-    * @author Spencer Banasik
-    */
-    Alloc(VKCore* core) {
-        VmaAllocatorCreateInfo allocator_info = {};
-        allocator_info.physicalDevice = core->gpu;
-        allocator_info.device = core->device;
-        allocator_info.instance = core->instance;
-        allocator_info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-        vmaCreateAllocator(&allocator_info, &allocator);
-    }
-    ~Alloc() {
-        if(allocator != nullptr)
-            vmaDestroyAllocator(allocator);
-    }
-    Alloc(Alloc&& other) noexcept
-    : allocator(std::move(other.allocator)) {
-        other.allocator = nullptr;
-    }
-    Alloc& operator=(Alloc&& other) noexcept {
-        allocator = std::move(other.allocator);
-        other.allocator = nullptr;
-    }
-    Alloc(Alloc& other) = delete;
-    Alloc& operator=(Alloc& other) = delete;
-    
-    /**
-     * @brief Allocator from VMA
-     * @details VMA is an easy way to avoid creating our own method of
-     * allocating objects in vulkan, which can be very error prone.
-     * This is used to allocate vulakn objects such as images and buffers.
-     */
-    VmaAllocator allocator = nullptr;
-};
-
-
-}
 }
 #endif

@@ -2,25 +2,23 @@
 * @file
 * @brief File that contains abstractions related to the SwapChain and frames.
 * @author Spencer Banasik
-* @date Created: 12/17/2024
-* @date Last Modified: 6/16/2025
 */
 #ifndef VK_FRAMES_HPP
 #define VK_FRAMES_HPP
 
 #include <array>
 #include <memory>
+#include <stdint.h>
 
 #include <vulkan/vulkan.h>
 
 #include <vkl_descriptors.hpp>
 #include <vkl_types.hpp>
 
-namespace gf {
-namespace vk_core {
+namespace vkl_core{
 class VKCore;
 }
-namespace vk_frames {
+namespace vkl_frames {
 
 /**
 * @brief Nubmer of frames used in rendering pipeline.
@@ -39,7 +37,7 @@ constexpr uint8_t FRAME_OVERLAP = 2;
 class SwapChain {
 public:
 
-    SwapChain(vk_core::VKCore* core, uint32_t width, uint32_t height);
+    SwapChain(vkl_core::VKCore* core, uint32_t width, uint32_t height);
     ~SwapChain();
     SwapChain(SwapChain&& other) noexcept;
     SwapChain& operator=(SwapChain&& other) noexcept {
@@ -98,7 +96,7 @@ public:
      */
     std::vector<VkImageView> swapchain_image_views;
 private:
-    vk_core::VKCore* core_handle;
+    vkl_core::VKCore* core_handle;
 };
 
 /**
@@ -109,7 +107,7 @@ private:
 class FrameData {
 public:
 
-    FrameData(vk_core::VKCore* core);
+    FrameData(vkl_core::VKCore* core);
     ~FrameData();
     FrameData(FrameData&& other) noexcept;
     FrameData& operator=(FrameData&& other) noexcept {
@@ -129,9 +127,9 @@ public:
     /**
      * @brief Array of Frames, which hold draw and synchronization structures
      */
-    std::array<Frame, FRAME_OVERLAP> active_frames;
+    std::array<gf::Frame, FRAME_OVERLAP> active_frames;
 private:
-    vk_core::VKCore* core_handle;
+    vkl_core::VKCore* core_handle;
 };
 
 // A RAII structure containing what's needed for immediate submission to the GPU
@@ -139,7 +137,7 @@ private:
 class ImmediateFrame {
 public:
 
-    ImmediateFrame(vk_core::VKCore* core);
+    ImmediateFrame(vkl_core::VKCore* core);
     ~ImmediateFrame();
     ImmediateFrame(ImmediateFrame&& other) noexcept;
     ImmediateFrame& operator=(ImmediateFrame&& other) noexcept {
@@ -158,7 +156,7 @@ public:
 
     void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
 private:
-    vk_core::VKCore* core_handle;
+    vkl_core::VKCore* core_handle;
 };
 
 // TODO: This appears to be incomplete
@@ -183,6 +181,5 @@ private:
     void create_frame_data();
 };
 
-}
 }
 #endif

@@ -35,6 +35,6 @@ gf::wi::WInputContext gf::wi::WIManager::create_window(wi::WindowType type, wi::
     return context;
 }
 
-void gf::wi::WIManager::create_surface(WInputContext* gl_context, vk_core::VKCore* vk_context) {
+void gf::wi::WIManager::create_surface(WInputContext* gl_context, vkl_core::VKCore* vk_context) {
     glfwCreateWindowSurface(vk_context->instance, gl_context->window.window, NULL, &vk_context->surface);
 }

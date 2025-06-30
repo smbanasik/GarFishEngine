@@ -18,10 +18,11 @@
 #include <wi_mouse.hpp>
 #include <wi_keys.hpp>
 
-namespace gf {
-namespace vk_core {
+namespace vkl_core{
 class VKCore;
 }
+
+namespace gf {
 namespace wi {
 /**
 * @class WInputContext
@@ -125,7 +126,7 @@ public:
     * @param [in, out] vk_context A pointer to the VKCore.
     * @returns An initialized WInputContext.
     */
-    void create_surface(WInputContext* gl_context, vk_core::VKCore* vk_context);
+    void create_surface(WInputContext* gl_context, vkl_core::VKCore* vk_context);
 
     /**
     * @brief Check if the GLManager has been initialized

@@ -27,7 +27,7 @@ We need to:
 - [x] Move the DrawContext to wherever RenderObject is defined.
 - [x] Move the bundles into RenderableTypes
 - [x] Create some sort of render primatives file and put Quad into it
-- [ ] Split VkCore and Alloc into their own files
+- [x] Split VkCore and Alloc into their own files
 - [ ] Split `vkl_descriptors`
 - [ ] Split `vkl_frames`
 - [ ] Split `vkl_images`

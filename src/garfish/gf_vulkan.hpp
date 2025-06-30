@@ -20,6 +20,7 @@
 #include <t_delstack.hpp>
 #include <vkl_types.hpp>
 #include <vkl_core.hpp>
+#include <vkl_alloc.hpp>
 #include <vkl_descriptors.hpp>
 #include <vkl_pipelines.hpp>
 #include <vkh_gltf.hpp>
@@ -75,11 +76,11 @@ struct Camera {
 class VkManager {
 public:
 
-    vk_core::VKCore core;
-    vk_core::Alloc alloc;
-    vk_frames::SwapChain swapchain;
-    vk_frames::FrameData frame_data;
-    vk_frames::ImmediateFrame imm_frame;
+    vkl_core::VKCore core;
+    vkl_core::Allocator alloc;
+    vkl_frames::SwapChain swapchain;
+    vkl_frames::FrameData frame_data;
+    vkl_frames::ImmediateFrame imm_frame;
     vk_img::ImageBufferAllocator img_buff_allocator;
     vk_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     gf::EngineStats stats;
