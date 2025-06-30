@@ -23,10 +23,10 @@ We need to:
 - [x] Take textureatlas and create ImageAtlas, move to own vkh class
 - [x] Split rename `vkh_loader` into `vkh_gltf`
 - [x] Move `load_image_from_path` from `vkh_gltf` to another area
-- [ ] Split `vkh_materials` into interface and child classes
-- [ ] Move the DrawContext to wherever RenderObject is defined.
-- [ ] Move the bundles into RenderableTypes
-- [ ] Create some sort of render primatives file and put Quad into it
+- [x] Split `vkh_materials` into interface and child classes
+- [x] Move the DrawContext to wherever RenderObject is defined.
+- [x] Move the bundles into RenderableTypes
+- [x] Create some sort of render primatives file and put Quad into it
 - [ ] Split VkCore and Alloc into their own files
 - [ ] Split `vkl_descriptors`
 - [ ] Split `vkl_frames`

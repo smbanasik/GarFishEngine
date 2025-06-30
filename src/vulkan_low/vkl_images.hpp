@@ -12,7 +12,7 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
-#include <com_refcount.hpp>
+#include <t_refcount.hpp>
 namespace fastgltf {
 class Asset;
 struct Image;

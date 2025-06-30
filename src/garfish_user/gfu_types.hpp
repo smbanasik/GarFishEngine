@@ -10,12 +10,12 @@
 #include <glm/vec2.hpp>
 
 #include <vkl_types.hpp>
-#include <vkh_materials.hpp>
-#include <vkh_imgatlas.hpp>
+#include <vkh_imaterial.hpp>
+#include <t_imageatlas.hpp>
 namespace gf {
 
 typedef vk_img::AllocatedImage Texture;
-typedef vk_mat::IBaseMaterial Material;
+typedef vkh_mat::IBaseMaterial Material;
 
 /**
  * @brief Simple, high level interface of a sprite.

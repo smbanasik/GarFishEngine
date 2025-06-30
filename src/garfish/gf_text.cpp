@@ -11,7 +11,8 @@
 #include FT_FREETYPE_H 
 
 #include <gf_vulkan.hpp>
-#include <com_grid.hpp>
+#include <t_grid.hpp>
+#include <vkh_render_primatives.hpp>
 
 static FT_Library ft_lib;
 gf::text::TextManager* gf::text::TextManager::singleton = nullptr;
@@ -107,12 +108,12 @@ gf::text::TextBox gf::text::TextManager::initialize_textbox(const std::string& t
     text_box.text_buffer_changed = false;
     text_box.text_data.name = text_box_name;
 
-    vk_render::GeoSurface text_surface;
+    vkh_render::GeoSurface text_surface;
     text_surface.start_idx = 0;
 
     MaterialPass pass = MaterialPass::MainColor;
 
-    vk_mat::MaterialImage::MaterialResources font_resources(*font_allocator);
+    vkh_mat::MaterialImage::MaterialResources font_resources(*font_allocator);
     font_resources.color_sampler = creator->default_sampler_linear;
     font_resources.color_image = this->fonts.at("arial").font_image;
     text_surface.material->data = text_material->write_material(creator->core.device, pass, font_resources, *text_desc_allocator);
@@ -127,7 +128,7 @@ gf::text::TextBox gf::text::TextManager::initialize_textbox(const std::string& t
 }
 
 // TODO: need to handle \n chars
-gf::vk_render::MeshAsset* gf::text::TextBox::assemble_text_data() {
+vkh_render::MeshAsset* gf::text::TextBox::assemble_text_data() {
     // TODO: need to do indices, surface bounds, surface count, and verts here
 
     float x = 0, y = 0;
@@ -145,7 +146,7 @@ gf::vk_render::MeshAsset* gf::text::TextBox::assemble_text_data() {
         float atlas_width = width / font->font_image.image_size.width;
         float atlas_height = height / font->font_image.image_size.height;
 
-        vk_render::Quad char_quad = vk_render::Quad::generate_textured_quad(idx, {xpos, ypos, width, height}, { character_info.texture_position.x, character_info.texture_position.y, atlas_width, atlas_height });
+        vkh_render::Quad char_quad = vkh_render::Quad::generate_textured_quad(idx, {xpos, ypos, width, height}, { character_info.texture_position.x, character_info.texture_position.y, atlas_width, atlas_height });
         // TODO: convert quad into transitional info
 
         x += character_info.padding.z;

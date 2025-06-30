@@ -18,7 +18,10 @@
 #include <fastgltf/tools.hpp>
 
 #include <vkl_types.hpp>
-#include <vkh_renderable.hpp>
+#include <vkh_irenderable.hpp>
+#include <t_node.hpp>
+#include <t_meshnode.hpp>
+#include <vkh_render_types.hpp>
 #include <vkl_descriptors.hpp>
 #include <vkl_images.hpp>
 
@@ -30,14 +33,14 @@ namespace vk_loader {
  * @struct LoadedGLTF
  * @brief A GLTF scene.
  */
-class LoadedGLTF : public vk_render::IRenderable {
+class LoadedGLTF : public vkh_render::IRenderable {
 public:
-    std::unordered_map<std::string, std::shared_ptr<vk_render::MeshAsset>> meshes;
-    std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> nodes;
+    std::unordered_map<std::string, std::shared_ptr<vkh_render::MeshAsset>> meshes;
+    std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> nodes;
     std::unordered_map<std::string, vk_img::AllocatedImage> images;
-    std::unordered_map<std::string, std::shared_ptr<vk_render::GLTFMaterial>> materials;
+    std::unordered_map<std::string, std::shared_ptr<vkh_render::GLTFMaterial>> materials;
 
-    std::vector<std::shared_ptr<vk_render::Node>> top_nodes;
+    std::vector<std::shared_ptr<vkh_render::Node>> top_nodes;
     std::vector<VkSampler> samplers;
 
     vk_desc::DescriptorAllocatorGrowable descriptor_pool;
@@ -45,7 +48,7 @@ public:
     VkManager* creator = nullptr;
     ~LoadedGLTF() { clear_all(); };
 
-    virtual void draw(const glm::mat4& top_matrix, vk_render::DrawContext& ctx);
+    virtual void draw(const glm::mat4& top_matrix, gf::DrawContext& ctx);
 
 private:
     void clear_all();

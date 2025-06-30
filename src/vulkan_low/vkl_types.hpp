@@ -17,7 +17,7 @@
 #include <glm/mat4x4.hpp>
 
 #include <vkl_descriptors.hpp>
-#include <com_delstack.hpp>
+#include <t_delstack.hpp>
 #include <vkl_images.hpp>
 
 namespace gf {
@@ -180,6 +180,16 @@ struct RenderObject {
     Bounds bounds;
     glm::mat4 transform;
     VkDeviceAddress vertex_buffer_address;
+};
+
+/**
+ * @struct DrawContext
+ * @brief Bundle for different surface types.
+ */
+struct DrawContext {
+    std::vector<RenderObject> opaque_surfaces;
+    std::vector<RenderObject> transparent_surfaces;
+    std::vector<RenderObject> static_surfaces; // Meant for UI elements, shouldn't affected by render proj matrix. No culling.
 };
 
 struct ComputePushConstants {

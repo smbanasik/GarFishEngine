@@ -22,6 +22,7 @@
 #include <gf_vulkan.hpp>
 #include <vkl_initializers.hpp>
 #include <vkl_types.hpp>
+#include <mat_metrough.hpp>
 
 std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gltf(VkManager* engine, std::string_view file_path) {
     
@@ -83,9 +84,9 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         file.samplers.push_back(new_sampler);
     }
 
-    std::vector<std::shared_ptr<vk_render::Node>> nodes;
-    std::vector<std::shared_ptr<vk_render::MeshAsset>> meshes;
-    std::vector<std::shared_ptr<vk_render::GLTFMaterial>> materials;
+    std::vector<std::shared_ptr<vkh_render::Node>> nodes;
+    std::vector<std::shared_ptr<vkh_render::MeshAsset>> meshes;
+    std::vector<std::shared_ptr<vkh_render::GLTFMaterial>> materials;
     std::vector<vk_img::AllocatedImage> images;
 
     for (fastgltf::Image& image : gltf.images) {
@@ -101,17 +102,17 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         }
     }
 
-    file.material_data_buffer = engine->img_buff_allocator.create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants) * gltf.materials.size(),
+    file.material_data_buffer = engine->img_buff_allocator.create_buffer(sizeof(vkh_mat::GLTFMetallic_Roughness::MaterialConstants) * gltf.materials.size(),
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     int data_index = 0;
-    vk_mat::GLTFMetallic_Roughness::MaterialConstants* scene_material_constants = (vk_mat::GLTFMetallic_Roughness::MaterialConstants*)file.material_data_buffer.info.pMappedData;
+    vkh_mat::GLTFMetallic_Roughness::MaterialConstants* scene_material_constants = (vkh_mat::GLTFMetallic_Roughness::MaterialConstants*)file.material_data_buffer.info.pMappedData;
 
     for (fastgltf::Material& mat : gltf.materials) {
-        std::shared_ptr<vk_render::GLTFMaterial> new_mat = std::make_shared<vk_render::GLTFMaterial>();
+        std::shared_ptr<vkh_render::GLTFMaterial> new_mat = std::make_shared<vkh_render::GLTFMaterial>();
         materials.push_back(new_mat);
         file.materials[mat.name.c_str()] = new_mat;
 
-        vk_mat::GLTFMetallic_Roughness::MaterialConstants constants;
+        vkh_mat::GLTFMetallic_Roughness::MaterialConstants constants;
         constants.color_factors.x = mat.pbrData.baseColorFactor[0];
         constants.color_factors.y = mat.pbrData.baseColorFactor[1];
         constants.color_factors.z = mat.pbrData.baseColorFactor[2];
@@ -126,14 +127,14 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
             passType = MaterialPass::Transparent;
         }
 
-        vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources(engine->img_buff_allocator);
+        vkh_mat::GLTFMetallic_Roughness::MaterialResources material_resources(engine->img_buff_allocator);
         material_resources.color_image = *engine->engine_images.get_texture("white");
         material_resources.color_sampler = engine->default_sampler_linear;
         material_resources.metal_rough_image = *engine->engine_images.get_texture("white");
         material_resources.metal_rough_sampler = engine->default_sampler_linear;
 
         material_resources.data_buffer = file.material_data_buffer.buffer;
-        material_resources.data_buffer_offset = data_index * sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants);
+        material_resources.data_buffer_offset = data_index * sizeof(vkh_mat::GLTFMetallic_Roughness::MaterialConstants);
         if (mat.pbrData.baseColorTexture.has_value()) {
             size_t img = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].imageIndex.value();
             size_t sampler = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
@@ -149,7 +150,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
     std::vector<Vertex> vertices;
 
     for (fastgltf::Mesh& mesh : gltf.meshes) {
-        std::shared_ptr<vk_render::MeshAsset> newmesh = std::make_shared<vk_render::MeshAsset>();
+        std::shared_ptr<vkh_render::MeshAsset> newmesh = std::make_shared<vkh_render::MeshAsset>();
         meshes.push_back(newmesh);
         file.meshes[mesh.name.c_str()] = newmesh;
         newmesh->name = mesh.name;
@@ -158,7 +159,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         vertices.clear();
 
         for (auto&& p : mesh.primitives) {
-            vk_render::GeoSurface newSurface;
+            vkh_render::GeoSurface newSurface;
             newSurface.start_idx = (uint32_t)indices.size();
             newSurface.count = (uint32_t)gltf.accessors[p.indicesAccessor.value()].count;
             size_t initial_vtx = vertices.size();
@@ -230,13 +231,13 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         newmesh->mesh_buffers = engine->upload_mesh(indices, vertices);
     }
     for (fastgltf::Node& node : gltf.nodes) {
-        std::shared_ptr<vk_render::Node> newNode;
+        std::shared_ptr<vkh_render::Node> newNode;
         if (node.meshIndex.has_value()) {
-            newNode = std::make_shared<vk_render::MeshNode>();
-            static_cast<vk_render::MeshNode*>(newNode.get())->mesh = meshes[*node.meshIndex];
+            newNode = std::make_shared<vkh_render::MeshNode>();
+            static_cast<vkh_render::MeshNode*>(newNode.get())->mesh = meshes[*node.meshIndex];
         }
         else {
-            newNode = std::make_shared<vk_render::Node>();
+            newNode = std::make_shared<vkh_render::Node>();
         }
 
         nodes.push_back(newNode);
@@ -266,7 +267,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
 
     for (int i = 0; i < gltf.nodes.size(); i++) {
         fastgltf::Node& node = gltf.nodes[i];
-        std::shared_ptr<vk_render::Node>& sceneNode = nodes[i];
+        std::shared_ptr<vkh_render::Node>& sceneNode = nodes[i];
 
         for (auto& c : node.children) {
             sceneNode->children.push_back(nodes[c]);
@@ -309,7 +310,7 @@ VkSamplerMipmapMode gf::vk_loader::extract_mipmap_mode(fastgltf::Filter filter) 
     }
 }
 
-void gf::vk_loader::LoadedGLTF::draw(const glm::mat4& top_matrix, vk_render::DrawContext& ctx) {
+void gf::vk_loader::LoadedGLTF::draw(const glm::mat4& top_matrix, gf::DrawContext& ctx) {
     for (auto& n : top_nodes) {
         n->draw(top_matrix, ctx);
     }

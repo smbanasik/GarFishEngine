@@ -1,4 +1,4 @@
-#include <vkh_imgatlas.hpp>
+#include <t_imageatlas.hpp>
 
 std::array<glm::vec2, 4> vkh::ImageAtlas::get_texture_square(glm::ivec2 subdivision_coords) const {
     if (subdivision_coords.x >= subdivisions_x || subdivision_coords.y >= subdivisions_y)

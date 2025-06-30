@@ -17,15 +17,13 @@
 #include <vk_mem_alloc.h>
 
 #include <gf_stats.hpp>
-#include <com_delstack.hpp>
+#include <t_delstack.hpp>
 #include <vkl_types.hpp>
 #include <vkl_core.hpp>
 #include <vkl_descriptors.hpp>
 #include <vkl_pipelines.hpp>
 #include <vkh_gltf.hpp>
-#include <vkh_materials.hpp>
-#include <vkh_renderable.hpp>
-#include <vkh_imgatlas.hpp>
+#include <t_imageatlas.hpp>
 #include <vkl_frames.hpp>
 #include <vkl_images.hpp>
 #include <gfu_types.hpp>
@@ -114,12 +112,12 @@ public:
     MaterialInstance image_mat_data;
     vkh::ImageAtlas test_texture;
 
-    vk_render::DrawContext main_draw_context;
-    std::unordered_map<std::string, std::shared_ptr<vk_render::Node>> loaded_nodes;
+    gf::DrawContext main_draw_context;
+    std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> loaded_nodes;
     std::unordered_map<std::string, std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes;
     Camera camera;
 
-    std::vector<std::shared_ptr<gf::vk_render::MeshAsset>> test_meshes;
+    std::vector<std::shared_ptr<vkh_render::MeshAsset>> test_meshes;
     std::vector<ComputeEffect> background_effects; // For fun!
     int current_background_effect{ 0 }; // For fun!
 

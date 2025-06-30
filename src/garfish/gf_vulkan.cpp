@@ -30,6 +30,8 @@
 #include <vkl_descriptors.hpp>
 #include <vkl_images.hpp>
 #include <wi_manager.hpp>
+#include <mat_metrough.hpp>
+#include <mat_img.hpp>
 // TEMPORARY
 #include <vulkan/vk_enum_string_helper.h>
 #define VK_CHECK(x)                                                     \
@@ -322,8 +324,8 @@ void gf::VkManager::init_descriptors() {
 
 void gf::VkManager::init_pipelines() {
     init_background_pipelines();
-    mat_manager.create_material<vk_mat::GLTFMetallic_Roughness>("metal_mat");
-    mat_manager.create_material<vk_mat::MaterialImage>("font_mat");
+    mat_manager.create_material<vkh_mat::GLTFMetallic_Roughness>("metal_mat");
+    mat_manager.create_material<vkh_mat::MaterialImage>("font_mat");
 }
 
 void gf::VkManager::init_background_pipelines() {
@@ -471,13 +473,13 @@ void gf::VkManager::init_default_data() {
     sampl.minFilter = VK_FILTER_LINEAR;
     vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_linear);
 
-    vk_mat::GLTFMetallic_Roughness::MaterialResources material_resources(img_buff_allocator);
+    vkh_mat::GLTFMetallic_Roughness::MaterialResources material_resources(img_buff_allocator);
     material_resources.color_image = *engine_images.get_texture("white");
     material_resources.color_sampler = default_sampler_linear;
     material_resources.metal_rough_image = *engine_images.get_texture("white");
     material_resources.metal_rough_sampler = default_sampler_linear;
-    vk_img::AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vk_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    vk_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vk_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
+    vk_img::AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vkh_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    vkh_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vkh_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
     scene_uniform_data->color_factors = glm::vec4{ 1,1,1,1 };
     scene_uniform_data->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
     material_resources.data_buffer = material_constants.buffer;
@@ -492,7 +494,7 @@ void gf::VkManager::init_default_data() {
     text_manager.add_font_from_file("arial", "../../assets/arial.ttf");
     const text::Font* font = text_manager.get_font("arial");
 
-    vk_mat::MaterialImage::MaterialResources image_resources(img_buff_allocator);
+    vkh_mat::MaterialImage::MaterialResources image_resources(img_buff_allocator);
     image_resources.color_image = font->font_image;
     image_resources.color_sampler = default_sampler_nearest;
 
@@ -511,17 +513,17 @@ void gf::VkManager::init_default_data() {
     vertex_buff[3] = { glm::vec3(0.0f, 1.0f, 0.0f), uv_coords[3].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[3].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
     std::array<uint32_t, 6> index_buff = { 0, 1, 2, 2, 3, 0 };
 
-    vk_render::GeoSurface surface;
+    vkh_render::GeoSurface surface;
     surface.bounds = {};
     surface.count = 6;
     surface.start_idx = 0;
-    surface.material = std::make_shared<vk_render::GLTFMaterial>(image_mat_data);
-    std::shared_ptr<vk_render::MeshAsset> image_mesh = std::make_shared<vk_render::MeshAsset>();
+    surface.material = std::make_shared<vkh_render::GLTFMaterial>(image_mat_data);
+    std::shared_ptr<vkh_render::MeshAsset> image_mesh = std::make_shared<vkh_render::MeshAsset>();
     image_mesh->mesh_buffers = upload_mesh(index_buff, vertex_buff);
     image_mesh->name = "first_image";
     image_mesh->surfaces.push_back(surface);
     test_meshes.push_back(image_mesh);
-    std::shared_ptr<vk_render::MeshNode> image = std::make_shared<vk_render::MeshNode>();
+    std::shared_ptr<vkh_render::MeshNode> image = std::make_shared<vkh_render::MeshNode>();
     image->mesh = image_mesh;
     image->local_transform = glm::mat4{ 1.f };
     image->world_transform = glm::mat4{ 1.f };

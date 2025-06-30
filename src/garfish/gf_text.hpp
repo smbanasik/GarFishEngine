@@ -15,8 +15,8 @@
 #include <vkl_images.hpp>
 #include <gfu_types.hpp>
 #include <gf_resource_manager.hpp>
-#include <vkh_renderable.hpp>
-#include <vkh_materials.hpp>
+#include <vkh_render_types.hpp>
+#include <mat_img.hpp>
 
 // TEMPORARY DOC:
 // TextManager - initializes the library, stores fonts and owns text boxes(?).
@@ -50,11 +50,11 @@ public:
     const std::string* get_text_buffer() const { return &text_buffer; };
 
     // TODO: text assemble options go here
-    vk_render::MeshAsset* assemble_text_data();
+    vkh_render::MeshAsset* assemble_text_data();
 
 private:
     std::string text_buffer;
-    vk_render::MeshAsset text_data;
+    vkh_render::MeshAsset text_data;
     Font* font;
     bool text_buffer_changed;
 };
@@ -78,7 +78,7 @@ private:
 
     vk_img::ImageBufferAllocator* font_allocator;
     vk_desc::DescriptorAllocatorGrowable* text_desc_allocator;
-    vk_mat::MaterialImage* text_material;
+    vkh_mat::MaterialImage* text_material;
     VkManager* creator;
 
     TextBox initialize_textbox(const std::string& text_box_name, const std::string& text_buffer);
