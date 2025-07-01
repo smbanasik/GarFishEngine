@@ -2,6 +2,9 @@
 
 ## Text Rendering Requirements
 We should have the capabilities of a modern word processor. That means per letter customization, fonts, scaling, and so on.
+Since most text in a game is not dynamic, we can hold off on efficient text editing and just create the  
+text asset for now. We'll come up with another system that uses a dynamic buffer for situations that  
+would require per-letter increases to text rendering.
 
 ## Text Rendering Solution
 Like the graphics pipeline, text rendering can be split into three categories: low level, high level,  
@@ -21,12 +24,7 @@ Let's start with what a render object requires:
 - A transform matrix
 - Bounds for view culling
 
-**Helper functions**
-The lowest level can ultimately be represented by set of functions, the first taking in an array of  
-*some object* and populating the vertex and index buffers of a GPUMeshBuffer bundle.  
-The second function takes a font of some kind and produces a MaterialInstance.  
-
-**The Low Level**
+#### **The Low Level**
 Here we create a class that's capable of holding this information. We'll call it TextAsset, since,  
 like the MeshAsset, it's primary purpose is to be easily converted to a RenderObject.
 A TextAsset will hold our GPUMeshBuffers, a name, and an array of Words. Words are the  
@@ -42,7 +40,7 @@ two Words: one for the italicized text, and one for the normal text. The goal is
 which have to occur once per MaterialInstance, while still providing a way to customize the text per  
 character.
 
-Finally, a Font is texture data, a MaterialInstance, and character spacing all wrapped into one. These are  
+Finally, a Font is texture data, and character spacing all wrapped into one. These are  
 allocated and handled with a FontManager(?).
 
 >*A Quick Note*
@@ -51,14 +49,34 @@ how buffers are populated.
 
 You'll notice that the TextAsset doesn't actually contain any text. The low level classes are only  
 concerned with converting already configured Font and Text data into a render object.  
-There are two helper functions provided, the first taking an array of *some object* and populating the  
-buffers of a TextAsset. The second function takes a Font and produces a MaterialInstance for it to own.
+There are a few helper functions provided, the first taking an array of *some object* and populating the  
+buffers of a TextAsset. The second function takes a Font and produces a MaterialInstance for it to own.  
+Finally, we'll need a third class to create words from our input text, which will also require the buffers  
+to be formatted accordingly (since words should be consecutive but don't have to be visually).  
 
-**The High Level**
+#### **The High Level**
 With our low level interface decided, we can move onto how we're actually going to manage our text.  
 Our high level class will be called the TextBox. The TextBoxes concern is to establish the spacing and  
 boundaries of the text while also storing the resources to construct a TextAsset.
 
-This brings us to the next obstacle. What format do we want to use to produce our Words. This is the same  
-issue as editing text! Can fill a buffer bit by bit or do we need to create a character array first?  
-More research for tomorrow.
+Our TextAsset will require an array of Words and populated GPUMeshBuffers. Let's consider their creation  
+requirements before we figure out how to implement them.
+
+**Word Creation**
+Words are a set of characters with the same material. Vulkan will only take a start index and a count,  
+so the Word in data must be contiguous. When populating our buffers, we should consider the Words first  
+and then assemble them with that in mind.  
+Since words also contain a TextMat, we'll need to take care of those as well, and adjust vertices as  
+needed in line with the TextMat.
+
+**Buffer Population**
+For now, we'll use a staging buffer to send our buffers to the GPU, so we can just use the UploadMesh  
+function. This requires a set of vertices and indices already made.
+
+With these considerations, when we want to assemble our text into vert data, we'll organize the text by  
+Word, create our vectors of indices and vertices, and then run through the text, constructing a Quad and  
+placing it into our respective buffers. Since we aren't concerned with editing text in this system, we can  
+discard the text data and arguably the text buffer, to the point of never needing to store it in the first  
+place.
+
+Any other functionality will come on top of this.
