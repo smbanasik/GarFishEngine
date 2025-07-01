@@ -3,40 +3,29 @@
 I have been adding doxygen support to the engine, and I'm noticing some organizational issues that 
 I'd want to address before moving forward, and some that can be addressed later.
 
-### The list itself
+## Next steps
 
-- The renderer class in vk_frames should be completed and the reliance on VKCore for the swapchain, frame data, and immediate frames should be moved to the renderer class.
-  - We should consider the scope of the renderer class, what is it doing besides holding our frame data and swapchain?
-- The relationship between the ImageBufferAllocator and its allocations should be reworked, see the Later section
-  - We should let the allocator handle deallocation and allow for the allocator to clear them early.
-- namespacing (see doxygen)
-- Remove last modified and date created
-- params should have \[in], \[out], and \[in,out]
-- Convert IBaseMaterial into RAII with a protected parameterized base class.
-- Move \@details below \@param and \@returns
-- A better split between vk_ and gf_ files, specifically:
-  - gf_types
-  - gf_vulkan
-  - gf_resource_manager
-  - vk_materials
-  - vk_renderables
-- Remove gf namespace from most things
-- There is an anti-pattern appearing where a class will have a VkDevice pointer as a private member variable since it's often needed for the destructor. This will result in many references all to the same address. Is there a way we can minimize this?
-  - One option is static members, since we'll *rarely* need more than one VkDevice or VkCore.
-  - Resource managers could be used to do this, but we run into a similar issue.
-
-## Later
-
-Text rendering should come after documentation.
+Text rendering - See text writeup.
 Shortly after text rendering, I should redo the camera implementation.
 After that, I'd like to take a look at making realistic skies with gradients.
 
-Additionally, creating different options for uniform buffers and storage buffers could be useful.
-Same goes for graphics and compute pipelines.
+### Future Considerations
+
+- The relationship between the ImageBufferAllocator and its allocations should be reworked, see the Later section
+  - We should let the allocator handle deallocation and allow for the allocator to clear them early.
+- documentation params should have \[in], \[out], and \[in,out]
+- documentation should have the details section last.
+- Convert IBaseMaterial into RAII with a protected parameterized base class.
+- Go through the gf namespace and make any changes as needed
+- There is an anti-pattern appearing where a class will have a VkDevice pointer as a private member variable since it's often needed for the destructor. This will result in many references all to the same address. Is there a way we can minimize this?
+  - One option is static members, since we'll *rarely* (if ever) need more than one VkDevice or VkCore.
+  - Resource managers could be used to do this, but we run into a similar issue.
+- An interface that combines Imm_frame, the swapchain, and the frame_data to simplify submission.
+  - Renderer class?
+- See WInput section
+- Create options for uniform buffers and compute pipelines.
 
 ### WInput:
 The current use of friends and context pointers is a little annoying. I need to find a way to have a
 relationship similar to parent-child classes, but with composition instead. I want the "manager" to have
 access to private member variables that outsiders shouldn't have access to.
-
-I would also like to rename WInput and the gl_* prefix

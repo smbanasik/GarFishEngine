@@ -2,8 +2,6 @@
 * @file
 * @brief File that contains the VKCore class.
 * @author Spencer Banasik
-* @date Created: 1/6/2025
-* @date Last Modified: 6/16/2025
 */
 #ifndef VKL_CORE_HPP
 #define VKL_CORE_HPP

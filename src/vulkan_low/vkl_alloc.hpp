@@ -11,7 +11,7 @@
 
 namespace vkl_core {
 /**
-* @class Allocator
+* @class VMAAllocWrapper
 * @brief Logical abstraction of vma allocator with RAII.
 * @author Spencer Banasik
 * @details Contains a vma allocator with the rule of 5.

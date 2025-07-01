@@ -65,7 +65,7 @@ private:
         key(window.window) {};
 };
 /**
-* @class GLManager
+* @class WIManager
 * @brief GLFW initialization and context creation
 * @author Spencer Banasik
 * @details Entry point for WInput, creates windows and the surface for windows.
