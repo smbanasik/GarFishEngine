@@ -123,9 +123,9 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         constants.metal_rough_factors.y = mat.pbrData.roughnessFactor;
         scene_material_constants[data_index] = constants;
 
-        MaterialPass passType = MaterialPass::MainColor;
+        vkl::MaterialPass passType = vkl::MaterialPass::MainColor;
         if (mat.alphaMode == fastgltf::AlphaMode::Blend) {
-            passType = MaterialPass::Transparent;
+            passType = vkl::MaterialPass::Transparent;
         }
 
         vkh_mat::GLTFMetallic_Roughness::MaterialResources material_resources(engine->img_buff_allocator);
@@ -148,7 +148,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
         data_index++;
     }
     std::vector<uint32_t> indices;
-    std::vector<Vertex> vertices;
+    std::vector<vkl::Vertex> vertices;
 
     for (fastgltf::Mesh& mesh : gltf.meshes) {
         std::shared_ptr<vkh_render::MeshAsset> newmesh = std::make_shared<vkh_render::MeshAsset>();
@@ -179,7 +179,7 @@ std::optional<std::shared_ptr<gf::vk_loader::LoadedGLTF>> gf::vk_loader::load_gl
 
                 fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, posAccessor,
                     [&](glm::vec3 v, size_t index) {
-                        Vertex newvtx;
+                        vkl::Vertex newvtx;
                         newvtx.position = v;
                         newvtx.normal = { 1, 0, 0 };
                         newvtx.color = glm::vec4{ 1.f };
@@ -311,7 +311,7 @@ VkSamplerMipmapMode gf::vk_loader::extract_mipmap_mode(fastgltf::Filter filter) 
     }
 }
 
-void gf::vk_loader::LoadedGLTF::draw(const glm::mat4& top_matrix, gf::DrawContext& ctx) {
+void gf::vk_loader::LoadedGLTF::draw(const glm::mat4& top_matrix, vkl::DrawContext& ctx) {
     for (auto& n : top_nodes) {
         n->draw(top_matrix, ctx);
     }

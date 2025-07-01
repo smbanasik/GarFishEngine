@@ -48,7 +48,7 @@ public:
     VkManager* creator = nullptr;
     ~LoadedGLTF() { clear_all(); };
 
-    virtual void draw(const glm::mat4& top_matrix, gf::DrawContext& ctx);
+    virtual void draw(const glm::mat4& top_matrix, vkl::DrawContext& ctx);
 
 private:
     void clear_all();

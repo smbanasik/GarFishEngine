@@ -112,7 +112,7 @@ gf::text::TextBox gf::text::TextManager::initialize_textbox(const std::string& t
     vkh_render::GeoSurface text_surface;
     text_surface.start_idx = 0;
 
-    MaterialPass pass = MaterialPass::MainColor;
+    vkl::MaterialPass pass = vkl::MaterialPass::MainColor;
 
     vkh_mat::MaterialImage::MaterialResources font_resources(*font_allocator);
     font_resources.color_sampler = creator->default_sampler_linear;

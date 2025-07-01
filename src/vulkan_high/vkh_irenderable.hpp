@@ -14,7 +14,7 @@ namespace vkh_render {
  * @brief Interface for any renderable objects.
  */
 struct IRenderable {
-    virtual void draw(const glm::mat4& top_matrix, gf::DrawContext& ctx) = 0;
+    virtual void draw(const glm::mat4& top_matrix, vkl::DrawContext& ctx) = 0;
 };
 
 }

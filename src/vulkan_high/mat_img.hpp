@@ -9,6 +9,7 @@
 
 #include <vkh_imaterial.hpp>
 #include <t_desc_writer.hpp>
+#include <vkl_mat_types.hpp>
 
 namespace vkh_mat {
 struct MaterialImage : public IBaseMaterial {
@@ -35,7 +36,7 @@ public:
 
     void set_device(VkDevice* device) override { this->device = device; };
     void build_pipelines(gf::VkManager* engine) override;
-    gf::MaterialInstance write_material(VkDevice device, gf::MaterialPass pass, const IMaterialResources& resources,
+    vkl::MaterialInstance write_material(VkDevice device, vkl::MaterialPass pass, const IMaterialResources& resources,
         vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 
     struct MaterialResources : public IMaterialResources {
@@ -48,8 +49,8 @@ public:
         };
     };
 
-    gf::MaterialPipeline opaque_pipeline;
-    gf::MaterialPipeline transparent_pipeline;
+    vkl::MaterialPipeline opaque_pipeline;
+    vkl::MaterialPipeline transparent_pipeline;
     VkDescriptorSetLayout material_layout;
     vkl_desc::DescriptorWriter writer;
 

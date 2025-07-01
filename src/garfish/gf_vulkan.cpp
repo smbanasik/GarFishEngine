@@ -49,7 +49,7 @@
         }                                                               \
     } while (0)
 
-bool is_visible(const gf::RenderObject & obj, const glm::mat4 & viewproj) {
+bool is_visible(const vkl::RenderObject & obj, const glm::mat4 & viewproj) {
     std::array<glm::vec3, 8> corners{
         glm::vec3 { 1, 1, 1 },
         glm::vec3 { 1, 1, -1 },
@@ -144,11 +144,11 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
     VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
     //vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
 
-    ComputeEffect& effect = background_effects[current_background_effect];
+    vkl::ComputeEffect& effect = background_effects[current_background_effect];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout, 0, 1, &drawn_image_descriptors, 0, nullptr);
 
-    vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &effect.data);
+    vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vkl::ComputePushConstants), &effect.data);
     vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
 }
 
@@ -158,16 +158,16 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
     auto start = std::chrono::system_clock::now();
     
     // Setup for drawing
-    vkl_res::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    vkl_res::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(vkl::GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
     frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
         gpu_scene_data_buffer.counter.can_delete_resources();
         });
-    GPUSceneData* scene_uniform_data = reinterpret_cast<GPUSceneData*>(gpu_scene_data_buffer.allocation->GetMappedData());
+    vkl::GPUSceneData* scene_uniform_data = reinterpret_cast<vkl::GPUSceneData*>(gpu_scene_data_buffer.allocation->GetMappedData());
     *scene_uniform_data = scene_data;
     
     VkDescriptorSet global_descriptor = frame->frame_descriptors.allocate(core.device, gpu_scene_data_descriptor_layout);
     vkl_desc::DescriptorWriter writer;
-    writer.write_buffer(0, gpu_scene_data_buffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    writer.write_buffer(0, gpu_scene_data_buffer.buffer, sizeof(vkl::GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     writer.update_set(core.device, global_descriptor);
 
     VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -175,12 +175,12 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
     VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
     vkCmdBeginRendering(cmd, &render_info);
 
-    MaterialPipeline* last_pipeline = nullptr;
-    MaterialInstance* last_material = nullptr;
+    vkl::MaterialPipeline* last_pipeline = nullptr;
+    vkl::MaterialInstance* last_material = nullptr;
     VkBuffer last_index_buffer = VK_NULL_HANDLE;
 
     // Creation of draw function.
-    auto draw = [&](const RenderObject& rendered) {
+    auto draw = [&](const vkl::RenderObject& rendered) {
         if (rendered.material != last_material) {
             last_material = rendered.material;
             if (rendered.material->pipeline != last_pipeline) {
@@ -211,24 +211,24 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
             vkCmdBindIndexBuffer(cmd, rendered.index_buffer, 0, VK_INDEX_TYPE_UINT32);
         }
         
-        GPUDrawPushConstants push_constants;
+        vkl::GPUDrawPushConstants push_constants;
         push_constants.vertex_buffer = rendered.vertex_buffer_address;
         push_constants.world_matrix = rendered.transform;
-        vkCmdPushConstants(cmd, rendered.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+        vkCmdPushConstants(cmd, rendered.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(vkl::GPUDrawPushConstants), &push_constants);
         vkCmdDrawIndexed(cmd, rendered.index_count, 1, rendered.first_index, 0, 0);
         stats.drawcall_count++;
         stats.triangle_count += rendered.index_count / 3;
         };
 
     // Actual drawing
-    for (const RenderObject& r : main_draw_context.static_surfaces) {
+    for (const vkl::RenderObject& r : main_draw_context.static_surfaces) {
         draw(r);
     }
-    for (const RenderObject& r : main_draw_context.opaque_surfaces) {
+    for (const vkl::RenderObject& r : main_draw_context.opaque_surfaces) {
         if (is_visible(r, scene_data.viewproj))
             draw(r);
     }
-    for (const RenderObject& r : main_draw_context.transparent_surfaces) {
+    for (const vkl::RenderObject& r : main_draw_context.transparent_surfaces) {
         if (is_visible(r, scene_data.viewproj))
             draw(r);
     }
@@ -344,7 +344,7 @@ void gf::VkManager::init_background_pipelines() {
 
     VkPushConstantRange push_constant{};
     push_constant.offset = 0;
-    push_constant.size = sizeof(ComputePushConstants);
+    push_constant.size = sizeof(vkl::ComputePushConstants);
     push_constant.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
     compute_layout.pPushConstantRanges = &push_constant;
@@ -372,7 +372,7 @@ void gf::VkManager::init_background_pipelines() {
     compute_create_info.layout = gradient_pipeline_layout;
     compute_create_info.stage = stage_info;
 
-    ComputeEffect gradient;
+    vkl::ComputeEffect gradient;
     gradient.layout = gradient_pipeline_layout;
     gradient.name = "gradient";
     gradient.data = {};
@@ -382,7 +382,7 @@ void gf::VkManager::init_background_pipelines() {
     vkCreateComputePipelines(core.device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &gradient.pipeline);
 
     compute_create_info.stage.module = sky_shader;
-    ComputeEffect sky;
+    vkl::ComputeEffect sky;
     sky.layout = gradient_pipeline_layout;
     sky.name = "sky";
     sky.data = {};
@@ -491,7 +491,7 @@ void gf::VkManager::init_default_data() {
     material_resources.data_buffer = material_constants.buffer;
     material_resources.data_buffer_offset = 0;
 
-    default_data = mat_manager.get_material("metal_mat")->write_material(core.device, MaterialPass::MainColor, material_resources, global_descriptor_allocator);
+    default_data = mat_manager.get_material("metal_mat")->write_material(core.device, vkl::MaterialPass::MainColor, material_resources, global_descriptor_allocator);
     engine_images.add_texture_from_file("tomato_guy", "../../assets/chad_emote.png");
     test_texture.texture = engine_images.get_texture("tomato_guy");
     test_texture.subdivisions_x = 1;
@@ -504,9 +504,9 @@ void gf::VkManager::init_default_data() {
     image_resources.color_image = font->font_image;
     image_resources.color_sampler = default_sampler_nearest;
 
-    image_mat_data = mat_manager.get_material("font_mat")->write_material(core.device, MaterialPass::MainColor, image_resources, global_descriptor_allocator);
+    image_mat_data = mat_manager.get_material("font_mat")->write_material(core.device, vkl::MaterialPass::MainColor, image_resources, global_descriptor_allocator);
     {
-    std::array<gf::Vertex, 4> vertex_buff;
+    std::array<vkl::Vertex, 4> vertex_buff;
     vkh::ImageAtlas font_atlas;
     font_atlas.texture = &font->font_image;
     font_atlas.subdivisions_x = 1;
@@ -541,11 +541,11 @@ void gf::VkManager::init_default_data() {
         vkDestroySampler(core.device, default_sampler_linear, nullptr);
         });
 }
-gf::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices) {
+vkl::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<vkl::Vertex> vertices) {
     const size_t index_buffer_size = indices.size() * sizeof(uint32_t);
-    const size_t vertex_buffer_size = vertices.size() * sizeof(Vertex);
+    const size_t vertex_buffer_size = vertices.size() * sizeof(vkl::Vertex);
     
-    GPUMeshBuffers new_mesh;
+    vkl::GPUMeshBuffers new_mesh;
     new_mesh.vertex_buffer = img_buff_allocator.create_buffer(vertex_buffer_size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
         | VK_BUFFER_USAGE_TRANSFER_DST_BIT
         | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,

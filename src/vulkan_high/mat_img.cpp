@@ -5,6 +5,7 @@
 #include <gf_vulkan.hpp>
 #include <vkl_initializers.hpp>
 #include <t_desc_layoutbuilder.hpp>
+#include <vkl_mat_types.hpp>
 
 vkh_mat::MaterialImage::MaterialImage()
     : opaque_pipeline(),
@@ -49,7 +50,7 @@ void vkh_mat::MaterialImage::build_pipelines(gf::VkManager* engine) {
 
     VkPushConstantRange matrix_range{};
     matrix_range.offset = 0;
-    matrix_range.size = sizeof(gf::GPUDrawPushConstants);
+    matrix_range.size = sizeof(vkl::GPUDrawPushConstants);
     matrix_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
     vkl_desc::DescriptorLayoutBuilder layout_builder;
@@ -100,13 +101,14 @@ void vkh_mat::MaterialImage::clear_resources(VkDevice device) {
     vkDestroyPipeline(device, transparent_pipeline.pipeline, nullptr);
 }
 
-gf::MaterialInstance vkh_mat::MaterialImage::write_material(VkDevice device, gf::MaterialPass pass, const IMaterialResources& resources, vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
+vkl::MaterialInstance vkh_mat::MaterialImage::write_material(VkDevice device, vkl::MaterialPass pass, 
+    const IMaterialResources& resources, vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
 
     const MaterialResources* mat_resources = dynamic_cast<const MaterialResources*>(&resources);
 
-    gf::MaterialInstance mat_data;
+    vkl::MaterialInstance mat_data;
     mat_data.pass_type = pass;
-    if (pass == gf::MaterialPass::Transparent)
+    if (pass == vkl::MaterialPass::Transparent)
         mat_data.pipeline = &transparent_pipeline;
     else
         mat_data.pipeline = &opaque_pipeline;

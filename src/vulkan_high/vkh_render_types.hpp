@@ -15,7 +15,7 @@ namespace vkh_render {
  * @brief Abstraction of MaterialInstance
  */
 struct GLTFMaterial {
-    gf::MaterialInstance data;
+    vkl::MaterialInstance data;
 };
 
 /**
@@ -27,7 +27,7 @@ struct GLTFMaterial {
 struct GeoSurface {
     uint32_t start_idx;
     uint32_t count;
-    gf::Bounds bounds; // TODO: need to create a version of surfaces without this
+    vkl::Bounds bounds; // TODO: need to create a version of surfaces without this
     std::shared_ptr<GLTFMaterial> material;
 };
 
@@ -42,7 +42,7 @@ struct GeoSurface {
 struct MeshAsset {
     std::string name;
     std::vector<GeoSurface> surfaces;
-    gf::GPUMeshBuffers mesh_buffers;
+    vkl::GPUMeshBuffers mesh_buffers;
 };
 
 }

@@ -8,7 +8,11 @@
 #define MAT_METROUGH_HPP
 
 #include <vkh_imaterial.hpp>
+
+#include <glm/vec4.hpp>
+
 #include <t_desc_writer.hpp>
+#include <vkl_mat_types.hpp>
 
 namespace vkh_mat {
 struct GLTFMetallic_Roughness : public IBaseMaterial {
@@ -35,7 +39,7 @@ public:
 
     void set_device(VkDevice* device) override { this->device = device; };
     void build_pipelines(gf::VkManager* engine) override;
-    gf::MaterialInstance write_material(VkDevice device, gf::MaterialPass pass, const IMaterialResources& resources,
+    vkl::MaterialInstance write_material(VkDevice device, vkl::MaterialPass pass, const IMaterialResources& resources,
         vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) override;
 
     struct MaterialConstants {
@@ -62,8 +66,8 @@ public:
         };
     };
 
-    gf::MaterialPipeline opaque_pipeline;
-    gf::MaterialPipeline transparent_pipeline;
+    vkl::MaterialPipeline opaque_pipeline;
+    vkl::MaterialPipeline transparent_pipeline;
     VkDescriptorSetLayout material_layout;
     vkl_desc::DescriptorWriter writer;
 

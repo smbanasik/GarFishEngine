@@ -23,7 +23,7 @@ namespace vkh_render {
  */
 struct MeshNode : public Node {
     std::shared_ptr<vkh_render::MeshAsset> mesh;
-    virtual void draw(const glm::mat4& top_matrix, gf::DrawContext& ctx);
+    virtual void draw(const glm::mat4& top_matrix, vkl::DrawContext& ctx);
 };
 }
 #endif

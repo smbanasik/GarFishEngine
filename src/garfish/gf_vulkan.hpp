@@ -33,6 +33,9 @@
 #include <gf_resource_manager.hpp>
 #include <gf_text.hpp>
 #include <vkl_imgbuf_alloc.hpp>
+#include <vkl_mat_types.hpp>
+#include <vkl_shader_types.hpp>
+#include <vkh_material_manager.hpp>
 
 struct GLFWwindow;
 
@@ -80,7 +83,7 @@ class VkManager {
 public:
 
     vkl_core::VKCore core;
-    vkl_core::Allocator alloc;
+    vkl_core::VMAAllocWrapper alloc;
     vkl_frames::SwapChain swapchain;
     vkl_frames::FrameData frame_data;
     vkl_frames::ImmediateFrame imm_frame;
@@ -102,7 +105,7 @@ public:
     
     VkDescriptorSet drawn_image_descriptors;
     VkDescriptorSetLayout drawn_image_descriptor_layout;
-    GPUSceneData scene_data;
+    vkl::GPUSceneData scene_data;
     VkDescriptorSetLayout gpu_scene_data_descriptor_layout;
     VkDescriptorSetLayout single_image_descriptor_layout;
 
@@ -111,18 +114,18 @@ public:
     VkSampler default_sampler_linear;
     VkSampler default_sampler_nearest;
 
-    MaterialInstance default_data;
-    MaterialManager mat_manager;
-    MaterialInstance image_mat_data;
+    vkl::MaterialInstance default_data;
+    vkh_mat::MaterialManager mat_manager;
+    vkl::MaterialInstance image_mat_data;
     vkh::ImageAtlas test_texture;
 
-    gf::DrawContext main_draw_context;
+    vkl::DrawContext main_draw_context;
     std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> loaded_nodes;
     std::unordered_map<std::string, std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes;
     Camera camera;
 
     std::vector<std::shared_ptr<vkh_render::MeshAsset>> test_meshes;
-    std::vector<ComputeEffect> background_effects; // For fun!
+    std::vector<vkl::ComputeEffect> background_effects; // For fun!
     int current_background_effect{ 0 }; // For fun!
 
     bool is_init = false;
@@ -176,7 +179,7 @@ public:
      * @returns The buffers with our mesh data, now uploaded to the GPU.
      * @todo Move this function to a more fitting class.
      */
-    GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
+    vkl::GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<vkl::Vertex> vertices);
 
     /**
      * @brief Update the swapchain.

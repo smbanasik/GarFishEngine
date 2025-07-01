@@ -29,7 +29,7 @@ struct Node : public IRenderable {
     glm::mat4 world_transform;
 
     void refresh_transform(const glm::mat4& parent_matrix);
-    virtual void draw(const glm::mat4& top_matrix, gf::DrawContext& ctx);
+    virtual void draw(const glm::mat4& top_matrix, vkl::DrawContext& ctx);
 };
 
 }

@@ -91,7 +91,7 @@ void gf::Engine::run() {
         if (ImGui::Begin("background")) {
             ImGui::SliderFloat("Render Scale", &vk_context.render_scale, 0.3f, 1.0f);
 
-            ComputeEffect& selected = vk_context.background_effects[vk_context.current_background_effect];
+            vkl::ComputeEffect& selected = vk_context.background_effects[vk_context.current_background_effect];
             ImGui::Text("Selected effect: ", selected.name);
             ImGui::SliderInt("Effect Index", &vk_context.current_background_effect, 0, vk_context.background_effects.size() - 1);
 

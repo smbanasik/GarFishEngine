@@ -11,7 +11,7 @@
 
 namespace vkl_core {
 class VKCore;
-class Allocator;
+class VMAAllocWrapper;
 }
 namespace vkl_frames {
 class ImmediateFrame;
@@ -31,7 +31,7 @@ class ImageBufferAllocator {
     friend struct AllocatedBuffer;
 public:
     ImageBufferAllocator(vkl_core::VKCore* core_handle,
-        vkl_core::Allocator* alloc_handle, vkl_frames::ImmediateFrame* imm_handle)
+        vkl_core::VMAAllocWrapper* alloc_handle, vkl_frames::ImmediateFrame* imm_handle)
         : core_handle(core_handle), alloc_handle(alloc_handle), imm_handle(imm_handle) {};
 
     AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false) const;
@@ -43,7 +43,7 @@ public:
 
 private:
     vkl_core::VKCore* core_handle;
-    vkl_core::Allocator* alloc_handle;
+    vkl_core::VMAAllocWrapper* alloc_handle;
     vkl_frames::ImmediateFrame* imm_handle;
 };
 }

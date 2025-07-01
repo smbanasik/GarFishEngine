@@ -8,7 +8,7 @@
 #define VKH_IMATERIAL_HPP
 #include <stdint.h>
 
-#include <vkl_types.hpp>
+#include <vkl_mat_types.hpp>
 #include <vkl_images.hpp>
 #include <t_desc_allocgrow.hpp>
 
@@ -87,7 +87,7 @@ struct IBaseMaterial {
      * assigning stored pipelines to the pipeline member variable, creating a descriptor set with
      * the allocator, and then updating that set with a DescriptorWriter and the IMaterialResources.
      */
-    virtual gf::MaterialInstance write_material(VkDevice device, gf::MaterialPass pass,
+    virtual vkl::MaterialInstance write_material(VkDevice device, vkl::MaterialPass pass,
         const IMaterialResources& resources,
         vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) = 0;
 };

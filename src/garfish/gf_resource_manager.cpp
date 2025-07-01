@@ -20,11 +20,3 @@ gf::Texture* gf::ImageManager::add_texture_from_file(const std::string& texture_
 gf::Texture* gf::ImageManager::get_texture(const std::string& texture_name) {
     return &textures.at(texture_name);
 }
-
-gf::Material* gf::MaterialManager::add_material(const std::string& material_name, std::unique_ptr<Material> sacrafice) {
-    materials[material_name] = std::move(sacrafice);
-    return materials.at(material_name).get();
-}
-gf::Material* gf::MaterialManager::get_material(const std::string& material_name) {
-    return materials.at(material_name).get();
-}

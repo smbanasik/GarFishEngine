@@ -17,13 +17,13 @@ namespace vkl_core {
 * @details Contains a vma allocator with the rule of 5.
 * Copying is not permitted, but has move operations available.
 */
-class Allocator {
+class VMAAllocWrapper {
 public:
     /**
     * @brief Construct the allocator with information from VKCore.
     * @author Spencer Banasik
     */
-    Allocator(VKCore* core) {
+    VMAAllocWrapper(VKCore* core) {
         VmaAllocatorCreateInfo allocator_info = {};
         allocator_info.physicalDevice = core->gpu;
         allocator_info.device = core->device;
@@ -31,20 +31,20 @@ public:
         allocator_info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
         vmaCreateAllocator(&allocator_info, &allocator);
     }
-    ~Allocator() {
+    ~VMAAllocWrapper() {
         if (allocator != nullptr)
             vmaDestroyAllocator(allocator);
     }
-    Allocator(Allocator&& other) noexcept
+    VMAAllocWrapper(VMAAllocWrapper&& other) noexcept
         : allocator(std::move(other.allocator)) {
         other.allocator = nullptr;
     }
-    Allocator& operator=(Allocator&& other) noexcept {
+    VMAAllocWrapper& operator=(VMAAllocWrapper&& other) noexcept {
         allocator = std::move(other.allocator);
         other.allocator = nullptr;
     }
-    Allocator(Allocator& other) = delete;
-    Allocator& operator=(Allocator& other) = delete;
+    VMAAllocWrapper(VMAAllocWrapper& other) = delete;
+    VMAAllocWrapper& operator=(VMAAllocWrapper& other) = delete;
 
     /**
      * @brief Allocator from VMA

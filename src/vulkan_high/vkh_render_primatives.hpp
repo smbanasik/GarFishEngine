@@ -23,7 +23,7 @@ namespace vkh_render {
  */
 struct Quad {
 public:
-    std::array<gf::Vertex, 4> verts;
+    std::array<vkl::Vertex, 4> verts;
     std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
 
     /**
