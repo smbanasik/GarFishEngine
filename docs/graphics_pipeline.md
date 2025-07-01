@@ -1,4 +1,4 @@
-# The Graphics Pipeline, From Output to Input #{graphicspipeline}
+# The Graphics Pipeline, From Output to Input {#graphicspipeline}
 
 There are many moving parts in the GarFish engine, and extending upon it can be difficult without  
 understanding the process from the beginning to the end. The process can be split into two halves:  

@@ -1,4 +1,4 @@
-# Text Rendering #{textrendering}
+# Text Rendering {#textrendering}
 
 ## Text Rendering Requirements
 We should have the capabilities of a modern word processor. That means per letter customization, fonts, scaling, and so on.
