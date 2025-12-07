@@ -20,23 +20,7 @@
 
 namespace vkh_txtlow {
 
-/**
- * @brief Contains the texture position and spacing data for a character
- */
-struct Character {
-    glm::vec2 texture_position;
-    glm::ivec2 size;
-    glm::ivec3 padding;
-};
-
-/**
- * @brief Holds the font's texture, character data, and the font's material instance
- */
-struct Font {
-    vkl_res::AllocatedImage texture;
-    std::array<Character, 128> chars;
-    vkl::MaterialInstance material;
-};
+class Font;
 
 /**
  * @brief Place holder in case we need more text config

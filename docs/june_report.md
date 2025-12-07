@@ -6,6 +6,7 @@ I'd want to address before moving forward, and some that can be addressed later.
 ## Next steps
 
 Text rendering - See text writeup.
+Multithreading.
 Shortly after text rendering, I should redo the camera implementation.
 After that, I'd like to take a look at making realistic skies with gradients.
 

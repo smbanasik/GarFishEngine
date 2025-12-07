@@ -45,14 +45,21 @@ allocated and handled with a FontManager(?).
 
 >*A Quick Note*
 >We need to consider editing text. Can we just change the characters that we need to? Need to look into  
-how buffers are populated.
 
+how buffers are populated.
+**The Font Manager**
+There should be relatively few fonts in a game compared to other assets, so like materials, we'll create a  
+resource manager for them called the FontManager. This will facilitate the creation of Fonts, their  
+material instances, and so on.
+
+**Static Functions for Bundles**
 You'll notice that the TextAsset doesn't actually contain any text. The low level classes are only  
 concerned with converting already configured Font and Text data into a render object.  
 There are a few helper functions provided, the first taking an array of *some object* and populating the  
-buffers of a TextAsset. The second function takes a Font and produces a MaterialInstance for it to own.  
-Finally, we'll need a third class to create words from our input text, which will also require the buffers  
-to be formatted accordingly (since words should be consecutive but don't have to be visually).  
+buffers of a TextAsset.  
+
+Finally, we'll need a second function to create words from our input text, which will also require  
+the buffers to be formatted accordingly (since words should be consecutive but don't have to be visually).  
 
 #### **The High Level**
 With our low level interface decided, we can move onto how we're actually going to manage our text.  

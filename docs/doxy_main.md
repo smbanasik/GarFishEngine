@@ -34,10 +34,11 @@ is ready.
 
 ## Terminology
 
-Below is a list of terms that I may use in the documentation.  
+Below is a list of terms that I may use in the documentation or class names.  
 
 Bundle - A struct with the primary purpose of keeping related data together in one class. Does not have behavior associated with it. Always uses struct keyword.
 RAII Wrapper - A class with the primary purpose of providing Resource Acquisition Is Initiallization and the rule of 3/5/0 to a set of handles.
+Manager - A combination of a factory and a controller, which manages the creation, lifetime, and interaction of it's resources. Is a container by nature of controlling the lifetime of it's objects.
 
 
 ## File Structure and Scope
