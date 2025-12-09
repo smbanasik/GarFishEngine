@@ -21,9 +21,9 @@ typedef vkh_mat::IBaseMaterial Material;
 
 /**
 * @class MaterialManager
-* @brief Used to automatically initialize3 and build materials.
+* @brief Used to automatically initialize and build materials.
 * @author Spencer Banasik
-* @details Used to automatically initialize3 and build materials.
+* @details Used to automatically initialize and build materials.
 */
 class MaterialManager {
 public:

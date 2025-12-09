@@ -41,7 +41,7 @@ struct GeoSurface {
  */
 struct MeshAsset {
     std::string name;
-    std::vector<GeoSurface> surfaces;
+    std::vector<GeoSurface> surfaces;   
     vkl::GPUMeshBuffers mesh_buffers;
 };
 

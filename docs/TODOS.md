@@ -11,6 +11,7 @@ This document serves as a reminder for things I would like to do once I get to t
 ## Next Steps
 - Text boxes just produce the data necessary to render, rendering is done by a text node or other.
     - Next step is to assemble text data using Quad
+- Need to add precompiled header file!
 - Redo header files
     - Need types in their own files, separate common include types vs implementation
     - Merge inc and src together into a single code folder (refer to doom 3 code)
