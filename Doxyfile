@@ -1000,7 +1000,8 @@ INPUT                  = "./src/common" \
     "./docs/doxy_main.md" \
     "./docs/june_report.md" \
     "./docs/graphics_pipeline.md" \
-    "./docs/text_considerations.md" 
+    "./docs/text_considerations.md" \
+    "./docs/december_report.md"
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
