@@ -39,3 +39,9 @@ target_include_directories(garfish PUBLIC
 )
 
 target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap imgui glm stb_image fastgltf::fastgltf ft_lib)
+
+add_custom_command(TARGET garfish POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_BINARY_DIR}/shaders
+            $<TARGET_FILE_DIR:garfish>/shaders
+)
