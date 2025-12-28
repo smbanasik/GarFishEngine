@@ -11,8 +11,8 @@ set(SOURCES "")
 set(HEADERS "")
 
 foreach(dir IN LISTS SRC_DIRS)
-    file(GLOB_RECURSE dir_sources CONFIGURE_DEPENDS "${dir}/.cpp")
-    file(GLOB_RECURSE dir_headers CONFIGURE_DEPENDS "${dir}/.hpp")
+    file(GLOB_RECURSE dir_sources CONFIGURE_DEPENDS "${dir}/*.cpp")
+    file(GLOB_RECURSE dir_headers CONFIGURE_DEPENDS "${dir}/*.hpp")
 
     list(APPEND SOURCES ${dir_sources})
     list(APPEND HEADERS ${dir_headers})
@@ -22,11 +22,12 @@ foreach(dir IN LISTS SRC_DIRS)
     source_group("${group_name}" FILES ${dir_sources} ${dir_headers})
 endforeach()
 
-
 add_executable(garfish
     ${SOURCES}
     ${HEADERS}
 )
+
+add_dependencies(garfish Shaders)
 
 set_target_properties(garfish PROPERTIES
 LINKER_LANGUAGE CXX
