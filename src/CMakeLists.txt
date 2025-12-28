@@ -45,3 +45,14 @@ add_custom_command(TARGET garfish POST_BUILD
             ${CMAKE_BINARY_DIR}/shaders
             $<TARGET_FILE_DIR:garfish>/shaders
 )
+
+# Assets
+file(GLOB_RECURSE ASSETS CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/assets/*"
+)
+
+add_custom_command(TARGET garfish POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:garfish>/assets
+)

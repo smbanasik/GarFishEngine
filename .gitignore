@@ -4,12 +4,14 @@
 *.spv
 
 Makefile
+compile_commands.json
 
 bin/
 build/
 Debug/
 x64/
 .vs/
+.cache/
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
