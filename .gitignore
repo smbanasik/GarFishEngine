@@ -3,6 +3,8 @@
 *.sln
 *.spv
 
+Makefile
+
 bin/
 build/
 Debug/
