@@ -5,7 +5,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face& face) {
+vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face face) {
 
     const int32_t CHAR_AMOUNT = 128;
 

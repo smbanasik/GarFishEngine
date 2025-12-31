@@ -6,7 +6,6 @@
 #ifndef VKH_TEXTHIGH_HPP
 #define VKH_TEXTHIGH_HPP
 
-#include <array>
 #include <string>
 #include <unordered_map>
 
@@ -18,83 +17,43 @@
 #include <vkl_imgbuf_alloc.hpp>
 #include <vkl_mat_types.hpp>
 
-namespace vkh_mat {
-class MaterialImage;
-}
+#include <vkh_font_data.hpp>
+#include <vkh_font_image.hpp>
 
-namespace vkh_textlow {
+struct FT_LibraryRec_;
+typedef struct FT_LibraryRec_* FT_Library;
 
-/**
- * @struct Character
- * @brief Contains the texture position and spacing data for a character
- */
-struct Character {
-    /**
-     * @brief Position of character in atlas texture.
-     * @details XY integer coordinate of where the character's texture is in a
-     * font atlas texture.
-     */
-    glm::vec2 texture_position;
+namespace vkh_font_manager {
 
-    /**
-     * @brief Size of the character in pixels.
-     * @details XY integer size of the character in pixels. Data sourced from the
-     * Freetype library, where X is the number of columns (width) and Y is the
-     * number of rows (height).
-     */
-    glm::ivec2 size;
-
-    /**
-     * @brief Character spacings in pixels.
-     * @details XYZ integers of the character's spacings in pixels. Data sourced
-     * from the Freetype library, where X is the padding left (space from origin
-     * to character), Y is the height of the character from the origin (not
-     * absolute height) and Z is the spacing from one origin to the next.
-     */
-    glm::ivec3 padding;
-};
-
-/**
- * @struct Font
- * @brief Holds the character data of a Font
- * instance
- */
-struct FontData {
-
-    /**
-     * @brief Placeholder material for text rendering
-     */
-    typedef vkh_mat::MaterialImage FontMaterial;
-
-    std::array<Character, 128> chars;
-
-    static void create_font_texture(FontData& font,
-                                    vkl_res::ImageBufferAllocator& allocator);
-    static void generate_font_spacings(FontData& font);
-    static void generate_material_instance(FontData& font, FontMaterial& material);
+struct Font {
+    vkh_font_data::FontData* font_data = nullptr;
+    vkh_font_image::FontImage* font_image = nullptr;
 };
 
 /**
  * @class FontManager
  * @brief Responsible for creating and holding fonts.
  * @author Spencer Banasik
+ * @pre The FreeType library must be initialized before usage.
+ * @pre The ft_lib variable must be initialized to point to the ft_library before usage.
  */
 class FontManager {
   public:
     // TODO: rule of 3/5/0
+    // TODO: allow for font sizes
 
-    FontData* load_font(std::string& name, std::string& path);
-    void unload_font(std::string& name);
+    static FT_Library* ft_lib;
 
-    FontData* get_font(std::string& name);
+    Font load_font(const std::string& name, const std::string& path);
+    void unload_font(const std::string& name);
+
+    Font get_font(const std::string& name);
 
   private:
-    std::unordered_map<std::string, vkl_res::AllocatedImage> images;
-    std::unordered_map<std::string, FontData> fonts;
+    std::unordered_map<std::string, vkh_font_image::FontImage> font_textures;
+    std::unordered_map<std::string, vkh_font_data::FontData> font_spacings;
     vkl_res::ImageBufferAllocator image_allocator;
-    vkl_desc::DescriptorAllocatorGrowable descriptor_allocator;
-    FontData::FontMaterial* font_material;
 };
 
-} // namespace vkh_textlow
+} // namespace vkh_font_manager
 #endif

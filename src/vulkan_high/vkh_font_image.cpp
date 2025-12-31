@@ -10,7 +10,7 @@
 #include <vkl_imgbuf_alloc.hpp>
 
 vkh_font_image::FontImage vkh_font_image::create_font_image(
-    FT_Face& face, vkl_res::ImageBufferAllocator* allocator) {
+    FT_Face face, vkl_res::ImageBufferAllocator* allocator) {
 
     const int32_t CHAR_AMOUNT = 128;
 

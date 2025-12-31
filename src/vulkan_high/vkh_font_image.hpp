@@ -18,7 +18,7 @@ namespace vkh_font_image {
 // We abstract FontImage from AllocatedImage in case we want to change it later.
 typedef vkl_res::AllocatedImage FontImage;
 
-FontImage create_font_image(FT_Face& face, vkl_res::ImageBufferAllocator* allocator);
+FontImage create_font_image(FT_Face face, vkl_res::ImageBufferAllocator* allocator);
 
 } // namespace vkh_font_image
 #endif

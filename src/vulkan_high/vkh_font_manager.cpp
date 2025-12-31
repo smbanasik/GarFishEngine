@@ -1,18 +1,50 @@
+#include "vkh_font_data.hpp"
+#include "vkh_font_image.hpp"
 #include <vkh_font_manager.hpp>
 
-#include <mat_img.hpp>
-#include <vkh_textlow_types.hpp>
+#include <iostream>
+#include <string>
 
-void vkh_textlow::FontData::create_font_texture(
-    FontData& font, vkl_res::ImageBufferAllocator& allocator) {
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
+FT_Library* vkh_font_manager::FontManager::ft_lib = nullptr;
+
+bool init_face(FT_Library ft_lib, FT_Face& font, const std::string& font_path,
+               unsigned int pix_size = 48) {
+    FT_Error err = FT_New_Face(ft_lib, font_path.c_str(), 0, &font);
+    if (err) {
+        std::cerr << "FT_New_Face failed with error " << err
+                  << " for file: " << font_path.c_str() << "\n";
+        return false;
+    }
+    FT_Set_Pixel_Sizes(font, 0, pix_size);
+    return true;
 };
 
-void vkh_textlow::FontData::generate_font_spacings(FontData& font) {
+vkh_font_manager::Font vkh_font_manager::FontManager::get_font(const std::string& name) {
+    Font new_font;
+    new_font.font_data = &font_spacings.at(name);
+    new_font.font_image = &font_textures.at(name);
+    return new_font;
+}
 
-};
+vkh_font_manager::Font vkh_font_manager::FontManager::load_font(const std::string& name,
+                                                                const std::string& path) {
 
-void vkh_textlow::FontData::generate_material_instance(FontData& font,
-                                                       FontMaterial& material) {
+    FT_Face face;
+    bool success = init_face(*FontManager::ft_lib, face, path);
 
-};
+    // TODO: If !success
+
+    font_spacings.try_emplace(name, vkh_font_data::create_font_spacings(face));
+    font_textures.try_emplace(name,
+                              vkh_font_image::create_font_image(face, &image_allocator));
+
+    return get_font(name);
+}
+
+void vkh_font_manager::FontManager::unload_font(const std::string& name) {
+    font_textures.erase(name);
+    font_spacings.erase(name);
+}
