@@ -1,5 +1,10 @@
 # December Report {#decemberreport}
 
+## URGENT TODOS:
+Adjust our cmake script to handle files again, remove source_groups, and remove file prefixes
+Adjust our third_party script to properly handle free type.
+Consuder using git submodules for libraries that we fully include.
+
 ## vkh_font_manager
 
 ### Requirements
