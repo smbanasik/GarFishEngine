@@ -2,7 +2,8 @@
 
 #include <mat_img.hpp>
 
-void vkh_textlow::Font::create_font_texture(Font& font, vkl_res::ImageBufferAllocator& allocator) {
+void vkh_textlow::Font::create_font_texture(Font& font,
+                                            vkl_res::ImageBufferAllocator& allocator) {
 
 };
 

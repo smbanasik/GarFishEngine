@@ -1,0 +1,51 @@
+Language: Cpp
+BasedOnStyle: Microsoft
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Namespaces
+NamespaceIndentation: None
+
+# Braces (slanted style)
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+
+# Line length (VS defaults ~120)
+ColumnLimit: 90
+
+# Alignment (matches MSVC feel)
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+AlignTrailingComments: true
+PointerAlignment: Left
+
+# Spacing
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInParentheses: false
+
+# Function calls / definitions
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# Includes
+SortIncludes: true
+IncludeBlocks: Preserve
+
+# Switch/case
+IndentCaseLabels: true
+
+# Templates
+AlwaysBreakTemplateDeclarations: Yes

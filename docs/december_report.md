@@ -14,12 +14,12 @@ These are connected, but ultimately separate resources. We'll be applying the st
 arrays idiom to this system.
 
 #### Current Flow
-First, let's review the flow. After the library is initialized, we create a `FT_FACE`,
+First, let's review the flow. After the library is initialized, we create a `FT_Face`,
 which takes a font path. Afterwards, we can set different attributes of the font, such as the
 pixel size.
 
 With the face created, we can access each glyphs bitmap information and paddings. Once that
-data has been extracted, the `FT_FACE` can be safely discarded, so it is advantageous to
+data has been extracted, the `FT_Face` can be safely discarded, so it is advantageous to
 assemble the font image and font data together. However, these are ultimately separate systems
 that benefit from low coupling.
 
@@ -28,9 +28,8 @@ an `AllocatedImage` that represents the font texture.
 
 #### Proposed Architecture
 Recall that font data and font images are best with low coupling, because they are separate systems. Given this, we will want two files: font_data and font_image, each with their own 
-types and helper functions. These functions will take in an `FT_FACE` and produce an array of
+types and helper functions. These functions will take in an `FT_Face` and produce an array of
 character data  or an `AllocatedImage`, respectively.
-
 
 These files will be used to power the `FontManager`, whose goal is to store the outputs of 
 those helper functions and provide an interface to access them. The `FontManager` should 

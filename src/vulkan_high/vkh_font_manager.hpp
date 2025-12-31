@@ -29,51 +29,49 @@ namespace vkh_textlow {
  * @brief Contains the texture position and spacing data for a character
  */
 struct Character {
-  /**
-   * @brief Position of character in atlas texture.
-   * @details XY integer coordinate of where the character's texture is in a
-   * font atlas texture.
-   */
-  glm::vec2 texture_position;
+    /**
+     * @brief Position of character in atlas texture.
+     * @details XY integer coordinate of where the character's texture is in a
+     * font atlas texture.
+     */
+    glm::vec2 texture_position;
 
-  /**
-   * @brief Size of the character in pixels.
-   * @details XY integer size of the character in pixels. Data sourced from the
-   * Freetype library, where X is the number of columns (width) and Y is the
-   * number of rows (height).
-   */
-  glm::ivec2 size;
+    /**
+     * @brief Size of the character in pixels.
+     * @details XY integer size of the character in pixels. Data sourced from the
+     * Freetype library, where X is the number of columns (width) and Y is the
+     * number of rows (height).
+     */
+    glm::ivec2 size;
 
-  /**
-   * @brief Character spacings in pixels.
-   * @details XYZ integers of the character's spacings in pixels. Data sourced
-   * from the Freetype library, where X is the padding left (space from origin
-   * to character), Y is the height of the character from the origin (not
-   * absolute height) and Z is the spacing from one origin to the next.
-   */
-  glm::ivec3 padding;
+    /**
+     * @brief Character spacings in pixels.
+     * @details XYZ integers of the character's spacings in pixels. Data sourced
+     * from the Freetype library, where X is the padding left (space from origin
+     * to character), Y is the height of the character from the origin (not
+     * absolute height) and Z is the spacing from one origin to the next.
+     */
+    glm::ivec3 padding;
 };
 
 /**
  * @struct Font
- * @brief Holds the font's texture, character data, and the font's material
+ * @brief Holds the character data of a Font
  * instance
  */
-struct Font {
+struct FontData {
 
-  /**
-   * @brief Placeholder material for text rendering
-   */
-  typedef vkh_mat::MaterialImage FontMaterial;
+    /**
+     * @brief Placeholder material for text rendering
+     */
+    typedef vkh_mat::MaterialImage FontMaterial;
 
-  std::string name;
-  std::array<Character, 128> chars;
-  vkl::MaterialInstance material;
+    std::array<Character, 128> chars;
 
-  static void create_font_texture(Font &font,
-                                  vkl_res::ImageBufferAllocator &allocator);
-  static void generate_font_spacings(Font &font);
-  static void generate_material_instance(Font &font, FontMaterial &material);
+    static void create_font_texture(FontData& font,
+                                    vkl_res::ImageBufferAllocator& allocator);
+    static void generate_font_spacings(FontData& font);
+    static void generate_material_instance(FontData& font, FontMaterial& material);
 };
 
 /**
@@ -82,20 +80,20 @@ struct Font {
  * @author Spencer Banasik
  */
 class FontManager {
-public:
-  // TODO: rule of 3/5/0
+  public:
+    // TODO: rule of 3/5/0
 
-  Font *load_font(std::string &name, std::string &path);
-  void unload_font(std::string &name);
+    FontData* load_font(std::string& name, std::string& path);
+    void unload_font(std::string& name);
 
-  Font *get_font(std::string &name);
+    FontData* get_font(std::string& name);
 
-private:
-  std::unordered_map<std::string, vkl_res::AllocatedImage> images;
-  std::unordered_map<std::string, Font> fonts;
-  vkl_res::ImageBufferAllocator image_allocator;
-  vkl_desc::DescriptorAllocatorGrowable descriptor_allocator;
-  Font::FontMaterial *font_material;
+  private:
+    std::unordered_map<std::string, vkl_res::AllocatedImage> images;
+    std::unordered_map<std::string, Font> fonts;
+    vkl_res::ImageBufferAllocator image_allocator;
+    vkl_desc::DescriptorAllocatorGrowable descriptor_allocator;
+    Font::FontMaterial* font_material;
 };
 
 } // namespace vkh_textlow
