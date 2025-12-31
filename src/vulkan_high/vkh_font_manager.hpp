@@ -90,10 +90,10 @@ class FontManager {
 
   private:
     std::unordered_map<std::string, vkl_res::AllocatedImage> images;
-    std::unordered_map<std::string, Font> fonts;
+    std::unordered_map<std::string, FontData> fonts;
     vkl_res::ImageBufferAllocator image_allocator;
     vkl_desc::DescriptorAllocatorGrowable descriptor_allocator;
-    Font::FontMaterial* font_material;
+    FontData::FontMaterial* font_material;
 };
 
 } // namespace vkh_textlow

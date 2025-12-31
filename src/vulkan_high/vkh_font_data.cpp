@@ -33,4 +33,6 @@ vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face& face) {
             face->glyph->bitmap_left, face->glyph->bitmap_top, face->glyph->advance.x};
         current_width += face->glyph->bitmap.width;
     }
+
+    return new_font_data;
 };
