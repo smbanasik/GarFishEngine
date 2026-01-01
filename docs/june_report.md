@@ -1,14 +1,12 @@
 # June Report {#junereport}
 
-I have been adding doxygen support to the engine, and I'm noticing some organizational issues that 
-I'd want to address before moving forward, and some that can be addressed later.
+I have been adding doxygen support to the engine, and I'm noticing some organizational issues that  I'd want to address before moving forward, and some that can be addressed later.
 
 ## Next steps
 
 Text rendering - See text writeup.
 Multithreading.
-Shortly after text rendering, I should redo the camera implementation.
-After that, I'd like to take a look at making realistic skies with gradients.
+Shortly after text rendering, I should redo the camera implementation. After that, I'd like to take a look at making realistic skies with gradients.
 
 ### Future Considerations
 
@@ -27,6 +25,5 @@ After that, I'd like to take a look at making realistic skies with gradients.
 - Create options for uniform buffers and compute pipelines.
 
 ### WInput:
-The current use of friends and context pointers is a little annoying. I need to find a way to have a
-relationship similar to parent-child classes, but with composition instead. I want the "manager" to have
-access to private member variables that outsiders shouldn't have access to.
+
+The current use of friends and context pointers is a little annoying. I need to find a way to have a relationship similar to parent-child classes, but with composition instead. I want the "manager" to have access to private member variables that outsiders shouldn't have access to.

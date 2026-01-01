@@ -1,14 +1,15 @@
 # TODOS
 
-While I was able to refactor some of the tutorial code in the beginning and still follow along, the complexity of 
-the engine has grown to a point where it would be best to refactor things after I have gotten to a suitable point.
-This document serves as a reminder for things I would like to do once I get to that point.
+
+While I was able to refactor some of the tutorial code in the beginning and still follow along, the complexity of  the engine has grown to a point where it would be best to refactor things after I have gotten to a suitable point. This document serves as a reminder for things I would like to do once I get to that point.
 
 ## GFOptions structure
+
 - Need two types of options: engine options & end user options
 - Seperate or together?
 
 ## Next Steps
+
 - Text boxes just produce the data necessary to render, rendering is done by a text node or other.
     - Next step is to assemble text data using Quad
 - Need to add precompiled header file!
@@ -28,6 +29,7 @@ This document serves as a reminder for things I would like to do once I get to t
     - Many shaders? Or state in shaders?
 
 ## General
+
 - Get a textured 2d image on screen
 - Implement text rendering on the screen
     - Render atlas is needed
@@ -51,6 +53,7 @@ In no particular order:
 - Create files to handle the engine architecture (render obj, node, meshnode, etc)
 - Sort the render context! Sort by pipeline to reduce bindings
 - Create or #include a logging system
+
 - Look into sorting draws before rendering, need an efficient way
 - Give RAII to buffers and images
     - This is hard to do right now! Things fall out of scope before they should sometimes, other times things aren't being copied correctly. For now we'll manage memory manually and give this another shot. Refer to this commit to find my results: 236c572

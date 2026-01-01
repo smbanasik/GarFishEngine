@@ -1,21 +1,18 @@
 # The Garfish Engine {#mainpage}
 
-If you're reading this, thank you for your interest! The GarFish Engine is an engine made from scratch  
-using C++, Vulkan, GLFW, and some other libraries. It's goal is to be a multipurpose engine capable of  
-making 2D and 3D games of any genre with the toolset to empower artists and programmers.  
+If you're reading this, thank you for your interest! The GarFish Engine is an engine made from scratch using C++, Vulkan, GLFW, and some other libraries. It's goal is to be a multipurpose engine capable of making 2D and 3D games of any genre with the toolset to empower artists and programmers. 
 
 ## Architecture Writeups
 
 - [The Graphics Pipeline](#graphicspipeline)
+
 - [Text Rendering](#textrendering)
 
 ## Learning Resources
 
-Here are some references that I think are useful. Vulkan Guide and Vulkan Tutorail are great beginner  
-resources, with the Vulkan Spec providing a deeper understanding of the concepts discussed.  
+Here are some references that I think are useful. Vulkan Guide and Vulkan Tutorail are great beginner resources, with the Vulkan Spec providing a deeper understanding of the concepts discussed. 
 
-Eventually I'd like to include some topics about multithreading and synchronization, once the engine  
-is ready.
+Eventually I'd like to include some topics about multithreading and synchronization, once the engine is ready.
 
 ### Vulkan Specific Resources
 
@@ -34,12 +31,13 @@ is ready.
 
 ## Terminology
 
-Below is a list of terms that I may use in the documentation or class names.  
+Below is a list of terms that I may use in the documentation or class names. 
 
 Bundle - A struct with the primary purpose of keeping related data together in one class. Does not have behavior associated with it. Always uses struct keyword.
-RAII Wrapper - A class with the primary purpose of providing Resource Acquisition Is Initiallization and the rule of 3/5/0 to a set of handles.
-Manager - A combination of a factory and a controller, which manages the creation, lifetime, and interaction of it's resources. Is a container by nature of controlling the lifetime of it's objects.
 
+RAII Wrapper - A class with the primary purpose of providing Resource Acquisition Is Initiallization and the rule of 3/5/0 to a set of handles.
+
+Manager - A combination of a factory and a controller, which manages the creation, lifetime, and interaction of it's resources. Is a container by nature of controlling the lifetime of it's objects.
 
 ## File Structure and Scope
 
