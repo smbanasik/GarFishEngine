@@ -19,6 +19,9 @@ MD034: false
 MD022: true
 MD023: true
 
+# Should be "allow_different_nesting" but I cannot be bothered to waste more time on this.
+MD024: false
+
 # Lists indentation – be permissive
 MD007:
   indent: 2
