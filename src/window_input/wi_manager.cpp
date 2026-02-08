@@ -1,14 +1,14 @@
 // Spencer Banasik
 // Created: 1/1/2025
 // Last Modified: 1/1/2025
-#include <wi_manager.hpp>
+#include <window_input/wi_manager.hpp>
 
 #include <cassert>
 
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
 
-#include <vkl_core.hpp>
+#include <vulkan_low/core.hpp>
 
 gf::wi::WIManager* gf::wi::WIManager::loaded_glfw = nullptr;
 

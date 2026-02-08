@@ -1,11 +1,11 @@
-#include <mat_img.hpp>
+#include <vulkan_high/mat_img.hpp>
 
 #include <iostream>
 
-#include <gf_vulkan.hpp>
-#include <vkl_initializers.hpp>
-#include <t_desc_layoutbuilder.hpp>
-#include <vkl_mat_types.hpp>
+#include <garfish/vulkan.hpp>
+#include <vulkan_low/initializers.hpp>
+#include <vulkan_low/desc_layoutbuilder.hpp>
+#include <vulkan_low/mat_types.hpp>
 
 vkh_mat::MaterialImage::MaterialImage()
     : opaque_pipeline(),

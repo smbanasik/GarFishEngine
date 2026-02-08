@@ -15,7 +15,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
 
-#include <wi_types.hpp>
+#include <window_input/wi_types.hpp>
 
 namespace gf {
 namespace wi {

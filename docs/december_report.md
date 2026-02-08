@@ -55,9 +55,10 @@ The fonts were the easy part. Now we need to move onto the next part: actually r
 
 For the purposes of this implementation, we avoid discussing about resource management, and we will not be considering Multi-Word optimizations. Suppose we wanted to write the sentence "Hello, world!" What would this look like? Text in Vulkan is a set of textured quads to represent the letters. These quads would all be spaced relative to each other, so they would be one "model," and all have their coordiantes in model space. Then, we can use a transformation matrix to translate them across the screen.
 
-To achieve this we need a function that will *generate squares* using the spacings. The vertices themselves are easy to construct since it's a square with dimensions according to the size of the character. Then, we can offset the vertex coordinates according to the spacings. Using indices is an important requirement, since it reduces the number of vertices we need by a third. The indices can also be calculated manually according to whatever square we're on, and the texture coordinates should be easily added using the font data. `generate_text_squares` will perform these operations, taking in a `std::string` and an allocator, and outputting whatever the `upload_mesh` function requires.
+To achieve this we need a function that will *generate squares* using the spacings. The vertices themselves are easy to construct since it's a square with dimensions according to the size of the character. Then, we can offset the vertex coordinates according to the spacings. Using indices is an important requirement, since it reduces the number of vertices we need by a third. The indices can also be calculated manually according to whatever square we're on, and the texture coordinates should be easily added using the font data. `generate_text_squares` will perform these operations, taking in a `std::string_view` and an allocator, and outputting whatever the `upload_mesh` function requires.
 
 Helper functions called `generate_text_indicies`, `generate_text_offsets`, and `generate_text_texcoords` will be used to break the work down into more manageable sections.
+
 
 ### Proposed Architecture
 

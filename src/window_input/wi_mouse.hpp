@@ -8,7 +8,7 @@
 
 #include <functional>
 
-#include <wi_types.hpp>
+#include <window_input/wi_types.hpp>
 
 struct GLFWwindow;
 

@@ -1,14 +1,14 @@
 // Spencer Banasik
 // Created: 1/6/2025
 // Last Modified: 1/6/2025
-#include <wi_keys.hpp>
+#include <window_input/wi_keys.hpp>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include <wi_types.hpp>
-#include <wi_manager.hpp>
+#include <window_input/wi_types.hpp>
+#include <window_input/wi_manager.hpp>
 
 gf::wi::KeyContext::KeyContext(GLFWwindow* window)
     : window_handle(window), char_buffer(L"") {

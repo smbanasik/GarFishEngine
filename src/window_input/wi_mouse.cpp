@@ -1,14 +1,14 @@
 // Spencer Banasik
 // Created: 1/5/2025
 // Last Modified: 1/5/2025
-#include <wi_mouse.hpp>
+#include <window_input/wi_mouse.hpp>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include <wi_types.hpp>
-#include <wi_manager.hpp>
+#include <window_input/wi_types.hpp>
+#include <window_input/wi_manager.hpp>
 
 gf::wi::MouseContext::MouseContext(Extent2D window_dims, GLFWwindow* window) 
     : prior_mouse_time(0), current_mouse_time(0), window_handle(window)

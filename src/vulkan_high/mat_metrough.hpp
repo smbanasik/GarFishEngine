@@ -7,12 +7,12 @@
 #ifndef MAT_METROUGH_HPP
 #define MAT_METROUGH_HPP
 
-#include <vkh_imaterial.hpp>
+#include <vulkan_high/imaterial.hpp>
 
 #include <glm/vec4.hpp>
 
-#include <t_desc_writer.hpp>
-#include <vkl_mat_types.hpp>
+#include <vulkan_low/desc_writer.hpp>
+#include <vulkan_low/mat_types.hpp>
 
 namespace vkh_mat {
 struct GLTFMetallic_Roughness : public IBaseMaterial {

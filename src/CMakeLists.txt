@@ -5,6 +5,7 @@ set(SRC_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/vulkan_low"
     "${CMAKE_CURRENT_SOURCE_DIR}/vulkan_high"
     "${CMAKE_CURRENT_SOURCE_DIR}/common"
+    "${CMAKE_CURRENT_SOURCE_DIR}/vulkan_text"
 )
 
 set(SOURCES "")
@@ -16,11 +17,12 @@ foreach(dir IN LISTS SRC_DIRS)
 
     list(APPEND SOURCES ${dir_sources})
     list(APPEND HEADERS ${dir_headers})
-
-    get_filename_component(group_name ${dir} NAME)
-
-    source_group("${group_name}" FILES ${dir_sources} ${dir_headers})
 endforeach()
+
+source_group(
+    TREE "${CMAKE_CURRENT_SOURCE_DIR}"
+    FILES ${SOURCES} ${HEADERS}
+)
 
 add_executable(garfish
     ${SOURCES}
@@ -30,12 +32,12 @@ add_executable(garfish
 add_dependencies(garfish Shaders)
 
 set_target_properties(garfish PROPERTIES
-LINKER_LANGUAGE CXX
-CXX_STANDARD 20
+    LINKER_LANGUAGE CXX
+    CXX_STANDARD 20
 )
 
 target_include_directories(garfish PUBLIC
-    ${SRC_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap imgui glm stb_image fastgltf::fastgltf ft_lib)

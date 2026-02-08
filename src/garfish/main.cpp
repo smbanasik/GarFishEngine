@@ -4,7 +4,7 @@
 // Description:
 // This serves as the entry point to the engine
 
-#include <gf_engine.hpp>
+#include <garfish/engine.hpp>
 
 int main(int argc, char* argv[]) {
     

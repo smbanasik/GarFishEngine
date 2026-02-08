@@ -13,10 +13,10 @@
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
 
-#include <wi_types.hpp>
-#include <wi_window.hpp>
-#include <wi_mouse.hpp>
-#include <wi_keys.hpp>
+#include <window_input/wi_types.hpp>
+#include <window_input/wi_window.hpp>
+#include <window_input/wi_mouse.hpp>
+#include <window_input/wi_keys.hpp>
 
 namespace vkl_core{
 class VKCore;

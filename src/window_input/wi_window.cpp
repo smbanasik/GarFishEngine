@@ -1,13 +1,13 @@
 // Spencer Banasik
 // Created: 1/1/2025
 // Last Modified: 1/1/2025
-#include <wi_window.hpp>
+#include <window_input/wi_window.hpp>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <wi_types.hpp>
-#include <wi_manager.hpp>
+#include <window_input/wi_types.hpp>
+#include <window_input/wi_manager.hpp>
 
 namespace gf {
 std::vector<GLFWmonitor*> wi::WindowContext::query_monitors() {
