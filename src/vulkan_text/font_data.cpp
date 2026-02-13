@@ -1,4 +1,4 @@
-#include <vulkan_high/font_data.hpp>
+#include <vulkan_text/font_data.hpp>
 
 #include <stdint.h>
 
@@ -20,12 +20,13 @@ vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face face) {
     }
 
     int current_width = 0;
-    FontData new_font_data;
+    FontData new_font_data{};
 
     for (unsigned char c = 33; c < CHAR_AMOUNT; c++) {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
 
-        new_font_data.chars[c].texture_position = {(1.0 * current_width) / total_width,
+        // Grab the top left corner of our character, normalized to 1.0
+        new_font_data.chars[c].texture_topleft = {static_cast<float>(current_width) / total_width,
                                                    0.0f};
         new_font_data.chars[c].size = {face->glyph->bitmap.width,
                                        face->glyph->bitmap.rows};

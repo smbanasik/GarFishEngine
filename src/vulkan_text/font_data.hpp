@@ -24,7 +24,7 @@ struct Character {
      * @details XY integer coordinate of where the character's texture is in a
      * font atlas texture.
      */
-    glm::vec2 texture_position;
+    glm::vec2 texture_topleft;
 
     /**
      * @brief Size of the character in pixels.

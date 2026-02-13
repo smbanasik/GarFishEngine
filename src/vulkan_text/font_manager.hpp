@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief Manager for Fonts
- * @author Spencer Banasik
+ * @author Spencer Banasik 
  */
 #ifndef VKH_TEXTHIGH_HPP
 #define VKH_TEXTHIGH_HPP
@@ -17,8 +17,8 @@
 #include <vulkan_low/imgbuf_alloc.hpp>
 #include <vulkan_low/mat_types.hpp>
 
-#include <vulkan_high/font_data.hpp>
-#include <vulkan_high/font_image.hpp>
+#include <vulkan_text/font_data.hpp>
+#include <vulkan_text/font_image.hpp>
 
 struct FT_LibraryRec_;
 typedef struct FT_LibraryRec_* FT_Library;

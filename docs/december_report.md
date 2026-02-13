@@ -60,7 +60,13 @@ To achieve this we need a function that will *generate squares* using the spacin
 Helper functions called `generate_text_indicies`, `generate_text_offsets`, and `generate_text_texcoords` will be used to break the work down into more manageable sections.
 
 
-### Proposed Architecture
+**TODO:** document all functions, we'll need to check these to make sure they work.
+All text functions are in **pixel** space, so they need to be normalized, should be done in the shader
+
+We'll need to figure out how to handle in world text rendering in the future, but for a 2d game this is fine.
+
+___
+Next, we want to create a TextNode, TextAsset, Word, and TextMaterial
 
 ___
 

@@ -1,4 +1,4 @@
-#include <vulkan_high/font_manager.hpp>
+#include <vulkan_text/font_manager.hpp>
 
 #include <iostream>
 #include <string>
@@ -6,8 +6,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <vulkan_high/font_data.hpp>
-#include <vulkan_high/font_image.hpp>
+#include <vulkan_text/font_data.hpp>
+#include <vulkan_text/font_image.hpp>
 
 FT_Library* vkh_font_manager::FontManager::ft_lib = nullptr;
 

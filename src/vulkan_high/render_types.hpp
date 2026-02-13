@@ -6,6 +6,8 @@
 #ifndef VK_RENDERABLE_HPP
 #define VK_RENDERABLE_HPP
 
+#include <string>
+
 #include <vulkan_low/types.hpp>
 
 namespace vkh_render {
