@@ -5,14 +5,15 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face face) {
+static const unsigned char CHAR_START = 32;
+static const unsigned char CHAR_AMOUNT = 128;
 
-    const int32_t CHAR_AMOUNT = 128;
+vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face face) {
 
     int total_width = 0;
     int max_height = 0;
 
-    for (unsigned char c = 33; c < CHAR_AMOUNT; c++) {
+    for (unsigned char c = CHAR_START; c < CHAR_AMOUNT; c++) {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
         total_width += face->glyph->bitmap.width;
         if (max_height < face->glyph->bitmap.rows)
@@ -22,7 +23,7 @@ vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face face) {
     int current_width = 0;
     FontData new_font_data{};
 
-    for (unsigned char c = 33; c < CHAR_AMOUNT; c++) {
+    for (unsigned char c = CHAR_START; c < CHAR_AMOUNT; c++) {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
 
         // Grab the top left corner of our character, normalized to 1.0

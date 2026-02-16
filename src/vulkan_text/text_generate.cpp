@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include <iostream>
+
 vk_text::MeshBufferData vk_text::generate_text_squares(
     const std::string& text,
                                      const vkh_font_manager::Font& font_info) {
@@ -61,8 +63,8 @@ std::vector<vkl::Vertex> vk_text::generate_text_vertices(
         // dipping, their height and padding.y will be euqal, resulting in their bottom
         // being the baseline (0). When the padding.y is less than the size of the glyph,
         // the difference shows us how much to offset the character downwards.
-        float y2 = start_y + (character->size.y - character->padding.y);
-        float y1 = y2 - character->size.y;
+        float y2 = start_y - (character->size.y - character->padding.y);
+        float y1 = y2 + character->size.y;
         float x2 = x1 + character->size.x;
 
         quad[0].position = {x1, y1, 0};
