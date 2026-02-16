@@ -1,6 +1,6 @@
-#include <vulkan_high/meshnode.hpp>
+#include <vulkan_text/node_text.hpp>
 
-void vkh_render::MeshNode::draw(const glm::mat4& top_matrix, vkl::DrawContext& ctx) {
+void vk_text::TextNode::draw(const glm::mat4& top_matrix, vkl::DrawContext& ctx) {
     glm::mat4 node_matrix = top_matrix * world_transform;
     for (auto surface : mesh->surfaces) {
         vkl::RenderObject render;
@@ -11,7 +11,7 @@ void vkh_render::MeshNode::draw(const glm::mat4& top_matrix, vkl::DrawContext& c
         render.transform = node_matrix;
         render.bounds = surface.bounds;
         render.vertex_buffer_address = mesh->mesh_buffers.vertex_buffer_address;
-        ctx.opaque_surfaces.push_back(render);
+        ctx.static_surfaces.push_back(render);
     }
 
     Node::draw(top_matrix, ctx);

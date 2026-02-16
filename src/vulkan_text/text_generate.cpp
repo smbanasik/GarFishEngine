@@ -12,17 +12,17 @@ vk_text::MeshBufferData vk_text::generate_text_squares(
 
     return data;
 };
-std::vector<uint32_t> generate_text_indices(const size_t text_length) {
+std::vector<uint32_t> vk_text::generate_text_indices(const std::size_t text_length) {
     std::vector<uint32_t> indices;
 
-    indices.reserve(text_length * 6);
+    indices.resize(text_length * 6);
     uint32_t* index = indices.data();
 
     // 0 1
     // 3 2
-    for (size_t i = 0; i < text_length; i++) {
+    for (std::size_t i = 0; i < text_length; i++) {
         
-        uint32_t quad = i * 4;
+        std::size_t quad = i * 4;
         *(index++) = quad + 0;
         *(index++) = quad + 1;
         *(index++) = quad + 2;
@@ -37,7 +37,7 @@ std::vector<vkl::Vertex> vk_text::generate_text_vertices(
                                                 const vkh_font_manager::Font& font_info) {
     std::vector<vkl::Vertex> vertices;
 
-    vertices.reserve(text.length() * 4);
+    vertices.resize(text.length() * 4);
 
     vkl::Vertex* vert_data = vertices.data();
 
@@ -75,7 +75,7 @@ std::vector<vkl::Vertex> vk_text::generate_text_vertices(
         vert_data += 4;
     }
 
-    return {};
+    return vertices;
 };
 
 // 0 1

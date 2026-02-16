@@ -36,6 +36,7 @@
 #include <vulkan_low/mat_types.hpp>
 #include <vulkan_low/shader_types.hpp>
 #include <vulkan_high/material_manager.hpp>
+#include <vulkan_text/font_manager.hpp>
 
 struct GLFWwindow;
 
@@ -110,7 +111,6 @@ public:
     VkDescriptorSetLayout single_image_descriptor_layout;
 
     ImageManager engine_images;
-    text::TextManager text_manager;
     VkSampler default_sampler_linear;
     VkSampler default_sampler_nearest;
 
@@ -118,13 +118,13 @@ public:
     vkh_mat::MaterialManager mat_manager;
     vkl::MaterialInstance image_mat_data;
     vkh::ImageAtlas test_texture;
+    vkh_font_manager::FontManager font_manager;
 
     vkl::DrawContext main_draw_context;
     std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> loaded_nodes;
     std::unordered_map<std::string, std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes;
     Camera camera;
 
-    std::vector<std::shared_ptr<vkh_render::MeshAsset>> test_meshes;
     std::vector<vkl::ComputeEffect> background_effects; // For fun!
     int current_background_effect{ 0 }; // For fun!
 

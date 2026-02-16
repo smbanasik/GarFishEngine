@@ -28,13 +28,13 @@ std::vector<uint32_t> generate_text_indices(const size_t text_length);
 std::vector<vkl::Vertex> generate_text_vertices(const std::string& text,
                                                 const vkh_font_manager::Font& font_info);
 
-void populate_text_quad_normal(std::span<vkl::Vertex, 4> quad) {
+inline void populate_text_quad_normal(std::span<vkl::Vertex, 4> quad) {
     quad[0].normal = {0, 0, 1};
     quad[1].normal = {0, 0, 1};
     quad[2].normal = {0, 0, 1};
     quad[3].normal = {0, 0, 1};
 };
-void populate_text_quad_color(std::span<vkl::Vertex, 4> quad) {
+inline void populate_text_quad_color(std::span<vkl::Vertex, 4> quad) {
     quad[0].color = {1, 1, 1, 1};
     quad[1].color = {1, 1, 1, 1};
     quad[2].color = {1, 1, 1, 1};

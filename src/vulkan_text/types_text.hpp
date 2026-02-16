@@ -15,6 +15,7 @@ struct Word {
     uint32_t start_idx;
     uint32_t count;
     std::shared_ptr<TextMaterial> material;
+    vkl::Bounds bounds; // TODO: determine if we need this right now
 };
 
 struct TextAsset {

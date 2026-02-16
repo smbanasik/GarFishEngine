@@ -24,6 +24,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <stb_image.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include <vulkan_low/initializers.hpp>
 #include <vulkan_low/types.hpp>
@@ -37,6 +39,9 @@
 #include <vulkan_low/alloc_buf.hpp>
 #include <vulkan_low/alloc_img.hpp>
 #include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_text/font_manager.hpp>
+#include <vulkan_text/text_generate.hpp>
+#include <vulkan_text/node_text.hpp>
 
 // TEMPORARY
 #include <vulkan/vk_enum_string_helper.h>
@@ -89,6 +94,7 @@ bool is_visible(const vkl::RenderObject & obj, const glm::mat4 & viewproj) {
 }
 
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
+static FT_Library ft_lib;
 
 gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context)
     : core(&wi_manager, &wi_context), alloc(&core),
@@ -96,18 +102,22 @@ gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_contex
     frame_data(&core), 
     imm_frame(&core), 
     img_buff_allocator(&core, &alloc, &imm_frame),
-    engine_images(img_buff_allocator), 
-    text_manager(this, &img_buff_allocator),
+    engine_images(img_buff_allocator),
 
     drawn_image(img_buff_allocator),
     depth_image(img_buff_allocator),
 
-    mat_manager(this, &core.device)
+    mat_manager(this, &core.device),
+    font_manager(&core, &alloc, &imm_frame)
 
     {
     
     assert(loaded_vk == nullptr);
     loaded_vk = this;
+
+    FT_Error err = FT_Init_FreeType(&ft_lib);
+    assert(err == 0);
+    vkh_font_manager::FontManager::ft_lib = &ft_lib;
 
     init_swapchain(wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height);
     init_descriptors();
@@ -244,9 +254,10 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
 
     main_draw_context.opaque_surfaces.clear();
     main_draw_context.transparent_surfaces.clear();
+    main_draw_context.static_surfaces.clear();
 
     loaded_scenes["structure"]->draw(glm::mat4{ 1.f }, main_draw_context);
-    loaded_nodes["first_image"]->draw(glm::mat4{ 1.f }, main_draw_context);
+    loaded_nodes["hello_text"]->draw(glm::mat4{1.f}, main_draw_context);
 
     scene_data.view = camera.get_view_matrix();
     scene_data.proj = glm::perspective(glm::radians(70.f), static_cast<float>(width) / static_cast<float>(height), 10000.f, 0.1f);
@@ -479,64 +490,43 @@ void gf::VkManager::init_default_data() {
     sampl.minFilter = VK_FILTER_LINEAR;
     vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_linear);
 
-    vkh_mat::GLTFMetallic_Roughness::MaterialResources material_resources(img_buff_allocator);
-    material_resources.color_image = *engine_images.get_texture("white");
-    material_resources.color_sampler = default_sampler_linear;
-    material_resources.metal_rough_image = *engine_images.get_texture("white");
-    material_resources.metal_rough_sampler = default_sampler_linear;
-    vkl_res::AllocatedBuffer material_constants = img_buff_allocator.create_buffer(sizeof(vkh_mat::GLTFMetallic_Roughness::MaterialConstants), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    vkh_mat::GLTFMetallic_Roughness::MaterialConstants* scene_uniform_data = (vkh_mat::GLTFMetallic_Roughness::MaterialConstants*)material_constants.allocation->GetMappedData();
-    scene_uniform_data->color_factors = glm::vec4{ 1,1,1,1 };
-    scene_uniform_data->metal_rough_factors = glm::vec4{ 1,0.5,0,0 };
-    material_resources.data_buffer = material_constants.buffer;
-    material_resources.data_buffer_offset = 0;
+    // TEMPORARY
+    vkh_font_manager::Font arial = font_manager.load_font("arial", "../../assets/arial.ttf");
+    vk_text::MeshBufferData text_mesh_data =
+        vk_text::generate_text_squares("Hello world!", arial);
 
-    default_data = mat_manager.get_material("metal_mat")->write_material(core.device, vkl::MaterialPass::MainColor, material_resources, global_descriptor_allocator);
-    engine_images.add_texture_from_file("tomato_guy", "../../assets/chad_emote.png");
-    test_texture.texture = engine_images.get_texture("tomato_guy");
-    test_texture.subdivisions_x = 1;
-    test_texture.subdivisions_y = 1;
-
-    text_manager.add_font_from_file("arial", "../../assets/arial.ttf");
-    const text::Font* font = text_manager.get_font("arial");
-
-    vkh_mat::MaterialImage::MaterialResources image_resources(img_buff_allocator);
-    image_resources.color_image = font->font_image;
-    image_resources.color_sampler = default_sampler_nearest;
-
-    image_mat_data = mat_manager.get_material("font_mat")->write_material(core.device, vkl::MaterialPass::MainColor, image_resources, global_descriptor_allocator);
-    {
-    std::array<vkl::Vertex, 4> vertex_buff;
-    vkh::ImageAtlas font_atlas;
-    font_atlas.texture = &font->font_image;
-    font_atlas.subdivisions_x = 1;
-    font_atlas.subdivisions_y = 1;
-    std::array<glm::vec2, 4> uv_coords = font_atlas.get_texture_square({ 0,0 });
-
-    vertex_buff[0] = { glm::vec3(0.0f, 0.0f, 0.0f), uv_coords[0].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[0].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[1] = { glm::vec3(8.0f, 0.0f, 0.0f), uv_coords[1].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[1].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[2] = { glm::vec3(8.0f, 1.0f, 0.0f), uv_coords[2].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[2].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    vertex_buff[3] = { glm::vec3(0.0f, 1.0f, 0.0f), uv_coords[3].x, glm::vec3(1.0f, 1.0f, 1.0f), uv_coords[3].y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)};
-    std::array<uint32_t, 6> index_buff = { 0, 1, 2, 2, 3, 0 };
-
-    vkh_render::GeoSurface surface;
-    surface.bounds = {};
-    surface.count = 6;
-    surface.start_idx = 0;
-    surface.material = std::make_shared<vkh_render::GLTFMaterial>(image_mat_data);
-    std::shared_ptr<vkh_render::MeshAsset> image_mesh = std::make_shared<vkh_render::MeshAsset>();
-    image_mesh->mesh_buffers = upload_mesh(index_buff, vertex_buff);
-    image_mesh->name = "first_image";
-    image_mesh->surfaces.push_back(surface);
-    test_meshes.push_back(image_mesh);
-    std::shared_ptr<vkh_render::MeshNode> image = std::make_shared<vkh_render::MeshNode>();
-    image->mesh = image_mesh;
-    image->local_transform = glm::mat4{ 1.f };
-    image->world_transform = glm::mat4{ 1.f };
-    loaded_nodes[image_mesh->name] = std::move(image);
+    // Normalization for sake of test
+    for (int i = 0; i < text_mesh_data.vertices.size(); i++) {
+        text_mesh_data.vertices[i].position.x = text_mesh_data.vertices[i].position.x / drawn_image.image_size.width;
+        text_mesh_data.vertices[i].position.y = text_mesh_data.vertices[i].position.y / drawn_image.image_size.height;
     }
 
-    global_deletion_stack.push_function([material_constants, this]() {
+    vkh_mat::MaterialImage::MaterialResources image_resources(img_buff_allocator);
+    image_resources.color_image = *arial.font_image;
+    image_resources.color_sampler = default_sampler_nearest;
+
+    image_mat_data = mat_manager.get_material("font_mat") ->write_material(core.device, vkl::MaterialPass::MainColor, image_resources, global_descriptor_allocator);
+
+    vk_text::Word word;
+    word.start_idx = 0;
+    word.bounds = {};
+    word.count = text_mesh_data.indices.size();
+    word.material = std::make_shared<vk_text::TextMaterial>(image_mat_data);
+    std::shared_ptr<vk_text::TextAsset> text_mesh = std::make_shared<vk_text::TextAsset>();
+    text_mesh->mesh_buffers = upload_mesh(text_mesh_data.indices, text_mesh_data.vertices);
+    text_mesh->name = "hello_text";
+    text_mesh->surfaces.push_back(word);
+    std::shared_ptr<vk_text::TextNode> sentence = std::make_shared<vk_text::TextNode>();
+    sentence->mesh = text_mesh;
+    sentence->local_transform = glm::mat4{1.f};
+    sentence->world_transform = glm::mat4{1.f};
+    loaded_nodes[text_mesh->name] = std::move(sentence);
+
+    // Then, create a text node
+
+    // TEMPORARY
+
+    global_deletion_stack.push_function([this]() {
         vkDestroySampler(core.device, default_sampler_nearest, nullptr);
         vkDestroySampler(core.device, default_sampler_linear, nullptr);
         });

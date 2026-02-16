@@ -23,6 +23,14 @@
 struct FT_LibraryRec_;
 typedef struct FT_LibraryRec_* FT_Library;
 
+namespace vkl_core {
+class VKCore;
+class VMAAllocWrapper;
+} // namespace vkl_core
+namespace vkl_frames {
+class ImmediateFrame;
+}
+
 namespace vkh_font_manager {
 
 struct Font {
@@ -41,6 +49,10 @@ class FontManager {
   public:
     // TODO: rule of 3/5/0
     // TODO: allow for font sizes
+
+    FontManager(vkl_core::VKCore* core_handle, vkl_core::VMAAllocWrapper* alloc_handle,
+                vkl_frames::ImmediateFrame* imm_handle)
+        : image_allocator(core_handle, alloc_handle, imm_handle) {};
 
     static FT_Library* ft_lib;
 
