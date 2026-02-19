@@ -23,6 +23,12 @@ bool init_face(FT_Library ft_lib, FT_Face& font, const std::string& font_path,
     return true;
 };
 
+vkh_font_manager::FontManager::FontManager(FontManager&& other) noexcept
+    : font_textures(std::move(other.font_textures)),
+      font_spacings(std::move(other.font_spacings)),
+      image_allocator(std::move(other.image_allocator)) {
+};
+
 vkh_font_manager::Font vkh_font_manager::FontManager::get_font(const std::string& name) {
     Font new_font;
     new_font.font_data = &font_spacings.at(name);

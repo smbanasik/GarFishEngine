@@ -27,7 +27,7 @@ vkh_font_data::FontData vkh_font_data::create_font_spacings(FT_Face face) {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
 
         // Grab the top left corner of our character, normalized to 1.0
-        new_font_data.chars[c].texture_topleft = {static_cast<float>(current_width) / total_width,
+        new_font_data.chars[c].texture_topleft = {static_cast<float>(current_width + 0.5) / total_width,
                                                    0.0f};
         new_font_data.chars[c].size = {face->glyph->bitmap.width,
                                        face->glyph->bitmap.rows};

@@ -89,7 +89,7 @@ void vk_text::populate_text_quad_texture(std::span<vkl::Vertex, 4> quad,
     // we can calculate the texture coordiantes like so
 
     // Get width and height of character, and normalize it
-    float texture_width = static_cast<float>(character.size.x) / texture.image_size.width;
+    float texture_width = static_cast<float>(character.size.x - 0.5) / texture.image_size.width;
     float texture_height = static_cast<float>(character.size.y) / texture.image_size.height;
 
     // Populate texcoords

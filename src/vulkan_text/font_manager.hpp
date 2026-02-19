@@ -47,12 +47,23 @@ struct Font {
  */
 class FontManager {
   public:
-    // TODO: rule of 3/5/0
-    // TODO: allow for font sizes
 
     FontManager(vkl_core::VKCore* core_handle, vkl_core::VMAAllocWrapper* alloc_handle,
                 vkl_frames::ImmediateFrame* imm_handle)
-        : image_allocator(core_handle, alloc_handle, imm_handle) {};
+        : font_textures(), font_spacings(),
+          image_allocator(core_handle, alloc_handle, imm_handle) {};
+    FontManager(const FontManager& other) = delete;
+    FontManager(FontManager&& other) noexcept;
+    FontManager& operator=(const FontManager& other) = delete;
+    FontManager& operator=(FontManager&& other) noexcept {
+        if (this == &other)
+            return *this;
+        font_textures = std::move(other.font_textures);
+        font_spacings = std::move(other.font_spacings);
+        image_allocator = std::move(other.image_allocator);
+        return *this;
+    }
+    ~FontManager() {};
 
     static FT_Library* ft_lib;
 
