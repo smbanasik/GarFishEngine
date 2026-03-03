@@ -37,6 +37,7 @@
 #include <vulkan_low/shader_types.hpp>
 #include <vulkan_high/material_manager.hpp>
 #include <vulkan_text/font_manager.hpp>
+#include <garfish/camera.hpp>
 
 struct GLFWwindow;
 
@@ -49,29 +50,6 @@ struct Key;
 
 static constexpr bool DEBUG_USE_VALIDATION = true; /**< Whether to use validation layers or not */
 constexpr uint8_t FRAME_OVERLAP = 2;
-
-/**
- * @struct Camera
- * @brief Temporary structure to handle camera.
- */
-struct Camera {
-    // Very hacky and awful but I don't care!
-    // I will be reworking this shortly
-    static glm::vec3 velocity;
-    static glm::vec3 position;
-    static float pitch;
-    static float yaw;
-    static bool mouse_enabled;
-
-    glm::mat4 get_view_matrix();
-    glm::mat4 get_rotation_matrix();
-
-    static void glfw_camera_callback(wi::WInputContext* context, wi::Key* key);
-    static void glfw_camera_mouse(wi::WInputContext* context);
-    static void mouse_swap(wi::WInputContext* context, wi::Key* key);
-
-    void update();
-};
 
 /**
  * @class VkManager

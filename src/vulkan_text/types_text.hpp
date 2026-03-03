@@ -7,10 +7,20 @@
 
 namespace vk_text {
 
+/**
+ * @struct TextMaterial
+ * @brief Abstraction of MaterialInstance
+ */
 struct TextMaterial {
     vkl::MaterialInstance data;
 };
 
+/**
+ * @struct Word
+ * @brief A surface for text.
+ * @details Contains the data for rendering a set of characters that all use the same TextMaterial, which
+ * will generally have the same size, font, and color.
+ */
 struct Word {
     uint32_t start_idx;
     uint32_t count;
@@ -18,6 +28,14 @@ struct Word {
     vkl::Bounds bounds; // TODO: determine if we need this right now
 };
 
+/**
+ * @struct TextAsset
+ * @brief A text asset.
+ * @details Contains words, the mesh data itself,
+ * and the name of the text mesh. Note that the surfaces just differentiate data in
+ * the mesh_buffers and provide materials, the actual vertex and index data is
+ * in the mesh_buffers.
+ */
 struct TextAsset {
     std::string name;
     std::vector<Word> surfaces;

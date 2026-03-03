@@ -18,8 +18,8 @@
 namespace vk_text {
 
 /**
- * @struct MeshNode
- * @brief A specialized node which has a MeshAsset.
+ * @struct TextNode
+ * @brief A specialized node which has a TextAsset.
  */
 struct TextNode : public vkh_render::Node {
     std::shared_ptr<vk_text::TextAsset> mesh;
