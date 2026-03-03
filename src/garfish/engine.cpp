@@ -35,7 +35,7 @@
 gf::Engine* gf::Engine::loaded_engine = nullptr;
 
 gf::Engine::Engine() : wi_manager(), wi_context(wi_manager.create_window(gf::wi::WindowType::WINDOWED, {window_dims.width, window_dims.height}, title)),
-vk_context(wi_manager, wi_context) {
+vk_context(wi_manager, wi_context), logger() {
 
     assert(loaded_engine == nullptr);
     loaded_engine = this;

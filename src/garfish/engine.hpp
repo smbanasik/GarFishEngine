@@ -15,6 +15,7 @@
 
 #include <window_input/wi_manager.hpp>
 #include <garfish/vulkan.hpp>
+#include <common/logger.hpp>
 
 namespace gf {
 
@@ -75,6 +76,8 @@ private:
     wi::WInputContext wi_context;
     VkManager vk_context;
     // ------------------
+
+    com::Logger logger;
 
     uint64_t frame_number = 0;
     bool should_kill_game = false;

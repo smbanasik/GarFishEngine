@@ -16,7 +16,7 @@ struct Key;
  */
 class Camera {
   public:
-    // TODO: these should be member variables, but I need to update wi_keys to accomodate for calling member functions.
+    // TODO: these should be member variables, but I may need to update wi_keys to accomodate for member functions. Unsure.
     static glm::vec3 velocity;
     static glm::vec3 position;
     static float pitch;
