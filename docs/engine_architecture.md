@@ -43,18 +43,25 @@ Create a file `./common/logger.hpp` and `./common/logger.cpp`. Have an enum call
 Once everything is configured we create a `Logger::Log()` function that takes a `LogLevel`, and an error message.
 There's plenty of room for improvement, but for now I think this is acceptable.
 
-## Asset Management
+## Profiler
 
-Currently we handle assets directly in `vulkan.cpp` and `vulkan.hpp` and there's several things to adjust to load in assets. We do abstract gltf from asset loading, which is nice, but I'd like for asset management to be in it's own module: the `AssetManager`. The asset manager should take files to load as input, handle them with a respective input adapter (such as `gltf.hpp`), and output an asset ready for ownership by a node... Since the asset manager isn't owning, we need a different name, `AssetLoader`. This should be somewhat similar to the structure we have for the `ImgBuffAllocator`, but without a need to tie the resources to the allocator.
+Link to profiler [here](https://github.com/wolfpld/tracy/?tab=readme-ov-file)
 
-### Current method:
-Init default data
-Get a structure path, load_gltf
-place into loaded scenes
-loaded scenes and loaded nodes, call draw functions to put them into main draw context
-So do we really need an asset loader?
+Profiling is incredibly important for determining the hot spots of the engine so that it can be refactored. This is essential.
 
-That's our end goal though: creating a simplified way of loading assets.
+## Sound
+
+Not a high priority right now, but needed. Link [here](https://github.com/jarikomppa/soloud)
+
+## Next Rendering Demo:
+New camera option (orthogonal) - take this as an opportunity to fix the camera implementation
+
+WASD pans camera
+
+Create infinitely tileable squares to test the loading and unloading of assets dynamically. Avoid loading chunks for now and just do individual tiles
+
+## Refactor
+Go through engine.hpp/.cpp and vulkan.hpp/.cpp and reorganize the two functions, modularize further as needed
 
 ## Function Hooks: A precursor to ECS
 
@@ -81,6 +88,8 @@ Data isolation is more difficult since we need to figure out our dependencies. I
 ### Entities
 
 At their core, entities are just integers. That's it. `using uint32_t entity` (or 64 if we really need it).
+
+Good question: how can we map entities to components?
 
 **Generation**:
 For now, increment up by one.
