@@ -6,9 +6,9 @@
 namespace gf_ecs {
 class World {
   public:
-    void execute(gf_framepipe::FRAME_PHASE phase) { frame_pipeline.execute(phase); } // Goated reference
+    void execute(gf_fp::FRAME_PHASE phase) { frame_pipeline.execute(phase); } // Goated reference
 
-    gf_framepipe::FramePipeline frame_pipeline;
+    gf_fp::FramePipeline frame_pipeline;
 
   private:
 };

@@ -9,16 +9,17 @@
 
 #include <garfish/isystem.hpp>
 
-namespace gf_framepipe {
+namespace gf_fp {
 
 enum FRAME_PHASE : uint8_t {
+    ME,      // Interact with engine state?
     INPUT,   // React to player input
     UPDATE,  // Main logic layer
     PHYSICS, // For physics
     RENDER   // During render?
 };
 
-constexpr uint8_t PHASE_COUNT = 4;
+constexpr uint8_t PHASE_COUNT = 5;
 
 struct Hook {
     std::shared_ptr<gf_sys::ISystem> system;
@@ -83,5 +84,5 @@ class FramePipeline {
     std::vector<HookHandle> pending_removes;
 };
 
-} // namespace gf_framepipe
+} // namespace gf_fp
 #endif

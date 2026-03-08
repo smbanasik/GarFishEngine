@@ -3,73 +3,67 @@
 // Last Modified: 12/29/2024
 #include <garfish/vulkan.hpp>
 
-#include <vector>
-#include <iostream>
+#include <array>
 #include <cmath>
 #include <cstring>
-#include <array>
+#include <iostream>
+#include <vector>
 
-#include <vulkan/vulkan.h>
 #include <VkBootstrap.h>
+#include <vulkan/vulkan.h>
 #define GLFW_INCLUDE_VULKAN
-#include<GLFW/glfw3.h>
+#include <GLFW/glfw3.h>
 #define VMA_IMPLEMENTATION
-#include <vk_mem_alloc.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
-#include <glm/glm.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
+#include <vk_mem_alloc.h>
 #define GLM_ENABLE_EXPERIMENTAL
+#include <ft2build.h>
 #include <glm/gtx/quaternion.hpp>
 #include <stb_image.h>
-#include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <vulkan_low/initializers.hpp>
-#include <vulkan_low/types.hpp>
-#include <vulkan_low/desc_writer.hpp>
-#include <vulkan_low/desc_layoutbuilder.hpp>
-#include <vulkan_low/desc_allocgrow.hpp>
-#include <vulkan_low/images.hpp>
-#include <window_input/wi_manager.hpp>
-#include <vulkan_high/mat_metrough.hpp>
 #include <vulkan_high/mat_img.hpp>
+#include <vulkan_high/mat_metrough.hpp>
 #include <vulkan_low/alloc_buf.hpp>
 #include <vulkan_low/alloc_img.hpp>
+#include <vulkan_low/desc_allocgrow.hpp>
+#include <vulkan_low/desc_layoutbuilder.hpp>
+#include <vulkan_low/desc_writer.hpp>
+#include <vulkan_low/images.hpp>
 #include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_low/initializers.hpp>
+#include <vulkan_low/types.hpp>
 #include <vulkan_text/font_manager.hpp>
-#include <vulkan_text/text_generate.hpp>
 #include <vulkan_text/node_text.hpp>
+#include <vulkan_text/text_generate.hpp>
+#include <window_input/wi_manager.hpp>
 
 // TEMPORARY
 #include <vulkan/vk_enum_string_helper.h>
-#define VK_CHECK(x)                                                     \
-    do {                                                                \
-        VkResult err = x;                                               \
-        if (err) {                                                      \
-            std::cout << "Detected Vulkan error: " << string_VkResult(err) << "\n"; \
-            abort();                                                    \
-        }                                                               \
+#define VK_CHECK(x)                                                                                                    \
+    do {                                                                                                               \
+        VkResult err = x;                                                                                              \
+        if (err) {                                                                                                     \
+            std::cout << "Detected Vulkan error: " << string_VkResult(err) << "\n";                                    \
+            abort();                                                                                                   \
+        }                                                                                                              \
     } while (0)
 
-bool is_visible(const vkl::RenderObject & obj, const glm::mat4 & viewproj) {
+bool is_visible(const vkl::RenderObject& obj, const glm::mat4& viewproj) {
     std::array<glm::vec3, 8> corners{
-        glm::vec3 { 1, 1, 1 },
-        glm::vec3 { 1, 1, -1 },
-        glm::vec3 { 1, -1, 1 },
-        glm::vec3 { 1, -1, -1 },
-        glm::vec3 { -1, 1, 1 },
-        glm::vec3 { -1, 1, -1 },
-        glm::vec3 { -1, -1, 1 },
-        glm::vec3 { -1, -1, -1 },
+        glm::vec3{1, 1, 1},  glm::vec3{1, 1, -1},  glm::vec3{1, -1, 1},  glm::vec3{1, -1, -1},
+        glm::vec3{-1, 1, 1}, glm::vec3{-1, 1, -1}, glm::vec3{-1, -1, 1}, glm::vec3{-1, -1, -1},
     };
 
     glm::mat4 matrix = viewproj * obj.transform;
 
-    glm::vec3 min = { 1.5, 1.5, 1.5 };
-    glm::vec3 max = { -1.5, -1.5, -1.5 };
+    glm::vec3 min = {1.5, 1.5, 1.5};
+    glm::vec3 max = {-1.5, -1.5, -1.5};
 
     for (int c = 0; c < 8; c++) {
         // project each corner into clip space
@@ -80,15 +74,14 @@ bool is_visible(const vkl::RenderObject & obj, const glm::mat4 & viewproj) {
         v.y = v.y / v.w;
         v.z = v.z / v.w;
 
-        min = glm::min(glm::vec3{ v.x, v.y, v.z }, min);
-        max = glm::max(glm::vec3{ v.x, v.y, v.z }, max);
+        min = glm::min(glm::vec3{v.x, v.y, v.z}, min);
+        max = glm::max(glm::vec3{v.x, v.y, v.z}, max);
     }
 
     // check the clip space box is within the view
     if (min.z > 1.f || max.z < 0.f || min.x > 1.f || max.x < -1.f || min.y > 1.f || max.y < -1.f) {
         return false;
-    }
-    else {
+    } else {
         return true;
     }
 }
@@ -98,20 +91,16 @@ static FT_Library ft_lib;
 
 gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context)
     : core(&wi_manager, &wi_context), alloc(&core),
-    swapchain(&core, wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height),
-    frame_data(&core), 
-    imm_frame(&core), 
-    img_buff_allocator(&core, &alloc, &imm_frame),
-    engine_images(img_buff_allocator),
+      swapchain(&core, wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height),
+      frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
+      engine_images(img_buff_allocator),
 
-    drawn_image(img_buff_allocator),
-    depth_image(img_buff_allocator),
+      drawn_image(img_buff_allocator), depth_image(img_buff_allocator),
 
-    mat_manager(this, &core.device),
-    font_manager(&core, &alloc, &imm_frame)
+      mat_manager(this, &core.device), font_manager(&core, &alloc, &imm_frame)
 
-    {
-    
+{
+
     assert(loaded_vk == nullptr);
     loaded_vk = this;
 
@@ -124,18 +113,17 @@ gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_contex
     init_pipelines();
     init_imgui(wi_manager.get_window(&wi_context));
     init_default_data();
-    
-    std::string structurePath = { "..\\..\\assets\\structure.glb" };
+
+    std::string structurePath = {"..\\..\\assets\\structure.glb"};
     auto structureFile = vk_loader::load_gltf(this, structurePath);
 
     assert(structureFile.has_value());
 
     loaded_scenes["structure"] = *structureFile;
 
-    //camera.position = glm::vec3(30.f, -00.f, -085.f);
+    // camera.position = glm::vec3(30.f, -00.f, -085.f);
     camera.position = glm::vec3(0.f, 0.f, 1.f);
     is_init = true;
-
 }
 gf::VkManager::~VkManager() {
 
@@ -152,13 +140,15 @@ gf::VkManager& gf::VkManager::get() {
 
 void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clear) {
     VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-    //vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
+    // vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
 
     vkl::ComputeEffect& effect = background_effects[current_background_effect];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout, 0, 1, &drawn_image_descriptors, 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout, 0, 1,
+                            &drawn_image_descriptors, 0, nullptr);
 
-    vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vkl::ComputePushConstants), &effect.data);
+    vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vkl::ComputePushConstants),
+                       &effect.data);
     vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
 }
 
@@ -166,22 +156,27 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
     stats.drawcall_count = 0;
     stats.triangle_count = 0;
     auto start = std::chrono::system_clock::now();
-    
+
     // Setup for drawing
-    vkl_res::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(sizeof(vkl::GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    frame->deletion_stack.push_function([gpu_scene_data_buffer, this] {
-        gpu_scene_data_buffer.counter.can_delete_resources();
-        });
-    vkl::GPUSceneData* scene_uniform_data = reinterpret_cast<vkl::GPUSceneData*>(gpu_scene_data_buffer.allocation->GetMappedData());
+    vkl_res::AllocatedBuffer gpu_scene_data_buffer = img_buff_allocator.create_buffer(
+        sizeof(vkl::GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    frame->deletion_stack.push_function(
+        [gpu_scene_data_buffer, this] { gpu_scene_data_buffer.counter.can_delete_resources(); });
+    vkl::GPUSceneData* scene_uniform_data
+        = reinterpret_cast<vkl::GPUSceneData*>(gpu_scene_data_buffer.allocation->GetMappedData());
     *scene_uniform_data = scene_data;
-    
-    VkDescriptorSet global_descriptor = frame->frame_descriptors.allocate(core.device, gpu_scene_data_descriptor_layout);
+
+    VkDescriptorSet global_descriptor
+        = frame->frame_descriptors.allocate(core.device, gpu_scene_data_descriptor_layout);
     vkl_desc::DescriptorWriter writer;
-    writer.write_buffer(0, gpu_scene_data_buffer.buffer, sizeof(vkl::GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    writer.write_buffer(0, gpu_scene_data_buffer.buffer, sizeof(vkl::GPUSceneData), 0,
+                        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     writer.update_set(core.device, global_descriptor);
 
-    VkRenderingAttachmentInfo color_attachment = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkRenderingAttachmentInfo depth_attachment = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+    VkRenderingAttachmentInfo color_attachment
+        = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingAttachmentInfo depth_attachment
+        = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
     VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
     vkCmdBeginRendering(cmd, &render_info);
 
@@ -196,7 +191,8 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
             if (rendered.material->pipeline != last_pipeline) {
                 last_pipeline = rendered.material->pipeline;
                 vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->pipeline);
-                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 0, 1, &global_descriptor, 0, nullptr);
+                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 0, 1,
+                                        &global_descriptor, 0, nullptr);
 
                 VkViewport viewport = {};
                 viewport.x = 0;
@@ -214,21 +210,23 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
                 scissor.extent.height = drawn_size.height;
                 vkCmdSetScissor(cmd, 0, 1, &scissor);
             }
-            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 1, 1, &rendered.material->material_set, 0, nullptr);
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 1, 1,
+                                    &rendered.material->material_set, 0, nullptr);
         }
         if (rendered.index_buffer != last_index_buffer) {
             last_index_buffer = rendered.index_buffer;
             vkCmdBindIndexBuffer(cmd, rendered.index_buffer, 0, VK_INDEX_TYPE_UINT32);
         }
-        
+
         vkl::GPUDrawPushConstants push_constants;
         push_constants.vertex_buffer = rendered.vertex_buffer_address;
         push_constants.world_matrix = rendered.transform;
-        vkCmdPushConstants(cmd, rendered.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(vkl::GPUDrawPushConstants), &push_constants);
+        vkCmdPushConstants(cmd, rendered.material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                           sizeof(vkl::GPUDrawPushConstants), &push_constants);
         vkCmdDrawIndexed(cmd, rendered.index_count, 1, rendered.first_index, 0, 0);
         stats.drawcall_count++;
         stats.triangle_count += rendered.index_count / 3;
-        };
+    };
 
     // Actual drawing
     for (const vkl::RenderObject& r : main_draw_context.static_surfaces) {
@@ -256,11 +254,13 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
     main_draw_context.transparent_surfaces.clear();
     main_draw_context.static_surfaces.clear();
 
-    loaded_scenes["structure"]->draw(glm::mat4{ 1.f }, main_draw_context);
+    // TODO: these should be iterated through
+    loaded_scenes["structure"]->draw(glm::mat4{1.f}, main_draw_context);
     loaded_nodes["hello_text"]->draw(glm::mat4{1.f}, main_draw_context);
 
     scene_data.view = camera.get_view_matrix();
-    scene_data.proj = glm::perspective(glm::radians(70.f), static_cast<float>(width) / static_cast<float>(height), 10000.f, 0.1f);
+    scene_data.proj
+        = glm::perspective(glm::radians(70.f), static_cast<float>(width) / static_cast<float>(height), 10000.f, 0.1f);
     scene_data.proj[1][1] *= -1;
     scene_data.viewproj = scene_data.proj * scene_data.view;
 
@@ -273,7 +273,7 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
 }
 
 void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
-    VkExtent3D image_size = { width, height, 1 };
+    VkExtent3D image_size = {width, height, 1};
     drawn_image.image_format = VK_FORMAT_R16G16B16A16_SFLOAT;
     drawn_image.image_size = image_size;
     VkImageUsageFlags drawn_image_usage{};
@@ -287,8 +287,10 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     image_alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     VkImageCreateInfo image_info = vk_init::image_info(drawn_image.image_format, image_size, drawn_image_usage);
-    vmaCreateImage(alloc.allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation, nullptr);
-    VkImageViewCreateInfo view_info = vk_init::image_view_info(drawn_image.image_format, drawn_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    vmaCreateImage(alloc.allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation,
+                   nullptr);
+    VkImageViewCreateInfo view_info
+        = vk_init::image_view_info(drawn_image.image_format, drawn_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
     vkCreateImageView(core.device, &view_info, nullptr, &drawn_image.image_view);
 
     depth_image.image_format = VK_FORMAT_D32_SFLOAT;
@@ -297,19 +299,19 @@ void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
     depth_usage_flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
     VkImageCreateInfo depth_image_info = vk_init::image_info(depth_image.image_format, image_size, depth_usage_flags);
-    vmaCreateImage(alloc.allocator, &depth_image_info, &image_alloc_info, &depth_image.image, &depth_image.allocation, nullptr);
-    VkImageViewCreateInfo depth_view_info = vk_init::image_view_info(depth_image.image_format, depth_image.image, VK_IMAGE_ASPECT_DEPTH_BIT);
+    vmaCreateImage(alloc.allocator, &depth_image_info, &image_alloc_info, &depth_image.image, &depth_image.allocation,
+                   nullptr);
+    VkImageViewCreateInfo depth_view_info
+        = vk_init::image_view_info(depth_image.image_format, depth_image.image, VK_IMAGE_ASPECT_DEPTH_BIT);
     vkCreateImageView(core.device, &depth_view_info, nullptr, &depth_image.image_view);
 }
 
 void gf::VkManager::init_descriptors() {
 
-    std::vector<vkl_desc::DescriptorAllocatorGrowable::PoolSizeRatio> sizes = {
-        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}
-    };
+    std::vector<vkl_desc::DescriptorAllocatorGrowable::PoolSizeRatio> sizes = {{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
 
     global_descriptor_allocator.init(core.device, 10, sizes);
-    
+
     {
         vkl_desc::DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
@@ -319,7 +321,8 @@ void gf::VkManager::init_descriptors() {
     {
         vkl_desc::DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-        gpu_scene_data_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+        gpu_scene_data_descriptor_layout
+            = builder.build(core.device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     }
     {
         vkl_desc::DescriptorLayoutBuilder builder;
@@ -328,7 +331,8 @@ void gf::VkManager::init_descriptors() {
     }
 
     vkl_desc::DescriptorWriter writer;
-    writer.write_image(0, drawn_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+    writer.write_image(0, drawn_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL,
+                       VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
     writer.update_set(core.device, drawn_image_descriptors);
 
     global_deletion_stack.push_function([this]() {
@@ -336,7 +340,7 @@ void gf::VkManager::init_descriptors() {
         vkDestroyDescriptorSetLayout(core.device, drawn_image_descriptor_layout, nullptr);
         vkDestroyDescriptorSetLayout(core.device, gpu_scene_data_descriptor_layout, nullptr);
         vkDestroyDescriptorSetLayout(core.device, single_image_descriptor_layout, nullptr);
-        });
+    });
 }
 
 void gf::VkManager::init_pipelines() {
@@ -367,7 +371,8 @@ void gf::VkManager::init_background_pipelines() {
     if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", core.device, &gradient_shader))
         std::cout << "| ERROR: compute shader was not built.\n";
     VkShaderModule sky_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", core.device, &sky_shader)) // TEMP CHANGED TO GRADIENT
+    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", core.device,
+                                     &sky_shader)) // TEMP CHANGED TO GRADIENT
         std::cout << "| ERROR: compute shader was not built.\n";
 
     VkPipelineShaderStageCreateInfo stage_info{};
@@ -387,8 +392,8 @@ void gf::VkManager::init_background_pipelines() {
     gradient.layout = gradient_pipeline_layout;
     gradient.name = "gradient";
     gradient.data = {};
-    gradient.data.data1 = { 1, 0, 0, 1 };
-    gradient.data.data2 = { 0, 0.5, 1, 1 };
+    gradient.data.data1 = {1, 0, 0, 1};
+    gradient.data.data2 = {0, 0.5, 1, 1};
 
     vkCreateComputePipelines(core.device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &gradient.pipeline);
 
@@ -397,7 +402,7 @@ void gf::VkManager::init_background_pipelines() {
     sky.layout = gradient_pipeline_layout;
     sky.name = "sky";
     sky.data = {};
-    sky.data.data1 = { 0.1, 0.2, 0.4, 0.97 };
+    sky.data.data1 = {0.1, 0.2, 0.4, 0.97};
 
     vkCreateComputePipelines(core.device, VK_NULL_HANDLE, 1, &compute_create_info, nullptr, &sky.pipeline);
 
@@ -411,23 +416,23 @@ void gf::VkManager::init_background_pipelines() {
         vkDestroyPipelineLayout(core.device, gradient_pipeline_layout, nullptr);
         vkDestroyPipeline(core.device, gradient.pipeline, nullptr);
         vkDestroyPipeline(core.device, sky.pipeline, nullptr);
-        });
+    });
 }
 
 // Direct copy and paste, review later
 void gf::VkManager::init_imgui(GLFWwindow* window) {
 
-    VkDescriptorPoolSize pool_sizes[] = { { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } };
+    VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+                                         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+                                         {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+                                         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+                                         {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+                                         {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+                                         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+                                         {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+                                         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+                                         {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+                                         {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
 
     VkDescriptorPoolCreateInfo pool_info = {};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -450,7 +455,7 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
     init_info.UseDynamicRendering = true;
-    init_info.PipelineRenderingCreateInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
+    init_info.PipelineRenderingCreateInfo = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
     init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
     init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &swapchain.swapchain_format;
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
@@ -461,7 +466,7 @@ void gf::VkManager::init_imgui(GLFWwindow* window) {
     global_deletion_stack.push_function([=]() {
         ImGui_ImplVulkan_Shutdown();
         vkDestroyDescriptorPool(core.device, imguiPool, nullptr);
-        });
+    });
 }
 
 void gf::VkManager::init_default_data() {
@@ -476,13 +481,13 @@ void gf::VkManager::init_default_data() {
             pixels[y * 16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
         }
     }
-    engine_images.add_texture_from_data("white", (void*)&white, VkExtent3D{ 1, 1, 1 });
-    engine_images.add_texture_from_data("gray", (void*)&gray, VkExtent3D{ 1, 1, 1 });
-    engine_images.add_texture_from_data("black", (void*)&black, VkExtent3D{ 1, 1, 1 });
-    engine_images.add_texture_from_data("magenta", (void*)&magenta, VkExtent3D{ 1, 1, 1 });
+    engine_images.add_texture_from_data("white", (void*)&white, VkExtent3D{1, 1, 1});
+    engine_images.add_texture_from_data("gray", (void*)&gray, VkExtent3D{1, 1, 1});
+    engine_images.add_texture_from_data("black", (void*)&black, VkExtent3D{1, 1, 1});
+    engine_images.add_texture_from_data("magenta", (void*)&magenta, VkExtent3D{1, 1, 1});
     engine_images.add_texture_from_data("error_checkerboard", pixels.data(), VkExtent3D{1, 1, 1});
 
-    VkSamplerCreateInfo sampl{ .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+    VkSamplerCreateInfo sampl{.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
     sampl.magFilter = VK_FILTER_NEAREST;
     sampl.minFilter = VK_FILTER_NEAREST;
     vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_nearest);
@@ -492,8 +497,7 @@ void gf::VkManager::init_default_data() {
 
     // TEMPORARY
     vkh_font_manager::Font arial = font_manager.load_font("arial", "../../assets/arial.ttf");
-    vk_text::MeshBufferData text_mesh_data =
-        vk_text::generate_text_squares("Hello world!", arial);
+    vk_text::MeshBufferData text_mesh_data = vk_text::generate_text_squares("Hello world!", arial);
 
     // Normalization for sake of test
     for (int i = 0; i < text_mesh_data.vertices.size(); i++) {
@@ -505,7 +509,9 @@ void gf::VkManager::init_default_data() {
     image_resources.color_image = *arial.font_image;
     image_resources.color_sampler = default_sampler_nearest;
 
-    image_mat_data = mat_manager.get_material("font_mat") ->write_material(core.device, vkl::MaterialPass::MainColor, image_resources, global_descriptor_allocator);
+    image_mat_data
+        = mat_manager.get_material("font_mat")
+              ->write_material(core.device, vkl::MaterialPass::MainColor, image_resources, global_descriptor_allocator);
 
     vk_text::Word word;
     word.start_idx = 0;
@@ -529,52 +535,54 @@ void gf::VkManager::init_default_data() {
     global_deletion_stack.push_function([this]() {
         vkDestroySampler(core.device, default_sampler_nearest, nullptr);
         vkDestroySampler(core.device, default_sampler_linear, nullptr);
-        });
+    });
 }
 vkl::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<vkl::Vertex> vertices) {
     const size_t index_buffer_size = indices.size() * sizeof(uint32_t);
     const size_t vertex_buffer_size = vertices.size() * sizeof(vkl::Vertex);
-    
+
     vkl::GPUMeshBuffers new_mesh;
-    new_mesh.vertex_buffer = img_buff_allocator.create_buffer(vertex_buffer_size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
-        | VK_BUFFER_USAGE_TRANSFER_DST_BIT
-        | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+    new_mesh.vertex_buffer
+        = img_buff_allocator.create_buffer(vertex_buffer_size,
+                                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT
+                                               | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+                                           VMA_MEMORY_USAGE_GPU_ONLY);
+    new_mesh.index_buffer = img_buff_allocator.create_buffer(
+        index_buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
-    new_mesh.index_buffer = img_buff_allocator.create_buffer(index_buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT
-        | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VMA_MEMORY_USAGE_GPU_ONLY);
-    VkBufferDeviceAddressInfo device_address_info{ .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, .buffer = new_mesh.vertex_buffer.buffer };
+    VkBufferDeviceAddressInfo device_address_info{.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+                                                  .buffer = new_mesh.vertex_buffer.buffer};
     new_mesh.vertex_buffer_address = vkGetBufferDeviceAddress(core.device, &device_address_info);
 
-    vkl_res::AllocatedBuffer staging_buffer = img_buff_allocator.create_buffer(vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+    vkl_res::AllocatedBuffer staging_buffer = img_buff_allocator.create_buffer(
+        vertex_buffer_size + index_buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
     void* data = staging_buffer.allocation->GetMappedData();
     memcpy(data, vertices.data(), vertex_buffer_size);
     memcpy((char*)data + vertex_buffer_size, indices.data(), index_buffer_size);
 
     imm_frame.immediate_submit([&](VkCommandBuffer cmd) {
-        VkBufferCopy vertex_copy{ 0 };
+        VkBufferCopy vertex_copy{0};
         vertex_copy.dstOffset = 0;
         vertex_copy.srcOffset = 0;
         vertex_copy.size = vertex_buffer_size;
         vkCmdCopyBuffer(cmd, staging_buffer.buffer, new_mesh.vertex_buffer.buffer, 1, &vertex_copy);
 
-        VkBufferCopy index_copy{ 0 };
+        VkBufferCopy index_copy{0};
         index_copy.dstOffset = 0;
         index_copy.srcOffset = vertex_buffer_size;
         index_copy.size = index_buffer_size;
         vkCmdCopyBuffer(cmd, staging_buffer.buffer, new_mesh.index_buffer.buffer, 1, &index_copy);
-
-        });
+    });
 
     return new_mesh;
 }
 
 void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {
     vkDeviceWaitIdle(core.device);
-    
+
     swapchain.destroy_swapchain();
 
     swapchain.remake_swapchain(width, height);
-    
+
     resize_requested = false;
 }

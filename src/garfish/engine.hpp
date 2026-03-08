@@ -1,34 +1,35 @@
 /**
-* @file
-* @brief Main engine header file.
-* @author Spencer Banasik
-* @details This file holds the main engine class.
-*/
+ * @file
+ * @brief Main engine header file.
+ * @author Spencer Banasik
+ * @details This file holds the main engine class.
+ */
 #ifndef GF_ENGINE_HPP
 #define GF_ENGINE_HPP
 
+#include <array>
 #include <stdint.h>
 #include <string>
-#include <array>
 
 #include <vulkan/vulkan.h>
 
-#include <window_input/wi_manager.hpp>
-#include <garfish/vulkan.hpp>
 #include <common/logger.hpp>
+#include <garfish/vulkan.hpp>
+#include <garfish/world.hpp>
+#include <window_input/wi_manager.hpp>
 
 namespace gf {
 
 /**
-* @class Engine
-* @brief The main engine class.
-* @author Spencer Banasik
-*/
+ * @class Engine
+ * @brief The main engine class.
+ * @author Spencer Banasik
+ */
 class Engine {
-public:
+  public:
     Engine();
     ~Engine();
-    
+
     /**
      * @brief Main loop of engine.
      */
@@ -48,7 +49,7 @@ public:
 
     /**
      * @brief Get frame number.
-     * @returns The frame number. 
+     * @returns The frame number.
      */
     uint64_t get_frame() { return frame_number; }
 
@@ -66,11 +67,10 @@ public:
 
     bool should_render = true;
     // Do not declare these below contexts!
-    VkExtent2D window_dims = { 1700, 900 };
+    VkExtent2D window_dims = {1700, 900};
     std::string title = "GarFish Engine";
     // ------------------
-private:
-
+  private:
     // This declaration order cannot be changed
     wi::WIManager wi_manager;
     wi::WInputContext wi_context;
@@ -78,6 +78,7 @@ private:
     // ------------------
 
     com::Logger logger;
+    gf_ecs::World world;
 
     uint64_t frame_number = 0;
     bool should_kill_game = false;
@@ -100,5 +101,5 @@ private:
     Engine(const Engine& other) = delete;
     Engine& operator=(const Engine& other) = delete;
 };
-}
+} // namespace gf
 #endif
