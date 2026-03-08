@@ -21,13 +21,14 @@ BraceWrapping:
   AfterUnion: false
 
 # Line length (VS defaults ~120)
-ColumnLimit: 90
+ColumnLimit: 120
 
 # Alignment (matches MSVC feel)
 AlignAfterOpenBracket: Align
-AlignOperands: Align
+AlignOperands: AlignAfterOperator
 AlignTrailingComments: true
 PointerAlignment: Left
+BreakBeforeBinaryOperators: true
 
 # Spacing
 SpaceBeforeParens: ControlStatements

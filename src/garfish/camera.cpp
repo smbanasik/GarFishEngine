@@ -29,8 +29,6 @@ glm::mat4 gf::Camera::get_rotation_matrix() {
 }
 
 void gf::Camera::glfw_camera_callback(wi::WInputContext* context, wi::Key* key) {
-    // TODO: adjust this to use member variables
-    // https://stackoverflow.com/questions/7676971/pointing-to-a-function-that-is-a-class-member-glfw-setkeycallback
     if (key->action == GLFW_PRESS) {
         switch (key->key) {
         case GLFW_KEY_W:

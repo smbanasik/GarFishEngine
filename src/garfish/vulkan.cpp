@@ -124,7 +124,7 @@ gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_contex
     init_pipelines();
     init_imgui(wi_manager.get_window(&wi_context));
     init_default_data();
-
+    
     std::string structurePath = { "..\\..\\assets\\structure.glb" };
     auto structureFile = vk_loader::load_gltf(this, structurePath);
 
