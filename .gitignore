@@ -23,6 +23,7 @@ assets/
 third_party/*
 
 !third_party/CMakeLists.txt
+!third_party/tracy
 
 # Don't feel like including the license so we're not distributing it :^)
 sky.comp
