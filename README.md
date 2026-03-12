@@ -1,14 +1,11 @@
 # GarFish Engine
 
-git clone --recurse-submodules <garfish-url>
+`git clone --recurse-submodules <garfish-url>`
+`git submodule status` to see version dependencies
 
 ## Description
 
-This engine serves as a general purpose base for future projects, built from C++ and Vulkan. Work has been done to build a performant and less verbose API above
-Vulkan's current one. Groups of Vulkan's objects are composed together into logical abstractions with RAII resource management.
-
-**Note**: Before I make additional progress, I will be utilizing Doxygen to automate the process of documenting code, as well as
-adding graphs for a class hierarchy. Once this is finished, I intend on adjusting namespaces.
+This engine serves as a general purpose base for future projects, built from C++ and Vulkan.
 
 ## Scope
 
@@ -42,9 +39,7 @@ Optional for Doxygen:
 - Installer should handle everything else!
 
 ### GLFW
-- Head to the [GLFW website](https://www.glfw.org/) and download. We're using GLFW 3.4
-- Extract into the third_party folder
-- That's it!
+- Included as a submodule
 
 ### VMA
 - Head to the [VMA github](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/tree/master), then to the include folder, and download `vk_mem_alloc.h`.
@@ -52,9 +47,7 @@ Optional for Doxygen:
 - Place your `vk_mem_alloc.h` into the `vma` folder
 
 ### VKBootstrap
-- Head to the [VKBootstrap github](https://github.com/charles-lunarg/vk-bootstrap), then src folder, and download all of the files.
-- Create a folder called `vkbootstrap` in the `third_party` folder.
-- Place the files into the `vkbootstrap` folder.
+- Included as a submodule
 
 ### ImGui
 - Head to the [ImGui github](https://github.com/ocornut/imgui), and download all of the .h and .cpp files on the main folder
@@ -65,9 +58,7 @@ Optional for Doxygen:
 - Place all of the files into the `imgui` folder.
 
 ### GLM
-- Head to the [glm github](https://github.com/g-truc/glm/tree/master/glm) and download the glm directory.
-- Place the folder into `third_party/glm`
-- The final directory should look like: `third_party/glm/glm/...`
+- Included as a submodule
 
 ### STBImage
 - Grab `stb_image.h` from the [stb github](https://github.com/nothings/stb/blob/master/stb_image.h) and download it.
@@ -75,18 +66,10 @@ Optional for Doxygen:
 - Place `stb_image.h` into the `stb_image` folder.
 
 ### FastGLTF
-- Grab the [fastgltf github](https://github.com/spnda/fastgltf) link.
-- Naviage to the `third_party` folder.
-- Open a command prompt and type `git clone LINK` where `LINK` is the link you grabbed.
+- Included as a submodule
 
 ### FreeType
-- Grab the [freetype download](https://download.savannah.gnu.org/releases/freetype/) link.
-- Navigate to the `third_party` folder.
-- Download `freetype-2.13.3` and unzip it, place the unzipped folder in.
-- Run the `MSBuild.sln` file and build it
-- IMPORTANT
-    - After you build the program, the .dll must be put into the directory with the .exe.
-    - TODO: automate this.
+- Included as a submodule
 
 ### Graphviz
 - Head to the [graphviz download](https://www.graphviz.org/download/) link.
@@ -101,26 +84,8 @@ Optional for Doxygen:
 The `assets` folder is not included in the repository. Engine code that relies on these is likely there 
 for testing purposes and could be safely removed.
 
-## Supplementary files
-RESOURCES.md - A list of helpful resources that I'm collecting to best use Vulkan.
-
-DOCUMENTATION.md - A list of vulkan and personal structures so I can better keep track of the system.
-
-TODOS.md - A list of items I'd like to change in the code later.
-
-## Code Guidelines
-- RAII
-- Only include as needed (forward declaring)
-- Minimize side effects
-- Abstraction!
-- Reduce code duplication
-
-## Code Structure
-
-### Names
-- `vk_*` files are low level files that directly act with vulkan. They are not abstracted and serve as the low level abstractions with vulkan.
-- `gf_*` files are meant to serve more as interface files for a user, to make utilizing vulkan or other libraries easier.
-- `engine_*` files build upon the interface files, providing engine functionality.
+## Docs folder
+Use the docs folder for more information
 
 ## Future Plans
 - Base Engine
