@@ -40,7 +40,7 @@ target_include_directories(garfish PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(garfish PUBLIC Vulkan::Vulkan glfw vma vkbootstrap imgui glm stb_image fastgltf::fastgltf ft_lib)
+target_link_libraries(garfish PUBLIC aligar_deps)
 
 add_custom_command(TARGET garfish POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

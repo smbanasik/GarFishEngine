@@ -52,17 +52,17 @@ struct LoggerConfig {
 
     void set_write_to_file(uint8_t flag) {
         reset_bits(LoggerFlags::WRITE_TO_FILE_MASK);
-        flags = (flags | ((flag & 0b1u) << LoggerFlags::WRITE_TO_FILE_BIT));
+        flags = (flags | ((flag & 0b1u) << LoggerFlags::WRITE_TO_FILE_SHIFT));
     };
 
     void set_output_to_console(uint8_t flag) {
         reset_bits(LoggerFlags::OUTPUT_TO_CONSOLE_MASK);
-        flags = (flags | ((flag & 0b1u) << LoggerFlags::OUTPUT_TO_CONSOLE_BIT));
+        flags = (flags | ((flag & 0b1u) << LoggerFlags::OUTPUT_TO_CONSOLE_SHIFT));
     }
 
     void set_output_timestamp(uint8_t flag) {
         reset_bits(LoggerFlags::TIMESTAMP_LOG_MASK);
-        flags = (flags | ((flag & 0b1u) << LoggerFlags::TIMESTAMP_LOG_BIT));
+        flags = (flags | ((flag & 0b1u) << LoggerFlags::TIMESTAMP_LOG_SHIFT));
     }
 
     void set_file_log_level(uint8_t level) {
@@ -77,10 +77,10 @@ struct LoggerConfig {
 
     void set_color_present(uint8_t flag) {
         reset_bits(LoggerFlags::COLOR_MASK);
-        flags = (flags | ((flag & 0b1u) << LoggerFlags::COLOR_BIT));
+        flags = (flags | ((flag & 0b1u) << LoggerFlags::COLOR_SHIFT));
     }
 
-    uint8_t get_bits(uint8_t mask, uint8_t shift) const { return (flags & mask) >> shift }
+    uint8_t get_bits(uint8_t mask, uint8_t shift) const { return (flags & mask) >> shift; }
 
     void reset_bits(uint8_t mask) { flags = flags & ~mask; }
 };

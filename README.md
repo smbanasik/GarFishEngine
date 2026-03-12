@@ -1,5 +1,7 @@
 # GarFish Engine
 
+git clone --recurse-submodules <garfish-url>
+
 ## Description
 
 This engine serves as a general purpose base for future projects, built from C++ and Vulkan. Work has been done to build a performant and less verbose API above
@@ -29,6 +31,7 @@ Required:
 - fastgltf
 - STB Image
 - FreeType
+- Tracy
 
 Optional for Doxygen:
 - Graphviz
@@ -89,6 +92,10 @@ Optional for Doxygen:
 - Head to the [graphviz download](https://www.graphviz.org/download/) link.
 - Ensure the dot tool is in the path.
 - Doxygen will now generate useful diagrams. Learn more [here](https://www.doxygen.nl/manual/diagrams.html).
+
+### Tracy
+- Tracy is added as a submodule.
+- TODO: instructions
 
 ### Assets
 The `assets` folder is not included in the repository. Engine code that relies on these is likely there 
