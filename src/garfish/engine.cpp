@@ -16,6 +16,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
+#include <tracy/Tracy.hpp>
 #include <vulkan/vulkan.h>
 
 #include <garfish/vulkan.hpp>
@@ -136,7 +137,7 @@ void flash_bg(VkCommandBuffer cmd, gf::VkManager& context, uint64_t frame_number
 }
 
 void gf::Engine::draw() {
-
+    ZoneScopedN("Engine::draw");
     vk_context.update_scene(window_dims.width, window_dims.height);
 
     // Synchronization - Wait until frame is ready
@@ -215,6 +216,7 @@ void gf::Engine::draw() {
         vk_context.resize_requested = true;
 
     frame_number++;
+    FrameMark;
 }
 void gf::Engine::draw_imgui(VkCommandBuffer cmd, VkImageView target_image_view) {
     VkRenderingAttachmentInfo color_attachment

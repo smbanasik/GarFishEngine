@@ -1,6 +1,6 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.25)
 
-project("GarFish Engine" VERSION 0.1 LANGUAGES CXX)
+project("GarFish Engine" VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -13,14 +13,29 @@ set (VS_STARTUP_PROJECT garfish)
 # Used for neovim
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Set to debug mode by default
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "" FORCE)
+# Single-config generators need a build type; multi-config generators ignore it.
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
 
-# Setup Vendor Libraries
+# Tracy Options
+option(TRACY_ENABLE "Enable Tracy instrumentation" OFF)
+option(TRACY_ON_DEMAND "Does not start profiling until specified if true" OFF)
+option(TRACY_NO_EXIT "Waits for an incoming connection before terminating if true" OFF)
 
-find_package(Vulkan REQUIRED)
+if(NOT TRACY_ENABLE AND (TRACY_ON_DEMAND OR TRACY_NO_EXIT))
+    message(WARNING "Tracy variables do nothing unless TRACY_ENABLE is true!")
+endif()
+
+# Compile time values
+set(ALIGAR_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(ALIGAR_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(ALIGAR_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+configure_file(
+    "${PROJECT_SOURCE_DIR}/src/common/config.hpp.in"
+    "${CMAKE_BINARY_DIR}/generated/common/config.hpp"
+    @ONLY
+)
 
 # Used for GLM compatibiltiy with Vulkan (0,1 instead of -1,1)
 add_compile_definitions(GLM_FORCE_DEPTH_ZERO_TO_ONE)

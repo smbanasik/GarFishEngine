@@ -15,6 +15,8 @@ target_include_directories(stb_image INTERFACE  ${CMAKE_CURRENT_LIST_DIR}/stb_im
 
 add_subdirectory(vk-bootstrap)
 
+add_subdirectory(tracy)
+
 add_subdirectory(freetype)
 add_library(ft_lib INTERFACE)
 target_link_libraries(ft_lib INTERFACE freetype)
@@ -35,4 +37,4 @@ imgui/imgui_impl_glfw.cpp
 target_link_libraries(imgui PUBLIC Vulkan::Vulkan glfw)
 
 add_library(aligar_deps INTERFACE)
-target_link_libraries(aligar_deps INTERFACE Vulkan::Vulkan glfw vma vk-bootstrap::vk-bootstrap imgui glm stb_image fastgltf::fastgltf ft_lib)
+target_link_libraries(aligar_deps INTERFACE Vulkan::Vulkan glfw vma vk-bootstrap::vk-bootstrap Tracy::TracyClient imgui glm stb_image fastgltf::fastgltf ft_lib)

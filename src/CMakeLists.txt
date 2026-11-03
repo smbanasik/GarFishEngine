@@ -36,9 +36,18 @@ set_target_properties(garfish PROPERTIES
     CXX_STANDARD 20
 )
 
+# TODO: temporary property to keep the shader and asset paths working until we get a program and config to resolve the paths via the code.
+set_target_properties(garfish PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
+   "$<TARGET_FILE_DIR:garfish>")
+
 target_include_directories(garfish PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+target_include_directories(garfish PRIVATE
+    ${CMAKE_BINARY_DIR}/generated
+)
+
 
 target_link_libraries(garfish PUBLIC aligar_deps)
 

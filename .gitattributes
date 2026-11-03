@@ -1,0 +1,21 @@
+# Normalize line endings: LF in the repository and in the working tree, on
+# every platform. MSVC and VS 2022 handle LF sources correctly.
+* text=auto eol=lf
+
+# Windows shell scripts must keep CRLF for cmd.exe parsing
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binaries: never diff, never convert
+*.spv   binary
+*.ttf   binary
+*.otf   binary
+*.glb   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.exe   binary
+*.pdb   binary
+
+# Generated Doxygen output must not skew repository language statistics
+docs/generated/** linguist-generated=true
