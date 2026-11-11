@@ -1,8 +1,8 @@
 /**
-* @file
-* @brief Engine options that could eventually be loaded in from a file.
-* @author Spencer Banasik
-*/
+ * @file
+ * @brief Engine options that could eventually be loaded in from a file.
+ * @author Spencer Banasik
+ */
 #ifndef GF_OPTIONS_HPP
 #define GF_OPTIONS_HPP
 
@@ -17,7 +17,7 @@ struct EngineOptions {
     VkExtent2D window_dims;
     VkExtent2D pixel_dims; // Dimensions of what is being rendered in pixels (not necessarily screen res)
     std::string window_name;
-
+    std::string root_path; // Path that we treat as root for the purposes of finding assets.
 };
 // Options that the consumer should be able to change
 struct UserOptions {
@@ -36,12 +36,11 @@ struct Options {
     UserOptions user;
 };
 
-
+void parse_options_from_args(); // TODO: argc, argv
 void load_options_file(const char* file_path, EngineOptions& engine_options, UserOptions& user_options);
 void generate_options_file(const char* file_path, EngineOptions& engine_options, UserOptions& user_options);
 void generate_options_file_defaults(const char* file_path, EngineOptions& engine_options, UserOptions& user_options);
 
-
-}
-}
+} // namespace option
+} // namespace gf
 #endif

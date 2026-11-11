@@ -1,43 +1,41 @@
 /**
-* @file
-* @brief Vulkan entrypoint for engine.
-* @author Spencer Banasik
-*/
+ * @file
+ * @brief Vulkan entrypoint for engine.
+ * @author Spencer Banasik
+ */
 #ifndef GF_VULKAN_HPP
 #define GF_VULKAN_HPP
 
-#include <vector>
-#include <string>
-#include <stdint.h>
 #include <array>
+#include <stdint.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
+#include <vulkan/vulkan.h>
 
-#include <garfish/stats.hpp>
 #include <common/delstack.hpp>
-#include <vulkan_low/types.hpp>
-#include <vulkan_low/core.hpp>
-#include <vulkan_low/alloc.hpp>
-#include <vulkan_low/desc_allocgrow.hpp>
-#include <vulkan_low/pipelines.hpp>
+#include <garfish/camera.hpp>
+#include <garfish/resource_manager.hpp>
+#include <garfish/stats.hpp>
+#include <garfish_user/types.hpp>
 #include <vulkan_high/gltf.hpp>
 #include <vulkan_high/imageatlas.hpp>
-#include <vulkan_low/swapchain.hpp>
-#include <vulkan_low/framedata.hpp>
-#include <vulkan_low/imm_frame.hpp>
-#include <vulkan_low/images.hpp>
-#include <garfish_user/types.hpp>
-#include <garfish/resource_manager.hpp>
-#include <garfish/text.hpp>
-#include <vulkan_low/imgbuf_alloc.hpp>
-#include <vulkan_low/mat_types.hpp>
-#include <vulkan_low/shader_types.hpp>
 #include <vulkan_high/material_manager.hpp>
+#include <vulkan_low/alloc.hpp>
+#include <vulkan_low/core.hpp>
+#include <vulkan_low/desc_allocgrow.hpp>
+#include <vulkan_low/framedata.hpp>
+#include <vulkan_low/images.hpp>
+#include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_low/imm_frame.hpp>
+#include <vulkan_low/mat_types.hpp>
+#include <vulkan_low/pipelines.hpp>
+#include <vulkan_low/shader_types.hpp>
+#include <vulkan_low/swapchain.hpp>
+#include <vulkan_low/types.hpp>
 #include <vulkan_text/font_manager.hpp>
-#include <garfish/camera.hpp>
 
 struct GLFWwindow;
 
@@ -46,7 +44,7 @@ namespace wi {
 class WIManager;
 class WInputContext;
 struct Key;
-}
+} // namespace wi
 
 static constexpr bool DEBUG_USE_VALIDATION = true; /**< Whether to use validation layers or not */
 constexpr uint8_t FRAME_OVERLAP = 2;
@@ -59,8 +57,7 @@ constexpr uint8_t FRAME_OVERLAP = 2;
  * @pre Requires a setup WInputContext to function.
  */
 class VkManager {
-public:
-
+  public:
     vkl_core::VKCore core;
     vkl_core::VMAAllocWrapper alloc;
     vkl_frames::SwapChain swapchain;
@@ -69,7 +66,7 @@ public:
     vkl_res::ImageBufferAllocator img_buff_allocator;
     vkl_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     gf::EngineStats stats;
-    
+
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
 
@@ -81,7 +78,7 @@ public:
     vkl_res::AllocatedImage depth_image;
     VkExtent2D drawn_size;
     float render_scale = 1.f;
-    
+
     VkDescriptorSet drawn_image_descriptors;
     VkDescriptorSetLayout drawn_image_descriptor_layout;
     vkl::GPUSceneData scene_data;
@@ -104,7 +101,7 @@ public:
     Camera camera;
 
     std::vector<vkl::ComputeEffect> background_effects; // For fun!
-    int current_background_effect{ 0 }; // For fun!
+    int current_background_effect{0};                   // For fun!
 
     bool is_init = false;
     bool resize_requested = false;
@@ -117,7 +114,7 @@ public:
      * @todo Change the surface and context setup to not require the manager.
      */
     VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context);
-    
+
     ~VkManager();
 
     /**
@@ -127,7 +124,7 @@ public:
     static VkManager& get();
 
     /**
-     * @brief Update our screen. 
+     * @brief Update our screen.
      * @param [in] width Screen width for camera.
      * @param [in] height Screen height for camera.
      * @details Updates the camera, clears draw contexts, and draws
@@ -135,7 +132,7 @@ public:
      * Then, updates the GPUSceneData parameters.
      */
     void update_scene(uint32_t width, uint32_t height);
-    
+
     /**
      * @brief Draws the backgrounds with the compute pipelines
      * @param [in, out] cmd Buffer that we push draw commands to.
@@ -166,7 +163,7 @@ public:
      */
     void resize_swapchain(uint32_t width, uint32_t height);
 
-private:
+  private:
     static VkManager* loaded_vk;
     com::DeletionStack global_deletion_stack;
 
@@ -184,7 +181,7 @@ private:
 
     /**
      * @brief Sets up descriptors.
-     * @detailsInitializes descriptor allocators and produces descriptors for the 
+     * @detailsInitializes descriptor allocators and produces descriptors for the
      * draw image, gpu_scene_data, and the single_image_descriptor
      */
     void init_descriptors();
@@ -211,5 +208,5 @@ private:
      */
     void init_default_data();
 };
-}
+} // namespace gf
 #endif

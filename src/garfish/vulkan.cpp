@@ -149,7 +149,7 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
 
     vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vkl::ComputePushConstants),
                        &effect.data);
-    vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.width / 16.0), 1);
+    vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.height / 16.0), 1);
 }
 
 void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame) {
@@ -578,6 +578,9 @@ vkl::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std:
 }
 
 void gf::VkManager::resize_swapchain(uint32_t width, uint32_t height) {
+    if (width == 0 || height == 0)
+        return;
+
     vkDeviceWaitIdle(core.device);
 
     swapchain.destroy_swapchain();

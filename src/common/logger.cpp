@@ -63,15 +63,15 @@ void com::Logger::log(LogLevel level, std::string_view message) {
     std::string formatted_msg = "";
     if (config.get_bits(LoggerFlags::TIMESTAMP_LOG_MASK, LoggerFlags::TIMESTAMP_LOG_SHIFT)) {
         auto time_now = std::chrono::system_clock::now();
-        auto formatted_msg
+        formatted_msg
             = std::format("[{:%Y-%m-%d %H:%M:%S}] {}[{}]{} {}\n", time_now, com::log_util::log_level_to_color(level),
                           com::log_util::log_level_to_string(level), com::log_util::COLOR_RESET, message);
     } else {
-        auto formatted_msg
-            = std::format("{}[{}]{} {}\n", com::log_util::log_level_to_color(level),
-                          com::log_util::log_level_to_string(level), com::log_util::COLOR_RESET, message);
+        formatted_msg = std::format("{}[{}]{} {}\n", com::log_util::log_level_to_color(level),
+                                    com::log_util::log_level_to_string(level), com::log_util::COLOR_RESET, message);
     }
 
+    // TODO: we also need to check for the log level masks here!
     if (config.get_bits(LoggerFlags::OUTPUT_TO_CONSOLE_MASK, LoggerFlags::OUTPUT_TO_CONSOLE_SHIFT)) {
         output_to_console(formatted_msg);
     }

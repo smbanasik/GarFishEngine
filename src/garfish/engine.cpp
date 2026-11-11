@@ -45,9 +45,14 @@ gf::Engine::Engine()
 
     wi_context.window.set_callback_window_resize([this](wi::WInputContext* context) {
         this->get_vk_context()->resize_requested = true;
-        wi::Extent2D dims = wi_context.window.get_window_dims();
+        wi::Extent2D dims = context->window.get_window_dims();
         this->window_dims.height = dims.height;
         this->window_dims.width = dims.width;
+
+        if (dims.height == 0 || dims.width == 0)
+            this->should_render = false;
+        else
+            this->should_render = true;
     });
 
     wi_context.key.set_key_mapping(GLFW_KEY_W, Camera::glfw_camera_callback);
@@ -77,6 +82,8 @@ void gf::Engine::run() {
 
         // Poll events
         glfwPollEvents();
+        should_kill_game = wi_context.window.should_window_close();
+
         world.execute(gf_fp::INPUT);
 
         if (should_render == false) {
@@ -119,8 +126,6 @@ void gf::Engine::run() {
         ImGui::Render();
 
         draw();
-
-        should_kill_game = wi_context.window.should_window_close();
 
         auto end = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

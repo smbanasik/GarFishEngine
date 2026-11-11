@@ -3,6 +3,12 @@
 `git clone --recurse-submodules <garfish-url>`
 `git submodule status` to see version dependencies
 
+To setup dependencies, look at the setup section. Once setup, build using:
+
+`cmake --build --preset debug`
+
+and enjoy the file at `bin/Debug/garfish.exe`
+
 ## Description
 
 This engine serves as a general purpose base for future projects, built from C++ and Vulkan.
@@ -78,7 +84,7 @@ Optional for Doxygen:
 
 ### Tracy
 - Tracy is added as a submodule.
-- TODO: instructions
+- To use tracy, you'll need to follow their documentation for the server setup.
 
 ### Assets
 The `assets` folder is not included in the repository. Engine code that relies on these is likely there 
