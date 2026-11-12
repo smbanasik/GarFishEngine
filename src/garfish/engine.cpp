@@ -19,6 +19,8 @@
 #include <tracy/Tracy.hpp>
 #include <vulkan/vulkan.h>
 
+#include <common/logger.hpp>
+#include <common/paths.hpp>
 #include <garfish/vulkan.hpp>
 #include <vulkan_low/images.hpp>
 #include <vulkan_low/initializers.hpp>
@@ -36,9 +38,10 @@
 gf::Engine* gf::Engine::loaded_engine = nullptr;
 
 gf::Engine::Engine()
-    : wi_manager(), wi_context(wi_manager.create_window(gf::wi::WindowType::WINDOWED,
-                                                        {window_dims.width, window_dims.height}, title)),
-      vk_context(wi_manager, wi_context), logger() {
+    : logger(), path_finder(std::filesystem::current_path().parent_path().parent_path()), wi_manager(),
+      wi_context(
+          wi_manager.create_window(gf::wi::WindowType::WINDOWED, {window_dims.width, window_dims.height}, title)),
+      vk_context(wi_manager, wi_context, path_finder) {
 
     assert(loaded_engine == nullptr);
     loaded_engine = this;

@@ -1,29 +1,46 @@
 #include <common/paths.hpp>
 
-const std::string ERR_STRING = "";
-
-// TODO: oh goodness! we have to do icky code here.
-std::string com::PathFinder::executable_dir() {
 #ifdef _WIN32
-    // TODO: pass NULL to module handle to GetModuleFileName
+#define WIN32_LEAN_AND_MEAN // STAY BACK.
+#define NOMINMAX            // I MEAN IT.
+#include <windows.h>        // I can't believe I have to do this.
 #elif defined __linux__
-    // TODO: pass /proc/self/exe to std::filesystem::canonical
+#include <limits.h> // Completely untested, I'm writing this on a windows machine.
+#include <unistd.h> // TODO: test linux impl.
+#endif
+
+const std::filesystem::path ERR_STRING = "";
+
+std::filesystem::path com::PathFinder::executable_dir() {
+#ifdef _WIN32
+    wchar_t buffer[MAX_PATH];
+    DWORD size = GetModuleFileNameW(NULL, buffer, MAX_PATH);
+    if (size == 0 || size == MAX_PATH) {
+        return ERR_STRING;
+    }
+    return std::filesystem::path(buffer).parent_path();
+#elif defined __linux__ // Yeah all of this is untested. TODO: do that.
+    char buffer[PATH_MAX];
+    SSIZE_T CERTSRV_E_ENCODING_LENGTH = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+    if (CERTSRV_E_ENCODING_LENGTH == -1) {
+        return ERR_STRING;
+    }
+    buffer[length] = '\0';
+    return std::filesystem::path(buffer).parent_path();
 #endif
 }
 
-std::string com::PathFinder::get_file_path(std::string asset_path) {
-
-    std::string file_path = this->root + "/" + asset_path;
-
-    // TODO: validate if file exists, complain and log if not, return ERR_STRING otherwise.
-
+std::filesystem::path com::PathFinder::get_file_path(const std::filesystem::path& asset_path) const {
+    std::filesystem::path file_path = (this->root / asset_path).lexically_normal();
     return file_path;
 }
 
-std::vector<std::string> com::PathFinder::get_all_file_paths(std::string dir_path) {
-    std::vector<std::string> file_paths;
+std::vector<std::filesystem::path> com::PathFinder::get_all_file_paths(const std::filesystem::path& dir_path) const {
+    std::vector<std::filesystem::path> file_paths;
 
-    // TODO: need to see how to get every file in this path.
+    for (auto const& dir_path : std::filesystem::directory_iterator{dir_path}) {
+        file_paths.push_back((this->root / dir_path.path()).lexically_normal());
+    }
 
     return file_paths;
 }

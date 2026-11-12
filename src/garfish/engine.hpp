@@ -69,15 +69,18 @@ class Engine {
     // Do not declare these below contexts!
     VkExtent2D window_dims = {1700, 900};
     std::string title = "GarFish Engine";
-    // ------------------
+
   private:
+    com::Logger logger;
+    com::PathFinder path_finder; // TODO: need to make configurable once we get config reading.
+
+    // ------------------
     // This declaration order cannot be changed
     wi::WIManager wi_manager;
     wi::WInputContext wi_context;
     VkManager vk_context;
     // ------------------
 
-    com::Logger logger;
     gf_ecs::World world;
 
     uint64_t frame_number = 0;

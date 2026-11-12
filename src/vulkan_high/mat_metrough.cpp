@@ -3,36 +3,22 @@
 #include <iostream>
 
 #include <garfish/vulkan.hpp>
-#include <vulkan_low/initializers.hpp>
 #include <vulkan_low/desc_layoutbuilder.hpp>
+#include <vulkan_low/initializers.hpp>
 #include <vulkan_low/mat_types.hpp>
 
 vkh_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness()
-    : opaque_pipeline(),
-    transparent_pipeline(),
-    material_layout(),
-    writer(),
-    device() {};
+    : opaque_pipeline(), transparent_pipeline(), material_layout(), writer(), device() {};
 vkh_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness(VkDevice* device)
-    : opaque_pipeline(),
-    transparent_pipeline(),
-    material_layout(),
-    writer(),
-    device(device) {};
+    : opaque_pipeline(), transparent_pipeline(), material_layout(), writer(), device(device) {};
 vkh_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness(gf::VkManager* engine)
-    : opaque_pipeline(),
-    transparent_pipeline(),
-    material_layout(),
-    writer(),
-    device(&engine->core.device) {
+    : opaque_pipeline(), transparent_pipeline(), material_layout(), writer(), device(&engine->core.device) {
     build_pipelines(engine);
 }
 vkh_mat::GLTFMetallic_Roughness::GLTFMetallic_Roughness(GLTFMetallic_Roughness&& other) noexcept
-    : opaque_pipeline(std::move(other.opaque_pipeline)),
-    transparent_pipeline(std::move(other.transparent_pipeline)),
-    material_layout(std::move(other.material_layout)),
-    writer(std::move(other.writer)),
-    device(std::move(other.device)) {
+    : opaque_pipeline(std::move(other.opaque_pipeline)), transparent_pipeline(std::move(other.transparent_pipeline)),
+      material_layout(std::move(other.material_layout)), writer(std::move(other.writer)),
+      device(std::move(other.device)) {
     other.device = nullptr;
 }
 vkh_mat::GLTFMetallic_Roughness::~GLTFMetallic_Roughness() {
@@ -42,10 +28,12 @@ vkh_mat::GLTFMetallic_Roughness::~GLTFMetallic_Roughness() {
 
 void vkh_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) {
     VkShaderModule mesh_vertex_shader;
-    if (!gf::vk_pipe::load_shader_module("../../shaders/mesh.vert.spv", engine->core.device, &mesh_vertex_shader))
+    if (!gf::vk_pipe::load_shader_module(engine->path_finder.get_file_path("shaders/mesh.vert.spv").string().c_str(),
+                                         engine->core.device, &mesh_vertex_shader))
         std::cout << "| ERROR: vertex shader not built.\n";
     VkShaderModule mesh_frag_shader;
-    if (!gf::vk_pipe::load_shader_module("../../shaders/mesh.frag.spv", engine->core.device, &mesh_frag_shader))
+    if (!gf::vk_pipe::load_shader_module(engine->path_finder.get_file_path("shaders/mesh.frag.spv").string().c_str(),
+                                         engine->core.device, &mesh_frag_shader))
         std::cout << "| ERROR: fragment shader not built.\n";
 
     VkPushConstantRange matrix_range{};
@@ -58,11 +46,10 @@ void vkh_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) {
     layout_builder.add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     layout_builder.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
-    material_layout = layout_builder.build(engine->core.device,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+    material_layout
+        = layout_builder.build(engine->core.device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
-    VkDescriptorSetLayout layouts[] = { engine->gpu_scene_data_descriptor_layout,
-        material_layout };
+    VkDescriptorSetLayout layouts[] = {engine->gpu_scene_data_descriptor_layout, material_layout};
 
     VkPipelineLayoutCreateInfo mesh_layout_info = gf::vk_init::pipeline_layout_info();
     mesh_layout_info.setLayoutCount = 2;
@@ -107,8 +94,9 @@ void vkh_mat::GLTFMetallic_Roughness::clear_resources(VkDevice device) {
     vkDestroyPipeline(device, transparent_pipeline.pipeline, nullptr);
 }
 
-vkl::MaterialInstance vkh_mat::GLTFMetallic_Roughness::write_material(VkDevice device, vkl::MaterialPass pass,
-    const IMaterialResources& resources, vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
+vkl::MaterialInstance vkh_mat::GLTFMetallic_Roughness::write_material(
+    VkDevice device, vkl::MaterialPass pass, const IMaterialResources& resources,
+    vkl_desc::DescriptorAllocatorGrowable& descriptor_allocator) {
 
     const MaterialResources* mat_resources = dynamic_cast<const MaterialResources*>(&resources);
 
@@ -121,12 +109,12 @@ vkl::MaterialInstance vkh_mat::GLTFMetallic_Roughness::write_material(VkDevice d
 
     mat_data.material_set = descriptor_allocator.allocate(device, material_layout);
     writer.clear();
-    writer.write_buffer(0, mat_resources->data_buffer, sizeof(MaterialConstants),
-        mat_resources->data_buffer_offset, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    writer.write_buffer(0, mat_resources->data_buffer, sizeof(MaterialConstants), mat_resources->data_buffer_offset,
+                        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     writer.write_image(1, mat_resources->color_image.image_view, mat_resources->color_sampler,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     writer.write_image(2, mat_resources->metal_rough_image.image_view, mat_resources->metal_rough_sampler,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     writer.update_set(device, mat_data.material_set);
     return mat_data;
 }

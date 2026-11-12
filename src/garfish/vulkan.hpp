@@ -16,6 +16,7 @@
 #include <vulkan/vulkan.h>
 
 #include <common/delstack.hpp>
+#include <common/paths.hpp>
 #include <garfish/camera.hpp>
 #include <garfish/resource_manager.hpp>
 #include <garfish/stats.hpp>
@@ -66,6 +67,7 @@ class VkManager {
     vkl_res::ImageBufferAllocator img_buff_allocator;
     vkl_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     gf::EngineStats stats;
+    const com::PathFinder& path_finder;
 
     VkPipeline gradient_pipeline;
     VkPipelineLayout gradient_pipeline_layout;
@@ -113,7 +115,7 @@ class VkManager {
      * @param [in] gl_context Provides the window to attach the surface to.
      * @todo Change the surface and context setup to not require the manager.
      */
-    VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context);
+    VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context, com::PathFinder path_finder);
 
     ~VkManager();
 

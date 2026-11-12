@@ -89,8 +89,8 @@ bool is_visible(const vkl::RenderObject& obj, const glm::mat4& viewproj) {
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 static FT_Library ft_lib;
 
-gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context)
-    : core(&wi_manager, &wi_context), alloc(&core),
+gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context, com::PathFinder path_finder)
+    : core(&wi_manager, &wi_context), alloc(&core), path_finder(path_finder),
       swapchain(&core, wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height),
       frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
       engine_images(img_buff_allocator),
@@ -114,7 +114,7 @@ gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_contex
     init_imgui(wi_manager.get_window(&wi_context));
     init_default_data();
 
-    std::string structurePath = {"..\\..\\assets\\structure.glb"};
+    std::string structurePath = path_finder.get_file_path("assets/structure.glb").string();
     auto structureFile = vk_loader::load_gltf(this, structurePath);
 
     assert(structureFile.has_value());
@@ -368,10 +368,12 @@ void gf::VkManager::init_background_pipelines() {
     vkCreatePipelineLayout(core.device, &compute_layout, nullptr, &gradient_pipeline_layout);
 
     VkShaderModule gradient_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", core.device, &gradient_shader))
+    if (!vk_pipe::load_shader_module(path_finder.get_file_path("shaders/gradient_color.comp.spv").string().c_str(),
+                                     core.device, &gradient_shader))
         std::cout << "| ERROR: compute shader was not built.\n";
     VkShaderModule sky_shader;
-    if (!vk_pipe::load_shader_module("../../shaders/gradient_color.comp.spv", core.device,
+    if (!vk_pipe::load_shader_module(path_finder.get_file_path("shaders/gradient_color.comp.spv").string().c_str(),
+                                     core.device,
                                      &sky_shader)) // TEMP CHANGED TO GRADIENT
         std::cout << "| ERROR: compute shader was not built.\n";
 
@@ -496,7 +498,8 @@ void gf::VkManager::init_default_data() {
     vkCreateSampler(core.device, &sampl, nullptr, &default_sampler_linear);
 
     // TEMPORARY
-    vkh_font_manager::Font arial = font_manager.load_font("arial", "../../assets/arial.ttf");
+    vkh_font_manager::Font arial
+        = font_manager.load_font("arial", path_finder.get_file_path("assets/arial.ttf").string());
     vk_text::MeshBufferData text_mesh_data = vk_text::generate_text_squares("Hello world!", arial);
 
     // Normalization for sake of test

@@ -1,34 +1,54 @@
-#ifndef COM_PATHS + _HPP
+/**
+ * @file
+ * @brief Abstraction for relative paths in the engine.
+ * @author Spencer Banasik
+ */
+#ifndef COM_PATHS_HPP
 #define COM_PATHS_HPP
 
+#include <filesystem>
 #include <string>
-#include <vector>
 
 namespace com {
 
-// TODO: does this need to be a class? Or a series of functions
+/**
+ * @class PathFinder
+ * @brief Finds paths for engine.
+ * @author Spencer Banasik
+ * @details Takes a root path and will get file paths and directory contents relative to that root path,
+ * as opposed to the CWD. This allows the engine to find its assets even if it's called from a weird spot.
+ * @invariant Requires a root path
+ */
 class PathFinder {
   public:
-    PathFinder(std::string root_path) : root(root_path) {};
+    PathFinder(const std::filesystem::path& root_path) : root(root_path) {};
 
-    static std::string executable_dir();
+    /**
+     * @brief Get executable directory
+     * @author Spencer Banasik
+     * @details Grabs the directory of our executable process.
+     * @invariant OS dependent, must be a windows or linux machine. Impl apple if ever demanded.
+     */
+    static std::filesystem::path executable_dir();
 
-    // TODO: general idea - you submit a simple path such as "shaders/my_shader"
-    // and the path resolver will handle the rest, returning a string for you.
-    std::string get_file_path(std::string asset_path);
-    // TODO: general idea - submit a folder and it will return a list of file paths
-    std::vector<std::string> get_all_file_paths(std::string dir_path);
+    /**
+     * @brief Get a file's path
+     * @author Spencer Banasik
+     * @details Returns a file path from a shorthand path to an asset, with the root directory.
+     * @param [in] asset_path The include-like path to our asset relative to the root dir. e.g. src/my_asset.png
+     */
+    std::filesystem::path get_file_path(const std::filesystem::path& asset_path) const;
 
-    // Very similar to what we do with #includes and what cmake does for us.
+    /**
+     * @brief Get a list of file paths in a folder
+     * @author Spencer Banasik
+     * @details Returns a list of file paths from a shorhand path.
+     * @param [in] asset_path The include-like path to our folder. e.g. src/my_assets
+     */
+    std::vector<std::filesystem::path> get_all_file_paths(const std::filesystem::path& dir_path) const;
 
   private:
-    std::string root;
-    // TODO:
-    // given a keyword, provide a path that some library function can call.
-    // Or, given a directory, provide an array of all files in that directory.
-    // Takes: a root path. (absolute or relative?)
-    // Goal: abstract away the file system so the engine (not necessarily the libraries it uses) only has to care about
-    // names of files and folders.
+    std::filesystem::path root;
 };
 } // namespace com
 
