@@ -66,7 +66,7 @@ class VkManager {
     vkl_frames::ImmediateFrame imm_frame;
     vkl_res::ImageBufferAllocator img_buff_allocator;
     vkl_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
-    gf::EngineStats stats;
+    gf::EngineStats stats; // TODO: rename to renderer stats
     const com::PathFinder& path_finder;
 
     VkPipeline gradient_pipeline;
@@ -74,39 +74,40 @@ class VkManager {
 
     /**
      * @brief Image we draw to
-     * @todo rename to draw_image
      */
-    vkl_res::AllocatedImage drawn_image;
+    vkl_res::AllocatedImage draw_image; // TODO: sceneRenderer for now?
     vkl_res::AllocatedImage depth_image;
     VkExtent2D drawn_size;
     float render_scale = 1.f;
 
-    VkDescriptorSet drawn_image_descriptors;
-    VkDescriptorSetLayout drawn_image_descriptor_layout;
-    vkl::GPUSceneData scene_data;
-    VkDescriptorSetLayout gpu_scene_data_descriptor_layout;
-    VkDescriptorSetLayout single_image_descriptor_layout;
+    VkDescriptorSet draw_image_descriptors;
+    VkDescriptorSetLayout draw_image_descriptor_layout;
+    vkl::GPUSceneData scene_data;                           // TODO: scene
+    VkDescriptorSetLayout gpu_scene_data_descriptor_layout; // TODO: scene?
+    VkDescriptorSetLayout single_image_descriptor_layout;   // TODO: dead, delete.
 
-    ImageManager engine_images;
-    VkSampler default_sampler_linear;
-    VkSampler default_sampler_nearest;
+    ImageManager engine_images;        // TODO: assets
+    VkSampler default_sampler_linear;  // TODO: default resources
+    VkSampler default_sampler_nearest; // TODO: ^
 
     vkl::MaterialInstance default_data;
-    vkh_mat::MaterialManager mat_manager;
+    vkh_mat::MaterialManager mat_manager; // TODO: renderer?
     vkl::MaterialInstance image_mat_data;
     vkh::ImageAtlas test_texture;
     vkh_font_manager::FontManager font_manager;
 
-    vkl::DrawContext main_draw_context;
-    std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> loaded_nodes;
-    std::unordered_map<std::string, std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes;
-    Camera camera;
+    vkl::DrawContext main_draw_context;                                                    // TODO: scene
+    std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> loaded_nodes;       // TODO: asset manager
+    std::unordered_map<std::string, std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes; // TODO: asset manager
+    Camera camera;                                                                         // TODO: scene?
 
     std::vector<vkl::ComputeEffect> background_effects; // For fun!
     int current_background_effect{0};                   // For fun!
 
     bool is_init = false;
     bool resize_requested = false;
+
+    com::DeletionStack global_deletion_stack;
 
     /**
      * @brief Constructs the VKManger
@@ -115,7 +116,7 @@ class VkManager {
      * @param [in] gl_context Provides the window to attach the surface to.
      * @todo Change the surface and context setup to not require the manager.
      */
-    VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context, com::PathFinder path_finder);
+    VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context, const com::PathFinder& path_finder);
 
     ~VkManager();
 
@@ -133,21 +134,21 @@ class VkManager {
      * the scenes (preparing the draw contexts)
      * Then, updates the GPUSceneData parameters.
      */
-    void update_scene(uint32_t width, uint32_t height);
+    void update_scene(uint32_t width, uint32_t height); // TODO: scene renderer
 
     /**
      * @brief Draws the backgrounds with the compute pipelines
      * @param [in, out] cmd Buffer that we push draw commands to.
      * @param [in] clear Clear color, not used.
      */
-    void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear);
+    void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear); // TODO: background_effects
 
     /**
      * @brief Draws the geometry from the draw contexts.
      * @param [in, out] cmd Command buffer we push draw commands to.
      * @param [in, out] frame Descriptors and deletion info concerning the frame.
      */
-    void draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame);
+    void draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame); // TODO: scene renderer
 
     /**
      * @brief Given some indices and vertices, create a GPUMeshBuffer.
@@ -167,19 +168,18 @@ class VkManager {
 
   private:
     static VkManager* loaded_vk;
-    com::DeletionStack global_deletion_stack;
 
     VkManager(const VkManager& other) = delete;
     VkManager& operator=(const VkManager& other) = delete;
 
     /**
-     * @brief Does not create teh swap chain anymore, instead sets up images for swapchain.
+     * @brief Does not create the swap chain anymore, instead sets up images for swapchain.
      * @param [in] width Screen width.
      * @param [in] height Screen height.
      * @details Produces the draw image and depth image for the engine.
      * @todo Remove or, if we can't remove, rename this.
      */
-    void init_swapchain(uint32_t width, uint32_t height);
+    void init_swapchain(uint32_t width, uint32_t height); // TODO: draw/render targets, rename.
 
     /**
      * @brief Sets up descriptors.
@@ -198,12 +198,6 @@ class VkManager {
      * @todo Update this function and streamline compute pipeline creation.
      */
     void init_background_pipelines();
-
-    /**
-     * @brief Initialize IMGUI
-     * @param [in] window Windo that IMGUI is attached to.
-     */
-    void init_imgui(GLFWwindow* window);
 
     /**
      * @brief Initialize default colors and textures, alongside some test code.

@@ -11,8 +11,6 @@
 #include <stdint.h>
 #include <string>
 
-#include <vulkan/vulkan.h>
-
 #include <common/logger.hpp>
 #include <garfish/vulkan.hpp>
 #include <garfish/world.hpp>
@@ -51,7 +49,7 @@ class Engine {
      * @brief Get frame number.
      * @returns The frame number.
      */
-    uint64_t get_frame() { return frame_number; }
+    uint64_t get_frame() { return frame_number; } // TODO: renderer responsibility
 
     /**
      * @brief Get the glfw context with this engine.
@@ -67,8 +65,8 @@ class Engine {
 
     bool should_render = true;
     // Do not declare these below contexts!
-    VkExtent2D window_dims = {1700, 900};
-    std::string title = "GarFish Engine";
+    wi::Extent2D window_dims = {1700, 900};
+    std::string title = "Aligar Engine";
 
   private:
     com::Logger logger;
@@ -78,7 +76,7 @@ class Engine {
     // This declaration order cannot be changed
     wi::WIManager wi_manager;
     wi::WInputContext wi_context;
-    VkManager vk_context;
+    VkManager vk_context; // TODO: becomes renderer
     // ------------------
 
     gf_ecs::World world;
@@ -90,15 +88,7 @@ class Engine {
      * @brief An additional draw function.
      * @todo Provide more details.
      */
-    void draw();
-
-    /**
-     * @brief A draw function for imgui
-     * @param [in, out] cmd The command buffer to recieve draw commands.
-     * @param [in] image_view
-     * @todo Provide more details
-     */
-    void draw_imgui(VkCommandBuffer cmd, VkImageView image_view);
+    void draw(); // TODO: removed for renderer
 
     static Engine* loaded_engine;
     Engine(const Engine& other) = delete;

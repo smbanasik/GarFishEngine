@@ -13,17 +13,16 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <VkBootstrap.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_vulkan.h>
 #include <tracy/Tracy.hpp>
 #include <vulkan/vulkan.h>
 
 #include <common/logger.hpp>
 #include <common/paths.hpp>
+#include <garfish/debug_ui.hpp>
 #include <garfish/vulkan.hpp>
 #include <vulkan_low/images.hpp>
 #include <vulkan_low/initializers.hpp>
+
 // TEMPORARY
 #include <vulkan/vk_enum_string_helper.h>
 #define VK_CHECK(x)                                                                                                    \
@@ -39,8 +38,7 @@ gf::Engine* gf::Engine::loaded_engine = nullptr;
 
 gf::Engine::Engine()
     : logger(), path_finder(std::filesystem::current_path().parent_path().parent_path()), wi_manager(),
-      wi_context(
-          wi_manager.create_window(gf::wi::WindowType::WINDOWED, {window_dims.width, window_dims.height}, title)),
+      wi_context(wi_manager.create_window(gf::wi::WindowType::WINDOWED, window_dims, title)),
       vk_context(wi_manager, wi_context, path_finder) {
 
     assert(loaded_engine == nullptr);
@@ -58,6 +56,7 @@ gf::Engine::Engine()
             this->should_render = true;
     });
 
+    // TODO: input setup function
     wi_context.key.set_key_mapping(GLFW_KEY_W, Camera::glfw_camera_callback);
     wi_context.key.set_key_mapping(GLFW_KEY_S, Camera::glfw_camera_callback);
     wi_context.key.set_key_mapping(GLFW_KEY_A, Camera::glfw_camera_callback);
@@ -87,8 +86,6 @@ void gf::Engine::run() {
         glfwPollEvents();
         should_kill_game = wi_context.window.should_window_close();
 
-        world.execute(gf_fp::INPUT);
-
         if (should_render == false) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
@@ -96,37 +93,7 @@ void gf::Engine::run() {
         if (vk_context.resize_requested == true)
             vk_context.resize_swapchain(window_dims.width, window_dims.height);
 
-        world.execute(gf_fp::UPDATE);
-
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        // ImGui::ShowDemoWindow();
-        if (ImGui::Begin("background")) {
-            ImGui::SliderFloat("Render Scale", &vk_context.render_scale, 0.3f, 1.0f);
-
-            vkl::ComputeEffect& selected = vk_context.background_effects[vk_context.current_background_effect];
-            ImGui::Text("Selected effect: ", selected.name);
-            ImGui::SliderInt("Effect Index", &vk_context.current_background_effect, 0,
-                             vk_context.background_effects.size() - 1);
-
-            ImGui::InputFloat4("data1", (float*)&selected.data.data1);
-            ImGui::InputFloat4("data2", (float*)&selected.data.data2);
-            ImGui::InputFloat4("data3", (float*)&selected.data.data3);
-            ImGui::InputFloat4("data4", (float*)&selected.data.data4);
-        }
-        if (ImGui::Begin("Stats")) {
-            ImGui::Text("frametime %f ms", vk_context.stats.frametime);
-            ImGui::Text("draw time %f ms", vk_context.stats.mesh_draw_time);
-            ImGui::Text("update time %f ms", vk_context.stats.scene_update_time);
-            ImGui::Text("triangles %i", vk_context.stats.triangle_count);
-            ImGui::Text("draws %i", vk_context.stats.drawcall_count);
-            ImGui::End();
-        }
-        ImGui::End();
-
-        ImGui::Render();
+        debug_ui::setup_imgui_frame(vk_context);
 
         draw();
 
@@ -136,6 +103,7 @@ void gf::Engine::run() {
     }
 }
 
+// TODO: renderer
 void flash_bg(VkCommandBuffer cmd, gf::VkManager& context, uint64_t frame_number) {
     VkClearColorValue screen_color;
     float blue_flash = std::abs(std::sin(frame_number / 120.0f));
@@ -144,6 +112,7 @@ void flash_bg(VkCommandBuffer cmd, gf::VkManager& context, uint64_t frame_number
     context.draw_background(cmd, screen_color);
 }
 
+// TODO: renderer
 void gf::Engine::draw() {
     ZoneScopedN("Engine::draw");
     vk_context.update_scene(window_dims.width, window_dims.height);
@@ -172,17 +141,17 @@ void gf::Engine::draw() {
 
     // Image - Set up drawn image
     vk_context.drawn_size.width
-        = std::min(vk_context.swapchain.swapchain_extent.width, vk_context.drawn_image.image_size.width)
+        = std::min(vk_context.swapchain.swapchain_extent.width, vk_context.draw_image.image_size.width)
         * vk_context.render_scale;
     vk_context.drawn_size.height
-        = std::min(vk_context.swapchain.swapchain_extent.height, vk_context.drawn_image.image_size.height)
+        = std::min(vk_context.swapchain.swapchain_extent.height, vk_context.draw_image.image_size.height)
         * vk_context.render_scale;
-    vkl_img::transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    vkl_img::transition_image(cmd, vk_context.draw_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     // Action - perform actual commands
     flash_bg(cmd, vk_context, frame_number); // TEMP FUNCTION - hardcoded with drawn image
 
-    vkl_img::transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_GENERAL,
+    vkl_img::transition_image(cmd, vk_context.draw_image.image, VK_IMAGE_LAYOUT_GENERAL,
                               VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     vkl_img::transition_image(cmd, vk_context.depth_image.image, VK_IMAGE_LAYOUT_UNDEFINED,
                               VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
@@ -190,11 +159,11 @@ void gf::Engine::draw() {
     vk_context.draw_geometry(cmd, &get_current_frame());
 
     // Transition and Copy - transition both images to optimal layout and copy image
-    vkl_img::transition_image(cmd, vk_context.drawn_image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    vkl_img::transition_image(cmd, vk_context.draw_image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     vkl_img::transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx],
                               VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    vkl_img::copy_image_to_image(cmd, vk_context.drawn_image.image,
+    vkl_img::copy_image_to_image(cmd, vk_context.draw_image.image,
                                  vk_context.swapchain.swapchain_images[swapchain_image_idx], vk_context.drawn_size,
                                  vk_context.swapchain.swapchain_extent);
 
@@ -202,7 +171,7 @@ void gf::Engine::draw() {
                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
     // Imgui - Draw imgui
-    draw_imgui(cmd, vk_context.swapchain.swapchain_image_views[swapchain_image_idx]);
+    debug_ui::draw_imgui(vk_context, cmd, vk_context.swapchain.swapchain_image_views[swapchain_image_idx]);
 
     // Final Transition - transition transition swapchain image to presentation
     vkl_img::transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx],
@@ -225,16 +194,4 @@ void gf::Engine::draw() {
 
     frame_number++;
     FrameMark;
-}
-void gf::Engine::draw_imgui(VkCommandBuffer cmd, VkImageView target_image_view) {
-    VkRenderingAttachmentInfo color_attachment
-        = vk_init::attachment_info(target_image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkRenderingInfo render_info
-        = vk_init::rendering_info(vk_context.swapchain.swapchain_extent, &color_attachment, nullptr);
-
-    vkCmdBeginRendering(cmd, &render_info);
-
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
-
-    vkCmdEndRendering(cmd);
 }

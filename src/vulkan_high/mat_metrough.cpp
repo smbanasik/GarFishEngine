@@ -72,7 +72,7 @@ void vkh_mat::GLTFMetallic_Roughness::build_pipelines(gf::VkManager* engine) {
         .set_multisampling_none()
         .disable_blending()
         .enable_depthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL)
-        .set_color_attachment_format(engine->drawn_image.image_format)
+        .set_color_attachment_format(engine->draw_image.image_format)
         .set_depth_format(engine->depth_image.image_format);
     pipe_builder.pipeline_layout = new_layout;
 

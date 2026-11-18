@@ -27,6 +27,7 @@
 #include <stb_image.h>
 #include FT_FREETYPE_H
 
+#include <garfish/debug_ui.hpp>
 #include <vulkan_high/mat_img.hpp>
 #include <vulkan_high/mat_metrough.hpp>
 #include <vulkan_low/alloc_buf.hpp>
@@ -54,7 +55,7 @@
         }                                                                                                              \
     } while (0)
 
-bool is_visible(const vkl::RenderObject& obj, const glm::mat4& viewproj) {
+bool is_visible(const vkl::RenderObject& obj, const glm::mat4& viewproj) { // TODO: scene renderer
     std::array<glm::vec3, 8> corners{
         glm::vec3{1, 1, 1},  glm::vec3{1, 1, -1},  glm::vec3{1, -1, 1},  glm::vec3{1, -1, -1},
         glm::vec3{-1, 1, 1}, glm::vec3{-1, 1, -1}, glm::vec3{-1, -1, 1}, glm::vec3{-1, -1, -1},
@@ -89,13 +90,13 @@ bool is_visible(const vkl::RenderObject& obj, const glm::mat4& viewproj) {
 gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 static FT_Library ft_lib;
 
-gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context, com::PathFinder path_finder)
+gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context, const com::PathFinder& path_finder)
     : core(&wi_manager, &wi_context), alloc(&core), path_finder(path_finder),
       swapchain(&core, wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height),
       frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
       engine_images(img_buff_allocator),
 
-      drawn_image(img_buff_allocator), depth_image(img_buff_allocator),
+      draw_image(img_buff_allocator), depth_image(img_buff_allocator),
 
       mat_manager(this, &core.device), font_manager(&core, &alloc, &imm_frame)
 
@@ -111,7 +112,7 @@ gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_contex
     init_swapchain(wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height);
     init_descriptors();
     init_pipelines();
-    init_imgui(wi_manager.get_window(&wi_context));
+    gf::debug_ui::init_imgui(*this, wi_manager.get_window(&wi_context));
     init_default_data();
 
     std::string structurePath = path_finder.get_file_path("assets/structure.glb").string();
@@ -138,21 +139,21 @@ gf::VkManager& gf::VkManager::get() {
     return *loaded_vk;
 }
 
-void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clear) {
+void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clear) { // TODO: background
     VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-    // vkCmdClearColorImage(cmd, drawn_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
+    // vkCmdClearColorImage(cmd, draw_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
 
     vkl::ComputeEffect& effect = background_effects[current_background_effect];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout, 0, 1,
-                            &drawn_image_descriptors, 0, nullptr);
+                            &draw_image_descriptors, 0, nullptr);
 
     vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vkl::ComputePushConstants),
                        &effect.data);
     vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.height / 16.0), 1);
 }
 
-void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame) {
+void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame) { // TODO: scene renderer
     stats.drawcall_count = 0;
     stats.triangle_count = 0;
     auto start = std::chrono::system_clock::now();
@@ -174,7 +175,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
     writer.update_set(core.device, global_descriptor);
 
     VkRenderingAttachmentInfo color_attachment
-        = vk_init::attachment_info(drawn_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        = vk_init::attachment_info(draw_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingAttachmentInfo depth_attachment
         = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
     VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
@@ -246,7 +247,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     stats.mesh_draw_time = elapsed.count() / 1000.f;
 }
-void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
+void gf::VkManager::update_scene(uint32_t width, uint32_t height) { // TODO: scene renderer
     auto start = std::chrono::system_clock::now();
     camera.update();
 
@@ -272,26 +273,25 @@ void gf::VkManager::update_scene(uint32_t width, uint32_t height) {
     stats.scene_update_time = elapsed.count() / 1000.f;
 }
 
-void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) {
+void gf::VkManager::init_swapchain(uint32_t width, uint32_t height) { // TODO: draw/render targetrs
     VkExtent3D image_size = {width, height, 1};
-    drawn_image.image_format = VK_FORMAT_R16G16B16A16_SFLOAT;
-    drawn_image.image_size = image_size;
-    VkImageUsageFlags drawn_image_usage{};
-    drawn_image_usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-    drawn_image_usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    drawn_image_usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-    drawn_image_usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    draw_image.image_format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    draw_image.image_size = image_size;
+    VkImageUsageFlags draw_image_usage{};
+    draw_image_usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    draw_image_usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    draw_image_usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    draw_image_usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     VmaAllocationCreateInfo image_alloc_info = {};
     image_alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
     image_alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    VkImageCreateInfo image_info = vk_init::image_info(drawn_image.image_format, image_size, drawn_image_usage);
-    vmaCreateImage(alloc.allocator, &image_info, &image_alloc_info, &drawn_image.image, &drawn_image.allocation,
-                   nullptr);
+    VkImageCreateInfo image_info = vk_init::image_info(draw_image.image_format, image_size, draw_image_usage);
+    vmaCreateImage(alloc.allocator, &image_info, &image_alloc_info, &draw_image.image, &draw_image.allocation, nullptr);
     VkImageViewCreateInfo view_info
-        = vk_init::image_view_info(drawn_image.image_format, drawn_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-    vkCreateImageView(core.device, &view_info, nullptr, &drawn_image.image_view);
+        = vk_init::image_view_info(draw_image.image_format, draw_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    vkCreateImageView(core.device, &view_info, nullptr, &draw_image.image_view);
 
     depth_image.image_format = VK_FORMAT_D32_SFLOAT;
     depth_image.image_size = image_size;
@@ -315,9 +315,9 @@ void gf::VkManager::init_descriptors() {
     {
         vkl_desc::DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-        drawn_image_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_COMPUTE_BIT);
+        draw_image_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_COMPUTE_BIT);
     }
-    drawn_image_descriptors = global_descriptor_allocator.allocate(core.device, drawn_image_descriptor_layout);
+    draw_image_descriptors = global_descriptor_allocator.allocate(core.device, draw_image_descriptor_layout);
     {
         vkl_desc::DescriptorLayoutBuilder builder;
         builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -331,13 +331,13 @@ void gf::VkManager::init_descriptors() {
     }
 
     vkl_desc::DescriptorWriter writer;
-    writer.write_image(0, drawn_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL,
+    writer.write_image(0, draw_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL,
                        VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-    writer.update_set(core.device, drawn_image_descriptors);
+    writer.update_set(core.device, draw_image_descriptors);
 
     global_deletion_stack.push_function([this]() {
         global_descriptor_allocator.destroy_pools(core.device);
-        vkDestroyDescriptorSetLayout(core.device, drawn_image_descriptor_layout, nullptr);
+        vkDestroyDescriptorSetLayout(core.device, draw_image_descriptor_layout, nullptr);
         vkDestroyDescriptorSetLayout(core.device, gpu_scene_data_descriptor_layout, nullptr);
         vkDestroyDescriptorSetLayout(core.device, single_image_descriptor_layout, nullptr);
     });
@@ -354,7 +354,7 @@ void gf::VkManager::init_background_pipelines() {
     VkPipelineLayoutCreateInfo compute_layout{};
     compute_layout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     compute_layout.pNext = nullptr;
-    compute_layout.pSetLayouts = &drawn_image_descriptor_layout;
+    compute_layout.pSetLayouts = &draw_image_descriptor_layout;
     compute_layout.setLayoutCount = 1;
 
     VkPushConstantRange push_constant{};
@@ -421,56 +421,7 @@ void gf::VkManager::init_background_pipelines() {
     });
 }
 
-// Direct copy and paste, review later
-void gf::VkManager::init_imgui(GLFWwindow* window) {
-
-    VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-                                         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-                                         {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-                                         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-                                         {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-                                         {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-                                         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-                                         {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-                                         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-                                         {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-                                         {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
-
-    VkDescriptorPoolCreateInfo pool_info = {};
-    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    pool_info.maxSets = 1000;
-    pool_info.poolSizeCount = (uint32_t)std::size(pool_sizes);
-    pool_info.pPoolSizes = pool_sizes;
-
-    VkDescriptorPool imguiPool;
-    vkCreateDescriptorPool(core.device, &pool_info, nullptr, &imguiPool);
-
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForVulkan(window, true);
-    ImGui_ImplVulkan_InitInfo init_info = {};
-    init_info.Instance = core.instance;
-    init_info.PhysicalDevice = core.gpu;
-    init_info.Device = core.device;
-    init_info.Queue = core.graphics_queue;
-    init_info.DescriptorPool = imguiPool;
-    init_info.MinImageCount = 3;
-    init_info.ImageCount = 3;
-    init_info.UseDynamicRendering = true;
-    init_info.PipelineRenderingCreateInfo = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
-    init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
-    init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &swapchain.swapchain_format;
-    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-
-    ImGui_ImplVulkan_Init(&init_info);
-    ImGui_ImplVulkan_CreateFontsTexture();
-
-    global_deletion_stack.push_function([=]() {
-        ImGui_ImplVulkan_Shutdown();
-        vkDestroyDescriptorPool(core.device, imguiPool, nullptr);
-    });
-}
-
+// TODO: extract into own function, default_resources
 void gf::VkManager::init_default_data() {
 
     uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
@@ -504,8 +455,8 @@ void gf::VkManager::init_default_data() {
 
     // Normalization for sake of test
     for (int i = 0; i < text_mesh_data.vertices.size(); i++) {
-        text_mesh_data.vertices[i].position.x = text_mesh_data.vertices[i].position.x / drawn_image.image_size.width;
-        text_mesh_data.vertices[i].position.y = text_mesh_data.vertices[i].position.y / drawn_image.image_size.height;
+        text_mesh_data.vertices[i].position.x = text_mesh_data.vertices[i].position.x / draw_image.image_size.width;
+        text_mesh_data.vertices[i].position.y = text_mesh_data.vertices[i].position.y / draw_image.image_size.height;
     }
 
     vkh_mat::MaterialImage::MaterialResources image_resources(img_buff_allocator);
@@ -540,6 +491,7 @@ void gf::VkManager::init_default_data() {
         vkDestroySampler(core.device, default_sampler_linear, nullptr);
     });
 }
+// TODO: extract into own function
 vkl::GPUMeshBuffers gf::VkManager::upload_mesh(std::span<uint32_t> indices, std::span<vkl::Vertex> vertices) {
     const size_t index_buffer_size = indices.size() * sizeof(uint32_t);
     const size_t vertex_buffer_size = vertices.size() * sizeof(vkl::Vertex);
