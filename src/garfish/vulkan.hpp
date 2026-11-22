@@ -84,7 +84,6 @@ class VkManager {
     VkDescriptorSetLayout draw_image_descriptor_layout;
     vkl::GPUSceneData scene_data;                           // TODO: scene
     VkDescriptorSetLayout gpu_scene_data_descriptor_layout; // TODO: scene?
-    VkDescriptorSetLayout single_image_descriptor_layout;   // TODO: dead, delete.
 
     vkh::ImageManager engine_images;   // TODO: assets
     VkSampler default_sampler_linear;  // TODO: default resources

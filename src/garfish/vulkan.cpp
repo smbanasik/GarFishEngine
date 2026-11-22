@@ -30,17 +30,17 @@
 #include <vulkan_high/debug_ui.hpp>
 #include <vulkan_high/materials/mat_img.hpp>
 #include <vulkan_high/materials/mat_metrough.hpp>
-#include <vulkan_low/resources/alloc_buf.hpp>
-#include <vulkan_low/resources/alloc_img.hpp>
+#include <vulkan_high/renderables/node_text.hpp>
 #include <vulkan_low/descriptors/desc_allocgrow.hpp>
 #include <vulkan_low/descriptors/desc_layoutbuilder.hpp>
 #include <vulkan_low/descriptors/desc_writer.hpp>
-#include <vulkan_low/images.hpp>
 #include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
+#include <vulkan_low/images.hpp>
 #include <vulkan_low/initializers.hpp>
+#include <vulkan_low/resources/alloc_buf.hpp>
+#include <vulkan_low/resources/alloc_img.hpp>
 #include <vulkan_low/types.hpp>
 #include <vulkan_text/font_manager.hpp>
-#include <vulkan_high/renderables/node_text.hpp>
 #include <vulkan_text/text_generate.hpp>
 #include <window_input/wi_manager.hpp>
 
@@ -320,11 +320,6 @@ void gf::VkManager::init_descriptors() {
         gpu_scene_data_descriptor_layout
             = builder.build(core.device, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     }
-    {
-        vkl_desc::DescriptorLayoutBuilder builder;
-        builder.add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-        single_image_descriptor_layout = builder.build(core.device, VK_SHADER_STAGE_FRAGMENT_BIT);
-    }
 
     vkl_desc::DescriptorWriter writer;
     writer.write_image(0, draw_image.image_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL,
@@ -335,7 +330,6 @@ void gf::VkManager::init_descriptors() {
         global_descriptor_allocator.destroy_pools(core.device);
         vkDestroyDescriptorSetLayout(core.device, draw_image_descriptor_layout, nullptr);
         vkDestroyDescriptorSetLayout(core.device, gpu_scene_data_descriptor_layout, nullptr);
-        vkDestroyDescriptorSetLayout(core.device, single_image_descriptor_layout, nullptr);
     });
 }
 

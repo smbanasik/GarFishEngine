@@ -3,8 +3,11 @@
 
 #include <vulkan/vulkan.h>
 
+#include <glm/glm.hpp>
+
 #include <garfish/camera.hpp>
 #include <vulkan_high/graphics_context.hpp>
+#include <vulkan_low/framedata.hpp>
 #include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
 #include <vulkan_low/images.hpp>
 #include <vulkan_low/types.hpp>
@@ -19,9 +22,14 @@ class FrameRenderer {
     FrameRenderer(const FrameRenderer& other) = delete;
     FrameRenderer operator=(const FrameRenderer& other) = delete;
 
-    void draw() {};
+    void init_temp_data() {};
+    void run_temp_data() {};
 
-    void update_scene() {};
+    void draw_background(GraphicsContext& graphics_context, VkCommandBuffer cmd) {};
+    void draw_geometry(GraphicsContext& graphics_context, VkCommandBuffer cmd, vkl_frames::Frame* frame) {};
+
+    void update_scene(gf::wi::Extent2D dims) {};
+    bool is_visible(const vkl::RenderObject& obj, const glm::mat4 viewproj);
 
     vkl_res::AllocatedImage draw_image;
     vkl_res::AllocatedImage depth_image;
@@ -29,6 +37,8 @@ class FrameRenderer {
     VkDescriptorSetLayout draw_image_descriptor_layout;
 
     vkl::DrawContext main_draw_context;
+
+    // TODO: gpu scene data here? Likely!
 
     // TODO: figure out where this goes.
     gf::Camera camera;

@@ -15,6 +15,7 @@
 #include <vulkan_high/mesh_manager.hpp>
 #include <vulkan_high/renderer.hpp>
 #include <vulkan_text/font_manager.hpp>
+#include <window_input/wi_types.hpp>
 
 namespace gf {
 namespace wi {
@@ -39,8 +40,16 @@ class GraphicsSystem {
     GraphicsSystem(const GraphicsSystem& other) = delete;
     GraphicsSystem& operator=(const GraphicsSystem& other) = delete;
 
-    bool is_init = false;
-    bool window_resize_requested = false;
+    // TODO: interface: ways to upload assets
+    // a way to call the draw process
+    // a way to transmit window resizes
+
+    bool is_initialized() { return is_init; }
+    bool get_should_render() { return should_render; }
+    void set_should_render(bool should_render) { this->should_render = should_render; }
+
+    void draw_step(gf::wi::Extent2D dims) {};
+
     gf::EngineStats stats; // TODO: rename to renderer stats
 
     GraphicsContext graphics_context;
@@ -52,6 +61,10 @@ class GraphicsSystem {
 
     gs::DefaultData default_data;
     gs::Renderer renderer;
+
+  private:
+    bool is_init = false;
+    bool should_render = false;
 };
 
 } // namespace gs
