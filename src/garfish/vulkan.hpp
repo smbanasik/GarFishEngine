@@ -24,12 +24,12 @@
 #include <vulkan_high/image_manager.hpp>
 #include <vulkan_high/imageatlas.hpp>
 #include <vulkan_high/materials/material_manager.hpp>
-#include <vulkan_low/graphics_context/alloc.hpp>
-#include <vulkan_low/graphics_context/core.hpp>
 #include <vulkan_low/descriptors/desc_allocgrow.hpp>
 #include <vulkan_low/framedata.hpp>
-#include <vulkan_low/images.hpp>
+#include <vulkan_low/graphics_context/alloc.hpp>
+#include <vulkan_low/graphics_context/core.hpp>
 #include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
+#include <vulkan_low/images.hpp>
 #include <vulkan_low/imm_frame.hpp>
 #include <vulkan_low/mat_types.hpp>
 #include <vulkan_low/pipelines.hpp>
@@ -90,7 +90,6 @@ class VkManager {
     VkSampler default_sampler_linear;  // TODO: default resources
     VkSampler default_sampler_nearest; // TODO: ^
 
-    vkl::MaterialInstance default_data;
     vkh_mat::MaterialManager mat_manager; // TODO: renderer?
     vkl::MaterialInstance image_mat_data;
     vkh::ImageAtlas test_texture;

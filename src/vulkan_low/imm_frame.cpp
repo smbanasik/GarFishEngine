@@ -7,9 +7,9 @@ VkFence imm_fence;
 VkCommandBuffer imm_command_buffer;
 VkCommandPool imm_command_pool;
 
-vkl_frames::ImmediateFrame::ImmediateFrame(vkl_core::VKCore* core)
-    : core_handle(core) {
-    VkCommandPoolCreateInfo pool_info = gf::vk_init::command_pool_info(core_handle->graphics_queue_family, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+vkl_frames::ImmediateFrame::ImmediateFrame(vkl_core::VKCore* core) : core_handle(core) {
+    VkCommandPoolCreateInfo pool_info = gf::vk_init::command_pool_info(core_handle->graphics_queue_family,
+                                                                       VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     vkCreateCommandPool(core_handle->device, &pool_info, nullptr, &imm_command_pool);
     VkCommandBufferAllocateInfo cmd_alloc_info = gf::vk_init::command_allocate_info(imm_command_pool);
     vkAllocateCommandBuffers(core_handle->device, &cmd_alloc_info, &imm_command_buffer);
@@ -24,7 +24,7 @@ vkl_frames::ImmediateFrame::~ImmediateFrame() {
 }
 vkl_frames::ImmediateFrame::ImmediateFrame(ImmediateFrame&& other) noexcept
     : imm_fence(std::move(other.imm_fence)), imm_command_buffer(std::move(other.imm_command_buffer)),
-    imm_command_pool(std::move(other.imm_command_pool)), core_handle(std::move(other.core_handle)) {
+      imm_command_pool(std::move(other.imm_command_pool)), core_handle(std::move(other.core_handle)) {
     other.imm_command_pool = nullptr;
     other.imm_fence = nullptr;
 }

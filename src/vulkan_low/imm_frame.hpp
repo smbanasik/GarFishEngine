@@ -1,12 +1,12 @@
 /**
-* @file
-* @author Spencer Banasik
-*/
+ * @file
+ * @author Spencer Banasik
+ */
 #ifndef VKL_IMM_FRAME_HPP
 #define VKL_IMM_FRAME_HPP
 
-#include <utility>
 #include <functional>
+#include <utility>
 
 #include <vulkan/vulkan.h>
 
@@ -16,8 +16,7 @@ class VKCore;
 
 namespace vkl_frames {
 class ImmediateFrame {
-public:
-
+  public:
     ImmediateFrame(vkl_core::VKCore* core);
     ~ImmediateFrame();
     ImmediateFrame(ImmediateFrame&& other) noexcept;
@@ -36,8 +35,9 @@ public:
     VkCommandPool imm_command_pool;
 
     void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
-private:
+
+  private:
     vkl_core::VKCore* core_handle;
 };
-}
+} // namespace vkl_frames
 #endif
