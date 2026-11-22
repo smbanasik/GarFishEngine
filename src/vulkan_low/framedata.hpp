@@ -10,7 +10,7 @@
 #include <vulkan/vulkan.h>
 
 #include <common/delstack.hpp>
-#include <vulkan_low/desc_allocgrow.hpp>
+#include <vulkan_low/descriptors/desc_allocgrow.hpp>
 
 namespace vkl_core {
 class VKCore;

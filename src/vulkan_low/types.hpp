@@ -16,10 +16,10 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
-#include <vulkan_low/desc_allocgrow.hpp>
+#include <vulkan_low/descriptors/desc_allocgrow.hpp>
 #include <common/delstack.hpp>
 #include <vulkan_low/images.hpp>
-#include <vulkan_low/alloc_buf.hpp>
+#include <vulkan_low/resources/alloc_buf.hpp>
 #include <vulkan_low/mat_types.hpp>
 
 namespace vkl {

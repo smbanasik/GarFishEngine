@@ -11,10 +11,10 @@
 
 #include <vulkan_low/initializers.hpp>
 #include <vulkan_low/types.hpp>
-#include <vulkan_low/core.hpp>
-#include <vulkan_low/alloc.hpp>
+#include <vulkan_low/graphics_context/core.hpp>
+#include <vulkan_low/graphics_context/alloc.hpp>
 #include <vulkan_low/imm_frame.hpp>
-#include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
 
 #include <vulkan/vk_enum_string_helper.h>
 #include <iostream>

@@ -11,7 +11,7 @@
 
 #include <glm/vec2.hpp>
 
-#include <vulkan_low/alloc_img.hpp>
+#include <vulkan_low/resources/alloc_img.hpp>
 
 namespace vkh {
 /**

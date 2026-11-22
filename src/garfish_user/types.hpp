@@ -10,7 +10,7 @@
 #include <glm/vec2.hpp>
 
 #include <vulkan_low/types.hpp>
-#include <vulkan_high/imaterial.hpp>
+#include <vulkan_high/materials/imaterial.hpp>
 #include <vulkan_high/imageatlas.hpp>
 namespace gf {
 

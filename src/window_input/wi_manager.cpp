@@ -8,7 +8,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include<GLFW/glfw3.h>
 
-#include <vulkan_low/core.hpp>
+#include <vulkan_low/graphics_context/core.hpp>
 
 gf::wi::WIManager* gf::wi::WIManager::loaded_glfw = nullptr;
 

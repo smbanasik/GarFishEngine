@@ -2,7 +2,7 @@
 
 #include <VkBootstrap.h>
 
-#include <vulkan_low/core.hpp>
+#include <vulkan_low/graphics_context/core.hpp>
 
 vkl_frames::SwapChain::SwapChain(vkl_core::VKCore* core, uint32_t width, uint32_t height) : core_handle(core) {
     remake_swapchain(width, height);

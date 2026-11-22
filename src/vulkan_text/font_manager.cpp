@@ -11,12 +11,10 @@
 
 FT_Library* vkh_font_manager::FontManager::ft_lib = nullptr;
 
-bool init_face(FT_Library ft_lib, FT_Face& font, const std::string& font_path,
-               unsigned int pix_size = 48) {
+bool init_face(FT_Library ft_lib, FT_Face& font, const std::string& font_path, unsigned int pix_size = 48) {
     FT_Error err = FT_New_Face(ft_lib, font_path.c_str(), 0, &font);
     if (err) {
-        std::cerr << "FT_New_Face failed with error " << err
-                  << " for file: " << font_path.c_str() << "\n";
+        std::cerr << "FT_New_Face failed with error " << err << " for file: " << font_path.c_str() << "\n";
         return false;
     }
     FT_Set_Pixel_Sizes(font, 0, pix_size);
@@ -24,10 +22,8 @@ bool init_face(FT_Library ft_lib, FT_Face& font, const std::string& font_path,
 };
 
 vkh_font_manager::FontManager::FontManager(FontManager&& other) noexcept
-    : font_textures(std::move(other.font_textures)),
-      font_spacings(std::move(other.font_spacings)),
-      image_allocator(std::move(other.image_allocator)) {
-};
+    : font_textures(std::move(other.font_textures)), font_spacings(std::move(other.font_spacings)),
+      image_allocator(other.image_allocator) {};
 
 vkh_font_manager::Font vkh_font_manager::FontManager::get_font(const std::string& name) {
     Font new_font;
@@ -36,8 +32,7 @@ vkh_font_manager::Font vkh_font_manager::FontManager::get_font(const std::string
     return new_font;
 }
 
-vkh_font_manager::Font vkh_font_manager::FontManager::load_font(const std::string& name,
-                                                                const std::string& path) {
+vkh_font_manager::Font vkh_font_manager::FontManager::load_font(const std::string& name, const std::string& path) {
 
     FT_Face face;
     bool success = init_face(*FontManager::ft_lib, face, path);
@@ -45,8 +40,7 @@ vkh_font_manager::Font vkh_font_manager::FontManager::load_font(const std::strin
     // TODO: If !success
 
     font_spacings.try_emplace(name, vkh_font_data::create_font_spacings(face));
-    font_textures.try_emplace(name,
-                              vkh_font_image::create_font_image(face, &image_allocator));
+    font_textures.try_emplace(name, vkh_font_image::create_font_image(face, image_allocator));
 
     return get_font(name);
 }

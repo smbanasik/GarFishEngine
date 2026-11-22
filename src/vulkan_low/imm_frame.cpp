@@ -1,6 +1,6 @@
 #include <vulkan_low/imm_frame.hpp>
 
-#include <vulkan_low/core.hpp>
+#include <vulkan_low/graphics_context/core.hpp>
 #include <vulkan_low/initializers.hpp>
 
 VkFence imm_fence;

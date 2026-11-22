@@ -7,7 +7,7 @@
 #include FT_FREETYPE_H
 
 #include <common/grid.hpp>
-#include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
 
 vkh_font_image::FontImage vkh_font_image::create_font_image(
     FT_Face face, vkl_res::ImageBufferAllocator* allocator) {

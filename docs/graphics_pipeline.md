@@ -7,7 +7,7 @@ There are many moving parts in the GarFish engine, and extending upon it can be 
 
 Shaders receive external data (that is, data that isn't from a previous shader) in two ways: descriptor sets and push constants. Descriptor sets are the default way of passing information to shaders and are used to pass buffers, images, and so on. Push constants are small pieces of data stored in the command buffer itself and occur once per draw call (such as vkCmdDrawIndexed). 
 
-Our shaders make use of the device buffer address extension to pass the buffer address as a push constant instead of passing the buffer through a descriptor set. In terms of the data flow that we'll recieve texture data and other data from the descriptor set and the raw vertex data from the push constants. 
+Our shaders make use of the device buffer address extension to pass the buffer address as a push constant instead of passing the buffer through a descriptor set. In terms of the data flow that we'll receive texture data and other data from the descriptor set and the raw vertex data from the push constants. 
 
 ## Considering Commands
 

@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief Manager for Fonts
- * @author Spencer Banasik 
+ * @author Spencer Banasik
  */
 #ifndef VKH_TEXTHIGH_HPP
 #define VKH_TEXTHIGH_HPP
@@ -12,9 +12,9 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-#include <vulkan_low/alloc_img.hpp>
-#include <vulkan_low/desc_allocgrow.hpp>
-#include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_low/resources/alloc_img.hpp>
+#include <vulkan_low/descriptors/desc_allocgrow.hpp>
+#include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
 #include <vulkan_low/mat_types.hpp>
 
 #include <vulkan_text/font_data.hpp>
@@ -47,11 +47,8 @@ struct Font {
  */
 class FontManager {
   public:
-
-    FontManager(vkl_core::VKCore* core_handle, vkl_core::VMAAllocWrapper* alloc_handle,
-                vkl_frames::ImmediateFrame* imm_handle)
-        : font_textures(), font_spacings(),
-          image_allocator(core_handle, alloc_handle, imm_handle) {};
+    FontManager(vkl_res::ImageBufferAllocator& allocator)
+        : font_textures(), font_spacings(), image_allocator(&allocator) {};
     FontManager(const FontManager& other) = delete;
     FontManager(FontManager&& other) noexcept;
     FontManager& operator=(const FontManager& other) = delete;
@@ -60,7 +57,7 @@ class FontManager {
             return *this;
         font_textures = std::move(other.font_textures);
         font_spacings = std::move(other.font_spacings);
-        image_allocator = std::move(other.image_allocator);
+        image_allocator = other.image_allocator;
         return *this;
     }
     ~FontManager() {};
@@ -75,7 +72,7 @@ class FontManager {
   private:
     std::unordered_map<std::string, vkh_font_image::FontImage> font_textures;
     std::unordered_map<std::string, vkh_font_data::FontData> font_spacings;
-    vkl_res::ImageBufferAllocator image_allocator;
+    vkl_res::ImageBufferAllocator* image_allocator;
 };
 
 } // namespace vkh_font_manager

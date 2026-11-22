@@ -1,8 +1,8 @@
 /**
-* @file
-* @brief Holds render related bundles.
-* @author Spencer Banasik
-*/
+ * @file
+ * @brief Holds render related bundles.
+ * @author Spencer Banasik
+ */
 #ifndef VK_RENDERABLE_HPP
 #define VK_RENDERABLE_HPP
 
@@ -43,9 +43,9 @@ struct GeoSurface {
  */
 struct MeshAsset {
     std::string name;
-    std::vector<GeoSurface> surfaces;   
+    std::vector<GeoSurface> surfaces;
     vkl::GPUMeshBuffers mesh_buffers;
 };
 
-}
+} // namespace vkh_render
 #endif

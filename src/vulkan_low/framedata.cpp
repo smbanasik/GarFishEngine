@@ -1,6 +1,6 @@
 #include <vulkan_low/framedata.hpp>
 
-#include <vulkan_low/core.hpp>
+#include <vulkan_low/graphics_context/core.hpp>
 #include <vulkan_low/initializers.hpp>
 
 vkl_frames::FrameData::FrameData(vkl_core::VKCore* core)

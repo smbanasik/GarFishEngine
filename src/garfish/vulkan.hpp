@@ -18,18 +18,18 @@
 #include <common/delstack.hpp>
 #include <common/paths.hpp>
 #include <garfish/camera.hpp>
-#include <garfish/resource_manager.hpp>
 #include <garfish/stats.hpp>
 #include <garfish_user/types.hpp>
-#include <vulkan_high/gltf.hpp>
+#include <vulkan_high/asset_loaders/gltf.hpp>
+#include <vulkan_high/image_manager.hpp>
 #include <vulkan_high/imageatlas.hpp>
-#include <vulkan_high/material_manager.hpp>
-#include <vulkan_low/alloc.hpp>
-#include <vulkan_low/core.hpp>
-#include <vulkan_low/desc_allocgrow.hpp>
+#include <vulkan_high/materials/material_manager.hpp>
+#include <vulkan_low/graphics_context/alloc.hpp>
+#include <vulkan_low/graphics_context/core.hpp>
+#include <vulkan_low/descriptors/desc_allocgrow.hpp>
 #include <vulkan_low/framedata.hpp>
 #include <vulkan_low/images.hpp>
-#include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
 #include <vulkan_low/imm_frame.hpp>
 #include <vulkan_low/mat_types.hpp>
 #include <vulkan_low/pipelines.hpp>
@@ -61,10 +61,10 @@ class VkManager {
   public:
     vkl_core::VKCore core;
     vkl_core::VMAAllocWrapper alloc;
-    vkl_frames::SwapChain swapchain;
-    vkl_frames::FrameData frame_data;
-    vkl_frames::ImmediateFrame imm_frame;
-    vkl_res::ImageBufferAllocator img_buff_allocator;
+    vkl_frames::SwapChain swapchain;                  // Renderer
+    vkl_frames::FrameData frame_data;                 // Renderer
+    vkl_frames::ImmediateFrame imm_frame;             // Renderer, probably?
+    vkl_res::ImageBufferAllocator img_buff_allocator; // TODO: find a home
     vkl_desc::DescriptorAllocatorGrowable global_descriptor_allocator;
     gf::EngineStats stats; // TODO: rename to renderer stats
     const com::PathFinder& path_finder;
@@ -77,7 +77,7 @@ class VkManager {
      */
     vkl_res::AllocatedImage draw_image; // TODO: sceneRenderer for now?
     vkl_res::AllocatedImage depth_image;
-    VkExtent2D drawn_size;
+    VkExtent2D draw_size;
     float render_scale = 1.f;
 
     VkDescriptorSet draw_image_descriptors;
@@ -86,7 +86,7 @@ class VkManager {
     VkDescriptorSetLayout gpu_scene_data_descriptor_layout; // TODO: scene?
     VkDescriptorSetLayout single_image_descriptor_layout;   // TODO: dead, delete.
 
-    ImageManager engine_images;        // TODO: assets
+    vkh::ImageManager engine_images;   // TODO: assets
     VkSampler default_sampler_linear;  // TODO: default resources
     VkSampler default_sampler_nearest; // TODO: ^
 
@@ -96,10 +96,13 @@ class VkManager {
     vkh::ImageAtlas test_texture;
     vkh_font_manager::FontManager font_manager;
 
-    vkl::DrawContext main_draw_context;                                                    // TODO: scene
-    std::unordered_map<std::string, std::shared_ptr<vkh_render::Node>> loaded_nodes;       // TODO: asset manager
-    std::unordered_map<std::string, std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes; // TODO: asset manager
-    Camera camera;                                                                         // TODO: scene?
+    vkl::DrawContext main_draw_context;
+    std::unordered_map<std::string,
+                       std::shared_ptr<vkh_render::Node>> loaded_nodes; // TODO: asset manager
+    std::unordered_map<std::string,
+                       std::shared_ptr<vk_loader::LoadedGLTF>> loaded_scenes; // TODO: asset manager
+
+    Camera camera; // TODO: scene?
 
     std::vector<vkl::ComputeEffect> background_effects; // For fun!
     int current_background_effect{0};                   // For fun!
@@ -141,7 +144,7 @@ class VkManager {
      * @param [in, out] cmd Buffer that we push draw commands to.
      * @param [in] clear Clear color, not used.
      */
-    void draw_background(VkCommandBuffer cmd, VkClearColorValue& clear); // TODO: background_effects
+    void draw_background(VkCommandBuffer cmd);
 
     /**
      * @brief Draws the geometry from the draw contexts.

@@ -27,20 +27,20 @@
 #include <stb_image.h>
 #include FT_FREETYPE_H
 
-#include <garfish/debug_ui.hpp>
-#include <vulkan_high/mat_img.hpp>
-#include <vulkan_high/mat_metrough.hpp>
-#include <vulkan_low/alloc_buf.hpp>
-#include <vulkan_low/alloc_img.hpp>
-#include <vulkan_low/desc_allocgrow.hpp>
-#include <vulkan_low/desc_layoutbuilder.hpp>
-#include <vulkan_low/desc_writer.hpp>
+#include <vulkan_high/debug_ui.hpp>
+#include <vulkan_high/materials/mat_img.hpp>
+#include <vulkan_high/materials/mat_metrough.hpp>
+#include <vulkan_low/resources/alloc_buf.hpp>
+#include <vulkan_low/resources/alloc_img.hpp>
+#include <vulkan_low/descriptors/desc_allocgrow.hpp>
+#include <vulkan_low/descriptors/desc_layoutbuilder.hpp>
+#include <vulkan_low/descriptors/desc_writer.hpp>
 #include <vulkan_low/images.hpp>
-#include <vulkan_low/imgbuf_alloc.hpp>
+#include <vulkan_low/graphics_context/imgbuf_alloc.hpp>
 #include <vulkan_low/initializers.hpp>
 #include <vulkan_low/types.hpp>
 #include <vulkan_text/font_manager.hpp>
-#include <vulkan_text/node_text.hpp>
+#include <vulkan_high/renderables/node_text.hpp>
 #include <vulkan_text/text_generate.hpp>
 #include <window_input/wi_manager.hpp>
 
@@ -91,14 +91,14 @@ gf::VkManager* gf::VkManager::loaded_vk = nullptr;
 static FT_Library ft_lib;
 
 gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_context, const com::PathFinder& path_finder)
-    : core(&wi_manager, &wi_context), alloc(&core), path_finder(path_finder),
+    : core(&wi_manager, &wi_context), alloc(core.instance, core.gpu, core.device), path_finder(path_finder),
       swapchain(&core, wi_context.window.get_window_dims().width, wi_context.window.get_window_dims().height),
       frame_data(&core), imm_frame(&core), img_buff_allocator(&core, &alloc, &imm_frame),
       engine_images(img_buff_allocator),
 
       draw_image(img_buff_allocator), depth_image(img_buff_allocator),
 
-      mat_manager(this, &core.device), font_manager(&core, &alloc, &imm_frame)
+      mat_manager(this, &core.device), font_manager(img_buff_allocator)
 
 {
 
@@ -122,7 +122,6 @@ gf::VkManager::VkManager(wi::WIManager& wi_manager, wi::WInputContext& wi_contex
 
     loaded_scenes["structure"] = *structureFile;
 
-    // camera.position = glm::vec3(30.f, -00.f, -085.f);
     camera.position = glm::vec3(0.f, 0.f, 1.f);
     is_init = true;
 }
@@ -139,10 +138,7 @@ gf::VkManager& gf::VkManager::get() {
     return *loaded_vk;
 }
 
-void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clear) { // TODO: background
-    VkImageSubresourceRange clear_range = vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-    // vkCmdClearColorImage(cmd, draw_image.image, VK_IMAGE_LAYOUT_GENERAL, &clear, 1, &clear_range);
-
+void gf::VkManager::draw_background(VkCommandBuffer cmd) { // TODO: background
     vkl::ComputeEffect& effect = background_effects[current_background_effect];
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, gradient_pipeline_layout, 0, 1,
@@ -150,7 +146,7 @@ void gf::VkManager::draw_background(VkCommandBuffer cmd, VkClearColorValue& clea
 
     vkCmdPushConstants(cmd, gradient_pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(vkl::ComputePushConstants),
                        &effect.data);
-    vkCmdDispatch(cmd, std::ceil(drawn_size.width / 16.0), std::ceil(drawn_size.height / 16.0), 1);
+    vkCmdDispatch(cmd, std::ceil(draw_size.width / 16.0), std::ceil(draw_size.height / 16.0), 1);
 }
 
 void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame) { // TODO: scene renderer
@@ -178,7 +174,7 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
         = vk_init::attachment_info(draw_image.image_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingAttachmentInfo depth_attachment
         = vk_init::depth_attachment_info(depth_image.image_view, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
-    VkRenderingInfo render_info = vk_init::rendering_info(drawn_size, &color_attachment, &depth_attachment);
+    VkRenderingInfo render_info = vk_init::rendering_info(draw_size, &color_attachment, &depth_attachment);
     vkCmdBeginRendering(cmd, &render_info);
 
     vkl::MaterialPipeline* last_pipeline = nullptr;
@@ -198,8 +194,8 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
                 VkViewport viewport = {};
                 viewport.x = 0;
                 viewport.y = 0;
-                viewport.width = drawn_size.width;
-                viewport.height = drawn_size.height;
+                viewport.width = draw_size.width;
+                viewport.height = draw_size.height;
                 viewport.minDepth = 0.f;
                 viewport.maxDepth = 1.f;
                 vkCmdSetViewport(cmd, 0, 1, &viewport);
@@ -207,8 +203,8 @@ void gf::VkManager::draw_geometry(VkCommandBuffer cmd, vkl_frames::Frame* frame)
                 VkRect2D scissor = {};
                 scissor.offset.x = 0;
                 scissor.offset.y = 0;
-                scissor.extent.width = drawn_size.width;
-                scissor.extent.height = drawn_size.height;
+                scissor.extent.width = draw_size.width;
+                scissor.extent.height = draw_size.height;
                 vkCmdSetScissor(cmd, 0, 1, &scissor);
             }
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, rendered.material->pipeline->layout, 1, 1,

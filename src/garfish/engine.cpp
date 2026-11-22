@@ -18,8 +18,8 @@
 
 #include <common/logger.hpp>
 #include <common/paths.hpp>
-#include <garfish/debug_ui.hpp>
 #include <garfish/vulkan.hpp>
+#include <vulkan_high/debug_ui.hpp>
 #include <vulkan_low/images.hpp>
 #include <vulkan_low/initializers.hpp>
 
@@ -104,15 +104,6 @@ void gf::Engine::run() {
 }
 
 // TODO: renderer
-void flash_bg(VkCommandBuffer cmd, gf::VkManager& context, uint64_t frame_number) {
-    VkClearColorValue screen_color;
-    float blue_flash = std::abs(std::sin(frame_number / 120.0f));
-    screen_color = {{0.0f, blue_flash * 0.5f, blue_flash, 1.0f}};
-    VkImageSubresourceRange clear_range = gf::vk_init::subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-    context.draw_background(cmd, screen_color);
-}
-
-// TODO: renderer
 void gf::Engine::draw() {
     ZoneScopedN("Engine::draw");
     vk_context.update_scene(window_dims.width, window_dims.height);
@@ -139,17 +130,18 @@ void gf::Engine::draw() {
     VkCommandBufferBeginInfo cmd_begin_info = vk_init::begin_command(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmd_begin_info));
 
-    // Image - Set up drawn image
-    vk_context.drawn_size.width
+    // Image - Set up draw image
+    vk_context.draw_size.width
         = std::min(vk_context.swapchain.swapchain_extent.width, vk_context.draw_image.image_size.width)
         * vk_context.render_scale;
-    vk_context.drawn_size.height
+    vk_context.draw_size.height
         = std::min(vk_context.swapchain.swapchain_extent.height, vk_context.draw_image.image_size.height)
         * vk_context.render_scale;
     vkl_img::transition_image(cmd, vk_context.draw_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     // Action - perform actual commands
-    flash_bg(cmd, vk_context, frame_number); // TEMP FUNCTION - hardcoded with drawn image
+
+    vk_context.draw_background(cmd);
 
     vkl_img::transition_image(cmd, vk_context.draw_image.image, VK_IMAGE_LAYOUT_GENERAL,
                               VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -164,7 +156,7 @@ void gf::Engine::draw() {
     vkl_img::transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx],
                               VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     vkl_img::copy_image_to_image(cmd, vk_context.draw_image.image,
-                                 vk_context.swapchain.swapchain_images[swapchain_image_idx], vk_context.drawn_size,
+                                 vk_context.swapchain.swapchain_images[swapchain_image_idx], vk_context.draw_size,
                                  vk_context.swapchain.swapchain_extent);
 
     vkl_img::transition_image(cmd, vk_context.swapchain.swapchain_images[swapchain_image_idx],
